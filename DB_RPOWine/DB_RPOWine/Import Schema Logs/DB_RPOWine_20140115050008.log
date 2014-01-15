@@ -1,0 +1,69 @@
+1/15/2014 12:00:08 AM	This log contains information about the import schema operation into project 'DB_RPOWine' on computer 'ERP-DEV-2008' by user 'alex'.
+1/15/2014 12:00:08 AM	Import of database schema has started.
+1/15/2014 12:00:15 AM	Gathering database options
+1/15/2014 12:00:15 AM	Gathering users
+1/15/2014 12:00:15 AM	Gathering roles
+1/15/2014 12:00:15 AM	Gathering application roles
+1/15/2014 12:00:15 AM	Gathering role memberships
+1/15/2014 12:00:15 AM	Gathering filegroups
+1/15/2014 12:00:15 AM	Gathering full-text catalogs
+1/15/2014 12:00:15 AM	Gathering assemblies
+1/15/2014 12:00:15 AM	Gathering certificates
+1/15/2014 12:00:15 AM	Gathering asymmetric keys
+1/15/2014 12:00:15 AM	Gathering symmetric keys
+1/15/2014 12:00:15 AM	Gathering encrypted symmetric keys
+1/15/2014 12:00:15 AM	Gathering schemas
+1/15/2014 12:00:15 AM	Gathering XML schema collections
+1/15/2014 12:00:15 AM	Gathering user-defined data types
+1/15/2014 12:00:15 AM	Gathering user-defined types
+1/15/2014 12:00:15 AM	Gathering table types
+1/15/2014 12:00:15 AM	Gathering unique keys for table types
+1/15/2014 12:00:15 AM	Gathering primary keys for table types
+1/15/2014 12:00:15 AM	Gathering check constraints for table types
+1/15/2014 12:00:15 AM	Gathering default constraints for table types
+1/15/2014 12:00:15 AM	Gathering partition functions
+1/15/2014 12:00:15 AM	Gathering partition schemes
+1/15/2014 12:00:15 AM	Gathering functions
+1/15/2014 12:00:15 AM	Gathering encrypted functions
+1/15/2014 12:00:15 AM	Gathering aggregates
+1/15/2014 12:00:15 AM	Gathering procedures
+1/15/2014 12:00:15 AM	Gathering encrypted procedures
+1/15/2014 12:00:15 AM	Gathering tables
+1/15/2014 12:00:15 AM	Gathering primary keys
+1/15/2014 12:00:15 AM	Gathering unique constraints
+1/15/2014 12:00:15 AM	Gathering foreign keys
+1/15/2014 12:00:15 AM	Gathering default constraints
+1/15/2014 12:00:15 AM	Gathering check constraints
+1/15/2014 12:00:15 AM	Gathering views
+1/15/2014 12:00:15 AM	Gathering encrypted views
+1/15/2014 12:00:15 AM	Gathering indexes
+1/15/2014 12:00:15 AM	Gathering statistics
+1/15/2014 12:00:15 AM	Gathering full-text index stoplists
+1/15/2014 12:00:15 AM	Gathering full-text indexes
+1/15/2014 12:00:15 AM	Gathering spatial indexes
+1/15/2014 12:00:15 AM	Gathering XML indexes
+1/15/2014 12:00:15 AM	Gathering encrypted triggers
+1/15/2014 12:00:15 AM	Gathering triggers
+1/15/2014 12:00:15 AM	Gathering encrypted and clr ddl triggers
+1/15/2014 12:00:15 AM	Gathering ddl triggers
+1/15/2014 12:00:15 AM	Gathering synonyms
+1/15/2014 12:00:15 AM	Gathering defaults
+1/15/2014 12:00:15 AM	Gathering data constraint uddt bindings
+1/15/2014 12:00:15 AM	Gathering rules
+1/15/2014 12:00:15 AM	Gathering data constraint uddt bindings
+1/15/2014 12:00:15 AM	Gathering message types
+1/15/2014 12:00:15 AM	Gathering queues
+1/15/2014 12:00:15 AM	Gathering contracts
+1/15/2014 12:00:15 AM	Gathering services
+1/15/2014 12:00:15 AM	Gathering event notifications
+1/15/2014 12:00:15 AM	Gathering remote service bindings
+1/15/2014 12:00:15 AM	Gathering broker priorities
+1/15/2014 12:00:15 AM	Gathering signatures
+1/15/2014 12:00:15 AM	Gathering data compression options
+1/15/2014 12:00:15 AM	Gathering database permissions
+1/15/2014 12:00:15 AM	Gathering extended properties
+1/15/2014 12:00:17 AM	Scanning project for duplicate elements
+1/15/2014 12:00:17 AM	Finished duplicate element processing
+1/15/2014 12:00:18 AM	Finished importing database.
+1/15/2014 12:00:18 AM	A summary of the import was saved to the following location: D:\PROJECTS\PROJECTS_2014\Alex\Repos_DBProj\DB_RPOWine\DB_RPOWine\Import Schema Logs\DB_RPOWine_20140115050008.log
+1/15/2014 12:00:18 AM	Click Finish to continue...

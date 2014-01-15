@@ -1,0 +1,23 @@
+﻿CREATE TABLE [dbo].[Wine_N] (
+    [ID]             INT           IDENTITY (1, 1) NOT NULL,
+    [Wine_VinN_ID]   INT           NOT NULL,
+    [VintageID]      INT           NOT NULL,
+    [oldIdn]         INT           NULL,
+    [oldEntryN]      INT           NULL,
+    [oldFixedId]     INT           NULL,
+    [oldWineNameIdN] INT           NULL,
+    [created]        SMALLDATETIME DEFAULT (getdate()) NOT NULL,
+    [updated]        SMALLDATETIME NULL,
+    [WF_StatusID]    SMALLINT      DEFAULT ((0)) NOT NULL,
+    CONSTRAINT [PK_Wine_N] PRIMARY KEY CLUSTERED ([ID] ASC) ON [Wine],
+    CONSTRAINT [FK_Wine_N_Wine_VinN] FOREIGN KEY ([Wine_VinN_ID]) REFERENCES [dbo].[Wine_VinN] ([ID]),
+    CONSTRAINT [FK_Wine_N_WineVintage] FOREIGN KEY ([VintageID]) REFERENCES [dbo].[WineVintage] ([ID])
+);
+
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [IX_Wine_N_Uniq]
+    ON [dbo].[Wine_N]([Wine_VinN_ID] ASC, [VintageID] ASC)
+    INCLUDE([ID], [WF_StatusID])
+    ON [Wine];
+
