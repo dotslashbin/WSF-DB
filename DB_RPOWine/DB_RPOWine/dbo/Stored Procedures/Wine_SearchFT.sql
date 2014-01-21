@@ -15,66 +15,11 @@ SET NUMERIC_ROUNDABORT OFF
 
 select @SearchString = replace(replace(rtrim(ltrim(@SearchString)), '%', '*'), '  ', ' ')
 
--- ===== special keywords =====
-declare @newSearchString nvarchar(1024) = '',
-	@sS nvarchar(120), @sD nvarchar(240)
-
--- complex phrases
-if charindex(' ', @SearchString) > 0 begin
-	declare crPh CURSOR forward_only fast_forward read_only for
-		select Source, Destination 
-		from KeywordMap_Wine km (nolock) 
-		where charindex(' ', km.Source) > 0
-			and @SearchString like '%' + km.Source + '%'
-	open crPh
-	fetch next from crPh into @sS, @sD
-	while @@fetch_status = 0 begin
-		if @sS is NOT NULL begin
-			select @SearchString = replace(@SearchString, @sS, '')
-			if len(@newSearchString) > 0
-				select @newSearchString += ' AND ' 
-			select @newSearchString += case when @sD is null then @sS else @sD end
-		end
-		fetch next from crPh into @sS, @sD
-	end
-	close crPh
-	deallocate crPh
-end
-
-select @SearchString = rtrim(ltrim(@SearchString))
-
--- single words
-if len(@SearchString) > 0 begin
-	if isnull(charindex(' ', @SearchString), 0) < 1 begin
-		if len(@newSearchString) > 0
-			select @newSearchString += ' AND ' 
-		select @sD = Destination from KeywordMap_Wine (nolock) where Source = @SearchString
-		select @newSearchString += case when @sD is null then @SearchString else @sD end
-	end else begin
-		declare cr CURSOR forward_only fast_forward read_only for
-			select Source = f.Item, Destination 
-			from dbo.String2Table(@SearchString, ' ') f 
-				left join KeywordMap_Wine km (nolock) on km.Source = replace(f.Item, '"' , '')
-			where f.Item != '""'
-
-		open cr
-		fetch next from cr into @sS, @sD
-		while @@fetch_status = 0 begin
-			if @sS is NOT NULL begin
-				if len(@newSearchString) > 0
-					select @newSearchString += ' AND ' 
-				select @newSearchString += case when @sD is null then @sS else @sD end
-			end
-			fetch next from cr into @sS, @sD
-		end
-		close cr
-		deallocate cr
-	end
-end
--- ===== end of special keywords =====
+-- applying macroses
+select @SearchString = dbo.fn_GetAdjustedSearchString(@SearchString)
 
 if @isDebug = 1
-	print @newSearchString
+	print @SearchString
 
 --------- Results --------
 select -- top(@topNRows) -->> cannot use here because of sorting
@@ -82,7 +27,7 @@ select -- top(@topNRows) -->> cannot use here because of sorting
 	locCountryID, locRegionID, locLocationID, locLocaleID, locSiteID,
 	ProducerID, TypeID, LabelID, VarietyID, DrynessID, ColorID,	VintageID
 into #t
-from vWineDetails where contains(*, @newSearchString)
+from vWineDetails where contains(*, @SearchString)
 
 if @@rowcount > 100 begin
 	if @isDebug = 1
@@ -96,7 +41,7 @@ end
 --	select WineN_ID, 
 --		locCountryID, locRegionID, locLocationID, locLocaleID, locSiteID,
 --		ProducerID, TypeID, LabelID, VarietyID, DrynessID, ColorID,	VintageID
---	from vWineDetails where contains(*, @newSearchString)
+--	from vWineDetails where contains(*, @SearchString)
 --)
 select top(@topNRows)
 	Wine_N_ID = r.Wine_N_ID,

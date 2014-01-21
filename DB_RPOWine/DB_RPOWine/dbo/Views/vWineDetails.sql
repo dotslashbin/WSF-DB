@@ -1,5 +1,4 @@
-﻿
-CREATE VIEW [dbo].[vWineDetails]
+﻿CREATE VIEW [dbo].[vWineDetails]
 WITH SCHEMABINDING
 
 AS
@@ -10,13 +9,14 @@ AS
 
 		Country = lc.Name, Region = lr.Name, Location = ll.Name, 
 		Locale = lloc.Name, Site = ls.Name,
+		Appellation = coalesce(ls.Name, lloc.name, ll.name, lr.name, lc.name),
 
 		Producer = wp.Name, ProducerToShow = wp.NameToShow,
 		[Type] = wt.Name, Label = wl.Name,
 		Variety = wv.Name, Dryness = wd.Name, Color = wc.Name,
 		Vintage = wvin.Name,
 		
-		Name = rtrim(ltrim(wp.NameToShow + ' ' + wl.Name + ' ' + wvin.Name) + case
+		Name = rtrim(ltrim(wp.NameToShow + ' ' + wl.Name + ' ' + wv.Name + ' ' + wvin.Name) + case
 			when wl.DefaultDrynessID != wd.ID then ' ' + wd.Name
 			else ''
 		end + case
@@ -57,9 +57,7 @@ AS
 		join dbo.LocationLocation ll on vn.locLocationID = ll.ID
 		join dbo.LocationLocale lloc on vn.locLocaleID = lloc.ID
 		join dbo.LocationSite ls on vn.locSiteID = ls.ID
-
-
-
+	--where wn.WF_StatusID > 99
 GO
 GRANT SELECT
     ON OBJECT::[dbo].[vWineDetails] TO [RP_Customer]
@@ -70,4 +68,31 @@ GO
 GRANT SELECT
     ON OBJECT::[dbo].[vWineDetails] TO [RP_DataAdmin]
     AS [dbo];
+GO
+--SET ARITHABORT ON
+--GO
+--SET CONCAT_NULL_YIELDS_NULL ON
+--GO
+--SET QUOTED_IDENTIFIER ON
+--GO
+--SET ANSI_NULLS ON
+--GO
+--SET ANSI_PADDING ON
+--GO
+--SET ANSI_WARNINGS ON
+--GO
+--SET NUMERIC_ROUNDABORT OFF
+--GO
+CREATE UNIQUE CLUSTERED INDEX [PK_vWineDetails] ON [dbo].[vWineDetails] 
+(
+	[Wine_N_ID] ASC
+)WITH (STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) 
+ON [WineIndx]
+GO
 
+CREATE FULLTEXT INDEX ON [dbo].[vWineDetails](
+[Keywords] LANGUAGE [English]
+)
+KEY INDEX [PK_vWineDetails]ON ([RPOWine_FTSearchWine], FILEGROUP [WineIndx])
+WITH (CHANGE_TRACKING = AUTO, STOPLIST = OFF)
+GO

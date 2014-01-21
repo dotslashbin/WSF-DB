@@ -1,0 +1,9 @@
+D:\PROJECTS\PROJECTS_2014\Alex\Repos_DBProj\DB_RPOWine\DB_RPOWine\bin\Debug\DB_RPOWine.dacpac
+D:\PROJECTS\PROJECTS_2014\Alex\Repos_DBProj\DB_RPOWine\DB_RPOWine\obj\Debug\Model.xml
+D:\PROJECTS\PROJECTS_2014\Alex\Repos_DBProj\DB_RPOWine\DB_RPOWine\obj\Debug\refactor.xml
+D:\PROJECTS\PROJECTS_2014\Alex\Repos_DBProj\DB_RPOWine\DB_RPOWine\obj\Debug\postdeploy.sql
+D:\PROJECTS\PROJECTS_2014\Alex\Repos_DBProj\DB_RPOWine\DB_RPOWine\obj\Debug\predeploy.sql
+D:\PROJECTS\PROJECTS_2014\Alex\Repos_DBProj\DB_RPOWine\DB_RPOWine\obj\Debug\DB_RPOWine.dll
+D:\PROJECTS\PROJECTS_2014\Alex\Repos_DBProj\DB_RPOWine\DB_RPOWine\obj\Debug\DB_RPOWine.pdb
+D:\PROJECTS\PROJECTS_2014\Alex\Repos_DBProj\DB_RPOWine\DB_RPOWine\bin\Debug\DB_RPOWine.dll
+D:\PROJECTS\PROJECTS_2014\Alex\Repos_DBProj\DB_RPOWine\DB_RPOWine\bin\Debug\DB_RPOWine.pdb

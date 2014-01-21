@@ -202,10 +202,10 @@
       <AnsiNulls>On</AnsiNulls>
       <QuotedIdentifier>On</QuotedIdentifier>
     </Build>
-    <Build Include="dbo\Views\vWineOld.sql">
+    <None Include="dbo\Views\vWineOld.sql">
       <AnsiNulls>On</AnsiNulls>
       <QuotedIdentifier>On</QuotedIdentifier>
-    </Build>
+    </None>
     <Build Include="dbo\Views\vWineDetails.sql">
       <AnsiNulls>On</AnsiNulls>
       <QuotedIdentifier>On</QuotedIdentifier>
@@ -228,29 +228,54 @@
       <AnsiNulls>On</AnsiNulls>
       <QuotedIdentifier>On</QuotedIdentifier>
     </Build>
-    <Build Include="utils\Stored Procedures\sp_who_active.sql">
+    <None Include="utils\Stored Procedures\sp_who_active.sql">
       <AnsiNulls>On</AnsiNulls>
       <QuotedIdentifier>On</QuotedIdentifier>
-    </Build>
-    <Build Include="utils\Stored Procedures\sp_WhoIsActive.sql">
+    </None>
+    <None Include="utils\Stored Procedures\sp_WhoIsActive.sql">
       <AnsiNulls>On</AnsiNulls>
       <QuotedIdentifier>On</QuotedIdentifier>
-    </Build>
+    </None>
     <Build Include="utils\Stored Procedures\tools_FullTextSearch_Set.sql">
-      <AnsiNulls>On</AnsiNulls>
-      <QuotedIdentifier>On</QuotedIdentifier>
-    </Build>
-    <Build Include="utils\Stored Procedures\tools_FullTextSearch_SetOneTable.sql">
       <AnsiNulls>On</AnsiNulls>
       <QuotedIdentifier>On</QuotedIdentifier>
     </Build>
     <Build Include="Security\srv.sql" />
     <Build Include="Security\utils.sql" />
-    <Build Include="_DataCopying\01_Locations.sql" />
-    <Build Include="_DataCopying\10_WineLookups.sql" />
-    <Build Include="_DataCopying\15_Wine.sql" />
-    <Build Include="_DataCopying\50_PublicationLookups.sql" />
-    <Build Include="_DataCopying\60_TasteNotes.sql" />
+    <None Include="_DataCopying\01_Locations.sql" />
+    <None Include="_DataCopying\10_WineLookups.sql" />
+    <None Include="_DataCopying\15_Wine.sql" />
+    <None Include="_DataCopying\50_PublicationLookups.sql" />
+    <None Include="_DataCopying\60_TasteNotes.sql" />
+    <Build Include="dbo\Stored Procedures\Location_GetLookupID.sql" />
+    <Build Include="dbo\Stored Procedures\Wine_GetLookupID.sql" />
+    <Build Include="dbo\Views\vWineVinNDetails.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Views\vWineOld_1.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="Storage\RPOWine_FTSearchVin.sql" />
+    <Build Include="FullTextIndexes.sql" />
+    <Build Include="Security\eRPSqlUser.sql" />
+    <Build Include="dbo\Functions\fn_GetAdjustedSearchString.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\WineVin_SearchFT.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\WineVin_Search.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\Wine_GetList_ByVinID.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
   </ItemGroup>
   <ItemGroup>
     <None Include="SqlSchemaCompare_DBvsProject.scmp" />

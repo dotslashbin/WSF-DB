@@ -13,30 +13,30 @@ set nocount on
 declare @DBName varchar(30) = rtrim(db_name()),
 		@FTCatalogName varchar(30)
 		
-EXEC sp_fulltext_database @action = 'enable' 
+--EXEC sp_fulltext_database @action = 'enable' 
 
 -- register an empty stop list
 CREATE FULLTEXT STOPLIST [RPOWineDataStopList]
 AUTHORIZATION [dbo];
 
 ------------- Wines ----------
-EXEC sp_fulltext_catalog @ftcat = 'RPOWine_FTSearchWine', @action = 'create'
+--EXEC sp_fulltext_catalog @ftcat = 'RPOWine_FTSearchWine', @action = 'create'
 
-CREATE FULLTEXT INDEX ON [dbo].[vWineDetails](
-[Color] LANGUAGE [English], 
-[Country] LANGUAGE [English], 
-[Dryness] LANGUAGE [English], 
-[Label] LANGUAGE [English], 
-[Locale] LANGUAGE [English], 
-[Location] LANGUAGE [English], 
-[Producer] LANGUAGE [English], 
-[Region] LANGUAGE [English], 
-[Site] LANGUAGE [English], 
-[Variety] LANGUAGE [English], 
-[Vintage] LANGUAGE [English], 
-[Type] LANGUAGE [English])
-KEY INDEX [PK_vWineDetails]ON ([RPOWine_FTSearchWine], FILEGROUP [WineIndx])
-WITH (CHANGE_TRACKING = AUTO, STOPLIST = OFF);
+--CREATE FULLTEXT INDEX ON [dbo].[vWineDetails](
+--[Color] LANGUAGE [English], 
+--[Country] LANGUAGE [English], 
+--[Dryness] LANGUAGE [English], 
+--[Label] LANGUAGE [English], 
+--[Locale] LANGUAGE [English], 
+--[Location] LANGUAGE [English], 
+--[Producer] LANGUAGE [English], 
+--[Region] LANGUAGE [English], 
+--[Site] LANGUAGE [English], 
+--[Variety] LANGUAGE [English], 
+--[Vintage] LANGUAGE [English], 
+--[Type] LANGUAGE [English])
+--KEY INDEX [PK_vWineDetails]ON ([RPOWine_FTSearchWine], FILEGROUP [WineIndx])
+--WITH (CHANGE_TRACKING = AUTO, STOPLIST = OFF);
 
 --------------------------------------------------------------------
 
