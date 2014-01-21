@@ -1,4 +1,5 @@
-﻿CREATE VIEW [dbo].[vWineDetails]
+﻿
+CREATE VIEW [dbo].[vWineDetails]
 WITH SCHEMABINDING
 
 AS
@@ -9,7 +10,9 @@ AS
 
 		Country = lc.Name, Region = lr.Name, Location = ll.Name, 
 		Locale = lloc.Name, Site = ls.Name,
-		Appellation = coalesce(ls.Name, lloc.name, ll.name, lr.name, lc.name),
+		Appellation = coalesce(
+			nullif(ls.Name,''), nullif(lloc.name,''), nullif(ll.name,''), nullif(lr.name,''), nullif(lc.name,'')
+		),
 
 		Producer = wp.Name, ProducerToShow = wp.NameToShow,
 		[Type] = wt.Name, Label = wl.Name,
