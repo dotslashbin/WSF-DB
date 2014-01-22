@@ -1,4 +1,10 @@
-﻿CREATE PROCEDURE [dbo].[Location_GetLookupID]
+﻿-- =============================================
+-- Author:		Alex B
+-- Create date: 1/20/14
+-- Description:	Gets internal ID of the lookup record.
+--				It will automatically add new records into lookup tables, if necessary AND @IsAutoCreate = 1.
+-- =============================================
+CREATE PROCEDURE [dbo].[Location_GetLookupID]
 	@ObjectName as varchar(30), @ObjectValue as nvarchar(120),
 	@IsAutoCreate bit = 1
 
@@ -12,6 +18,10 @@ set nocount on
 
 declare @Result int
 set @ObjectValue = ltrim(rtrim(@ObjectValue))
+
+-- allow 0 values - each lookup table has an entry with ID = 0
+if @ObjectValue is NULL or @ObjectValue = ''
+	RETURN 0
 
 if (lower(@ObjectName) = 'loccountry') begin
 	select @Result = ID from LocationCountry where lower(Name) = lower(@ObjectValue)
@@ -53,8 +63,9 @@ if (lower(@ObjectName) = 'locsite') begin
 	end
 end
 
-if isnull(@Result, 0) < 1
-	raiserror('Cannot find or create an entry in the [%s] with value "%s".', 16, 1, @ObjectName, @ObjectValue)
+-- allow 0 values - each lookup table has an entry with ID = 0
+--if isnull(@Result, 0) < 1
+--	raiserror('Cannot find or create an entry in the [%s] with value "%s".', 16, 1, @ObjectName, @ObjectValue)
 	
 RETURN isnull(@Result, 0)
 GO

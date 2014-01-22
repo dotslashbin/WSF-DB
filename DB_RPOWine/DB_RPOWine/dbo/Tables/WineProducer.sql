@@ -13,6 +13,8 @@
     [created]       SMALLDATETIME  CONSTRAINT [DF_WineProducer_created] DEFAULT (getdate()) NOT NULL,
     [updated]       SMALLDATETIME  NULL,
     [WF_StatusID]   SMALLINT       CONSTRAINT [DF_WineProducer_WF_StatusID] DEFAULT ((0)) NOT NULL,
+    [CreatorID]     INT            NULL,
+    [EditorID]      INT            NULL,
     CONSTRAINT [PK_WineProducer] PRIMARY KEY CLUSTERED ([ID] ASC),
     CONSTRAINT [FK_WineProducer_LocationCountry] FOREIGN KEY ([locCountryID]) REFERENCES [dbo].[LocationCountry] ([ID]),
     CONSTRAINT [FK_WineProducer_LocationLocale] FOREIGN KEY ([locLocaleID]) REFERENCES [dbo].[LocationLocale] ([ID]),
@@ -20,6 +22,8 @@
     CONSTRAINT [FK_WineProducer_LocationRegion] FOREIGN KEY ([locRegionID]) REFERENCES [dbo].[LocationRegion] ([ID]),
     CONSTRAINT [FK_WineProducer_LocationSite] FOREIGN KEY ([locSiteID]) REFERENCES [dbo].[LocationSite] ([ID])
 );
+
+
 
 
 

@@ -1,4 +1,10 @@
-﻿CREATE PROCEDURE [dbo].[Wine_GetLookupID]
+﻿-- =============================================
+-- Author:		Alex B
+-- Create date: 1/22/14
+-- Description:	Gets internal ID of the lookup record.
+--				It will automatically add new records into lookup tables, if necessary AND @IsAutoCreate = 1.
+-- =============================================
+CREATE PROCEDURE [dbo].[Wine_GetLookupID]
 	@ObjectName as varchar(30), @ObjectValue as nvarchar(120),
 	@IsAutoCreate bit = 1
 
