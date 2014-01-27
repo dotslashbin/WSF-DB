@@ -340,5 +340,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="SqlSchemaCompare_DBvsProject.scmp" />
+    <None Include="_DataCopying\99_ArticlesAndEvents.sql" />
+    <None Include="_DataCopying\25_ApproximateData.sql" />
   </ItemGroup>
 </Project>

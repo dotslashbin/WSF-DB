@@ -1,30 +1,32 @@
-﻿-- =============================================
--- Author:		Alex B.
--- Create date: 1/22/2014
--- Description:	Updates WineProducer record.
+﻿
 -- =============================================
-CREATE PROCEDURE [dbo].[WineProducer_Update]
+-- Author:		Alex B.
+-- Create date: 1/26/2014
+-- Description:	Updates TastingEvent record.
+-- =============================================
+CREATE PROCEDURE [dbo].[TastingEvent_Update]
 	@ID int, 
-	@Name nvarchar(100) = NULL, @NameToShow nvarchar(100) = NULL,
-	@WebSiteURL nvarchar(255) = NULL,
+	@ParentID int = NULL, 
+	@ReviewerID int = NULL, @ReviewerUserID int = NULL, @ReviewerName nvarchar(120) = NULL, 
+	@Title nvarchar(255) = NULL, 
+	@StartDate date = NULL, @EndDate date = NULL,
+
 	@locCountry nvarchar(50) = NULL, @locRegion nvarchar(50) = NULL, 
 	@locLocation nvarchar(50) = NULL, @locLocale nvarchar(50) = NULL, @locSite nvarchar(50) = NULL,
-	@Profile nvarchar(max) = NULL, @ContactInfo nvarchar(max) = NULL, 
+	
+	@Notes nvarchar(max) = NULL,
+	@SortOrder smallint = NULL,
 	
 	@WF_StatusID smallint = NULL,
-	@UserName varchar(50),
+	--@UserName varchar(50),
 	@ShowRes smallint = 1
 	
 /*
 declare @r int
-exec @r = WineProducer_Update
-	!--- careful! @ID = 14403, 
-	@Name = '', @NameToShow = 'Testalonga',
-	@locCountry = 'France',
-	@WF_StatusID = 100,
-	@UserName = 'test'
+exec @r = TastingEvent_Update
+	@ID = 13, @Title = 'Test Flight with Update',
+	@WF_StatusID = 100
 select @r
-
 */	
 
 AS
@@ -34,27 +36,32 @@ set xact_abort on
 declare @Result int, 
 		@EditorID int
 
-select @Name = nullif(rtrim(ltrim(@Name)), ''), 
-	@NameToShow = nullif(rtrim(ltrim(@NameToShow)), ''),
-	@WebSiteURL = nullif(rtrim(ltrim(@WebSiteURL)), '')
+select @ReviewerID = nullif(@ReviewerID, 0)
 
 ------------ Checks
-if not exists(select * from WineProducer (nolock) where ID = @ID) begin
-	raiserror('WineProducer_Update:: Wine Producer record with ID=%i does not exist.', 16, 1, @ID)
+if not exists(select * from TastingEvent (nolock) where ID = @ID) begin
+	raiserror('TastingEvent_Update:: Tasting Event record with ID=%i does not exist.', 16, 1, @ID)
 	RETURN -1
 end
 
-if @Name is NOT NULL and exists(select * from WineProducer (nolock) where ID != @ID and upper(Name) = upper(@Name)) begin
-	raiserror('[USERERROR]:: Wine Producer with the same Name already exists.', 16, 1)
+if @ParentID is not null and not exists(select * from TastingEvent (nolock) where ID = @ParentID) begin
+	raiserror('TastingEvent_Update:: Parent record with ID=%i does not exist.', 16, 1, @ParentID)
 	RETURN -1
 end
 
------------- Checks
-if len(isnull(@UserName, '')) < 1 begin
-	raiserror('WineProducer_Update:: @UserName is required.', 16, 1)
-	RETURN -1
-end
-exec @EditorID = Audit_GetLookupID @ObjectName = 'entryuser', @ObjectValue = @UserName
+if @ReviewerID is NOT NULL 
+	select @ReviewerID = ID from Reviewer (nolock) where ID = @ReviewerID
+else if @ReviewerUserID is NOT NULL
+	select @ReviewerID = ID from Reviewer (nolock) where UserId = @ReviewerUserID
+else
+	select @ReviewerID = ID from Reviewer (nolock) where Name = @ReviewerName
+
+------------- Audit
+--if len(isnull(@UserName, '')) < 1 begin
+--	raiserror('TastingEvent_Update:: @UserName is required.', 16, 1)
+--	RETURN -1
+--end
+--exec @EditorID = Audit_GetLookupID @ObjectName = 'entryuser', @ObjectValue = @UserName
 ------------ Checks
 
 ------------ Lookup IDs
@@ -69,31 +76,33 @@ exec @locSiteID = Location_GetLookupID @ObjectName='locSite', @ObjectValue=@locS
 BEGIN TRY
 	BEGIN TRANSACTION
 
-	update WineProducer set
-		Name = isnull(@Name, Name), 
-		NameToShow = isnull(@NameToShow, NameToShow), 
-		WebSiteURL = isnull(@WebSiteURL, WebSiteURL),
+	update TastingEvent set
+		ParentID = isnull(@ParentID, ParentID), 
+		ReviewerID = isnull(@ReviewerID, ReviewerID), 
+		Title = isnull(@Title, Title),
+		StartDate = isnull(@StartDate, StartDate),
+		EndDate = isnull(@EndDate, EndDate),
 		locCountryID = case when @locCountry is NULL then locCountryID else @locCountryID end, 
 		locRegionID = case when @locRegion is NULL then locRegionID else @locRegionID end, 
 		locLocationID = case when @locLocation is NULL then locLocationID else @locLocationID end, 
 		locLocaleID = case when @locLocale is NULL then locLocaleID else @locLocaleID end,  
 		locSiteID = case when @locSite is NULL then locSiteID else @locSiteID end, 
-		[Profile] = isnull(@Profile, Profile), 
-		ContactInfo = isnull(@ContactInfo, ContactInfo),
+		Notes = isnull(@Notes, Notes), 
+		SortOrder = isnull(@SortOrder, SortOrder),
 		updated = getdate(), 
-		WF_StatusID = isnull(@WF_StatusID, WF_StatusID), 
-		EditorID = @EditorID
+		WF_StatusID = isnull(@WF_StatusID, WF_StatusID)
+		--EditorID = @EditorID
 	where ID = @ID
 
 	select @Result = @@ROWCOUNT
 	if @@error <> 0 begin
 		select @Result = -1
 		ROLLBACK TRAN
-	end else begin
-		declare @msg nvarchar(1024) = dbo.fn_GetObjectDescription('WineProducer', @ID)
-		exec Audit_Add @Type='Success', @Category='Update', @Source='SQL', @UserName=@UserName, @MachineName='', 
-			@ObjectType='WineProducer', @ObjectID=@ID, @Description='WineProducer updated', @Message=@msg,
-			@ShowRes=0
+	--end else begin
+	--	declare @msg nvarchar(1024) = dbo.fn_GetObjectDescription('WineProducer', @ID)
+	--	exec Audit_Add @Type='Success', @Category='Update', @Source='SQL', @UserName=@UserName, @MachineName='', 
+	--		@ObjectType='WineProducer', @ObjectID=@ID, @Description='WineProducer updated', @Message=@msg,
+	--		@ShowRes=0
 	end
 
 	COMMIT TRANSACTION
@@ -120,6 +129,6 @@ if @ShowRes = 1
 RETURN isnull(@Result, -1)
 GO
 GRANT EXECUTE
-    ON OBJECT::[dbo].[WineProducer_Update] TO [RP_DataAdmin]
+    ON OBJECT::[dbo].[TastingEvent_Update] TO [RP_DataAdmin]
     AS [dbo];
 

@@ -23,7 +23,7 @@ declare @Result int
 
 ------------ Checks
 if not exists(select * from WineProducer (nolock) where ID = @ID) begin
-	raiserror('WineProducer_Del:: Wine Producer record with ID [%i] does not exist.', 16, 1, @ID)
+	raiserror('WineProducer_Del:: Wine Producer record with ID=%i does not exist.', 16, 1, @ID)
 	RETURN -1
 end
 
