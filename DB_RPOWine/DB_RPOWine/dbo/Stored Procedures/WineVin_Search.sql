@@ -36,7 +36,7 @@ if @isDebug = 1
 create table #t (
 	Wine_VinN_ID int not null, 
 	Wine_VinN_GroupID int null,
-	WF_StatusID int null,
+	WF_StatusID smallint null,
 	locCountryID int null, locRegionID int null, locLocationID int null, locLocaleID int null, locSiteID int null,
 	ProducerID int null, TypeID int null, LabelID int null, VarietyID int null, DrynessID int null, ColorID int null,
 	SortOrder smallint null

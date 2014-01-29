@@ -39,7 +39,7 @@ if @ID is not null begin
 		locRegion = lr.Name,
 		locLocation = lloc.Name,
 		locLocale = ll.Name,
-		locSiteID = ls.Name,
+		locSite = ls.Name,
 		Notes = te.Notes,
 		SortOrder = te.SortOrder,
 		WF_StatusID = te.WF_StatusID,
@@ -69,7 +69,7 @@ end else begin
 		locRegion = lr.Name,
 		locLocation = lloc.Name,
 		locLocale = ll.Name,
-		locSiteID = ls.Name,
+		locSite = ls.Name,
 		Notes = te.Notes,
 		SortOrder = te.SortOrder,
 		WF_StatusID = te.WF_StatusID,
@@ -90,3 +90,14 @@ end else begin
 end
 	
 RETURN 1
+GO
+GRANT EXECUTE
+    ON OBJECT::[dbo].[TastingEvent_GetList] TO [RP_DataAdmin]
+    AS [dbo];
+
+
+GO
+GRANT EXECUTE
+    ON OBJECT::[dbo].[TastingEvent_GetList] TO [RP_Customer]
+    AS [dbo];
+
