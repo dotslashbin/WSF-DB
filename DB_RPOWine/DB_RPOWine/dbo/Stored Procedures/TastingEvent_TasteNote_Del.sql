@@ -5,7 +5,7 @@
 -- Description:	Deletes TastingEvent-TasteNote linkage.
 -- =============================================
 CREATE PROCEDURE [dbo].[TastingEvent_TasteNote_Del]
-	@TastingEventID int, @TasteNote int,
+	@TastingEventID int, @TasteNoteID int,
 
 	--@UserName varchar(50),
 	@ShowRes smallint = 1
@@ -28,8 +28,8 @@ if not exists(select * from TastingEvent (nolock) where ID = @TastingEventID) be
 	RETURN -1
 end
 
-if not exists(select * from TasteNote (nolock) where ID = @TasteNote) begin
-	raiserror('TastingEvent_TasteNote_Del:: Taste Note record with ID=%i does not exist.', 16, 1, @TasteNote)
+if not exists(select * from TasteNote (nolock) where ID = @TasteNoteID) begin
+	raiserror('TastingEvent_TasteNote_Del:: Taste Note record with ID=%i does not exist.', 16, 1, @TasteNoteID)
 	RETURN -1
 end
 
@@ -46,12 +46,16 @@ BEGIN TRY
 
 	--declare @msg nvarchar(1024) = dbo.fn_GetObjectDescription('WineProducer', @ID)
 	
-	delete TastingEvent_TasteNote where TastingEventID = @TastingEventID and TasteNoteID = @TasteNote
+	delete TastingEvent_TasteNote where TastingEventID = @TastingEventID and TasteNoteID = @TasteNoteID
 	select @Result = @@ROWCOUNT
 	if @@error <> 0 begin
 		select @Result = -1
 		ROLLBACK TRAN
-	--end else begin
+	end else begin
+		-- remove default Tasting Event if necessary
+		update TasteNote set TastingEventID = NULL
+		where ID = @TasteNoteID and TastingEventID = @TastingEventID
+	
 	--	exec Audit_Add @Type='Success', @Category='Delete', @Source='SQL', @UserName=@UserName, @MachineName='', 
 	--		@ObjectType='WineProducer', @ObjectID=@ID, @Description='WineProducer deleted', @Message=@msg,
 	--		@ShowRes=0

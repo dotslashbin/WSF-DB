@@ -45,6 +45,7 @@ BEGIN TRY
 
 	--declare @msg nvarchar(1024) = dbo.fn_GetObjectDescription('TasteNote', @ID)
 	
+	delete Publication_TasteNote where TasteNoteID = @ID
 	delete TastingEvent_TasteNote where TasteNoteID = @ID
 	delete TasteNote where ID = @ID
 	select @Result = @@ROWCOUNT
@@ -79,3 +80,8 @@ if @ShowRes = 1
 	select Result = isnull(@Result, -1)
 
 RETURN isnull(@Result, -1)
+GO
+GRANT EXECUTE
+    ON OBJECT::[dbo].[TasteNote_Del] TO [RP_DataAdmin]
+    AS [dbo];
+

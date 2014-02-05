@@ -14,7 +14,7 @@ CREATE PROCEDURE [dbo].[WineProducer_GetList]
 	@SortBy varchar(20) = NULL, @SortOrder varchar(3) = NULL
 	
 /*
-exec WineProducer_GetList @ID = NULL, @Name = 'wine', @StartRow = 15, @EndRow = 20, @SortBy = 'NameToShow'
+exec WineProducer_GetList @ID = NULL, @Name = 'rob', @StartRow = 15, @EndRow = 20, @SortBy = 'NameToShow'
 */
 	
 AS
@@ -25,7 +25,9 @@ if isnull(@StartRow, 0) < 0 or isnull(@EndRow, 0) <= 0
 	select @StartRow = NULL, @EndRow = NULL
 select @SortBy = isnull(@SortBy, 'Name'), @SortOrder = lower(isnull(@SortOrder, 'asc'))
 
-if @ID is not null begin
+if @ID is not null or (@StartRow is null or @EndRow is NULL) begin
+	if @Name is NOT NULL 
+		select @Name = '%' + @Name + '%'
 	select 
 		ID = wp.ID,
 		Name = wp.Name,
@@ -57,7 +59,9 @@ if @ID is not null begin
 		left join Audit_EntryUsers creator (nolock) on wp.CreatorID = creator.ID
 		left join Audit_EntryUsers editor (nolock) on wp.EditorID = editor.ID
 	where wp.ID > 0 
-		and wp.ID = @ID
+		and (@ID is NULL or wp.ID = @ID)
+		and (@Name is NULL or wp.Name like @Name)
+	order by Name, NameToShow, ID
 end else if @Name is NOT NULL begin
 	if @Name is NOT NULL 
 		select @Name = '%' + @Name + '%'

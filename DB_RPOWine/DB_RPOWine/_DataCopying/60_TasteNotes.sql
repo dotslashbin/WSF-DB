@@ -8,17 +8,22 @@ GO
 print '--------- delete data --------'
 GO
 truncate table Publication_TasteNote
-delete TasteNote
+truncate table Issue_Article
+truncate table Issue_TasteNote
+truncate table Issue_TastingEvent
+truncate table TastingEvent_TasteNote
 
+delete TasteNote
+delete Issue
 DBCC CHECKIDENT (TasteNote, RESEED, 1)
+DBCC CHECKIDENT (Issue, RESEED, 1)
 GO
 
 print '--------- copying data --------'
 GO
 
-print '--------- Taste Notes --------'
+print '--------- Get Data Ready --------'
 GO
-------- Taste Notes
 select --distinct 
 	wn.Idn,
 	ProducerID = isnull(wp.ID, 0),
@@ -39,7 +44,15 @@ select --distinct
 	Country = isnull(wn.Country, ''), Region = isnull(wn.Region, ''),
 	Location = isnull(wn.Location, ''), Locale = isnull(wn.Locale, ''), Site = isnull(wn.Site, ''),
 	Wine_VinN_ID = 0,
-	Wine_N_ID = 0
+	Wine_N_ID = 0,
+	
+	PublicationID = isnull(p.ID, 1),
+	Issue = wn.Issue,
+	PublicationDate = wn.SourceDate,
+	ArticleId = wn.ArticleId,
+	ArticleIdNKey = wn.ArticleIdNKey,
+	ArticleClumpName = wn.clumpName,
+	ArticlePages = wn.Pages
 into #t
 from RPOWineData.dbo.Wine wn
 	left join WineProducer wp on isnull(wn.Producer, '') = wp.Name
@@ -55,6 +68,12 @@ from RPOWineData.dbo.Wine wn
 	left join LocationLocation ll on isnull(wn.Location, '') = ll.Name
 	left join LocationLocale lloc on isnull(wn.Locale, '') = lloc.Name
 	left join LocationSite ls on isnull(wn.Site, '') = ls.Name
+
+	left join Publication p on p.Name = case
+		when Publication like '%robertpark%' then 'eRobertParker.com'
+		when Publication like 'Executive Wine Seminar%' then 'Executive Wine Seminar'
+		else Publication
+	end
 
 update #t set 
 	Wine_VinN_ID = v.ID,
@@ -73,9 +92,21 @@ if exists(select * from #t where Wine_VinN_ID = 0 or Wine_N_ID = 0) begin
 	print '-- ERROR: Missing Wine_N_ID!'
 	select * from #t where Wine_VinN_ID = 0 or Wine_N_ID = 0
 end else begin
-	insert into TasteNote (ReviewerID, Wine_N_ID, ProducerNoteID, TasteDate, MaturityID,
+	print '--------- Issues --------'
+	insert into Issue(PublicationID, Title, CreatedDate, PublicationDate)
+	select distinct 
+		PublicationID,
+		Title = Issue,
+		CreatedDate = min(isnull(PublicationDate, '1/1/2000')),
+		PublicationDate = min(isnull(PublicationDate, '1/1/2000'))
+	from #t
+	where len(isnull(Issue,'')) > 0
+	group by PublicationID, Issue
+	
+	print '--------- Taste Notes --------'
+	insert into TasteNote (ReviewerID, Wine_N_ID, TastingEventID, TasteDate, MaturityID,
 		Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, oldIdn, Notes, 
-		WF_StatusID, PublicationDate)
+		WF_StatusID)
 	select 
 		ReviewerID = isnull(r.ID, 0), 
 		Wine_N_ID = Wine_N_ID, 
@@ -89,66 +120,37 @@ end else begin
 		IsBarrelTasting = IsBarrelTasting, 
 		oldIdn = #t.Idn,
 		Notes = w.Notes,
-		WF_StatusID = 100,
-		PublicationDate = w.SourceDate
+		WF_StatusID = 100
+		--oldPublicationDate = w.SourceDate
 	from RPOWineData.dbo.Wine w (nolock)
 		left join Reviewer r on w.Source = r.Name
 		join #t on w.Idn = #t.Idn
+
+	print '--------- Publication_TasteNote --------'
+	insert into Publication_TasteNote (PublicationID, TasteNoteID)
+	select 
+		PublicationID = #t.PublicationID, 
+		TasteNoteID = tn.ID
+	from #t
+		join TasteNote tn on #t.Idn = tn.oldIdn
+
+	print '--------- Issue_TasteNote --------'
+	insert into Issue_TasteNote (IssueID, TasteNoteID, oldArticleIdNKey, oldArticleId, oldArticleClumpName, oldPages)
+	select 
+		IssueID = i.ID, 
+		TasteNoteID = tn.ID, 
+		oldArticleIdNKey = #t.ArticleIdNKey, 
+		oldArticleId = #t.ArticleId, 
+		oldArticleClumpName = #t.ArticleClumpName, 
+		oldPages = #t.ArticlePages
+	from #t
+		join TasteNote tn (nolock) on #t.Idn = tn.oldIdn
+		join Issue i (nolock) on #t.Issue = i.Title
+	where len(isnull(#t.Issue, '')) > 0
+
 end
 
 drop table #t
-GO
-
----------- Publication_TasteNote
--- stat
---select showForERP, showForWJ, isErpTasting, isWjTasting, cnt=count(*)
---from RPOWineData.dbo.Wine 
---group by showForERP, showForWJ, isErpTasting, isWjTasting
---order by showForERP, showForWJ, isErpTasting, isWjTasting
-
-print '--------- Publication_TasteNote --------'
-GO
-/* ----- incorrect version - those fields should be ignorted -----
-declare @pubID int
-
-print '--- eRP ---'
-select @pubID = ID from Publication where Name = 'eRobertParker.com'
-if @pubID is NOT NULL begin
-	insert into Publication_TasteNote (PublicationID, TasteNoteID)
-	select PublicationID=@pubID, TasteNoteID=t.ID
-	from TasteNote t 
-		join RPOWineData.dbo.Wine w on t.oldIdn = w.Idn
-	where w.showForERP = 1
-end
-
-print '--- WJ ---'
-select @pubID = ID from Publication where Name = 'Wine Journal'
-if @pubID is NOT NULL begin
-	insert into Publication_TasteNote (PublicationID, TasteNoteID)
-	select PublicationID=@pubID, TasteNoteID=t.ID
-	from TasteNote t 
-		join RPOWineData.dbo.Wine w on t.oldIdn = w.Idn
-	where w.showForWJ = 1
-end
-GO
-*/
-; with r as (
-	select 
-		Idn,
-		PubName = case
-			when Publication like '%robertpark%' then 'eRobertParker.com'
-			when Publication like 'Executive Wine Seminar%' then 'Executive Wine Seminar'
-			else Publication
-		end
-	from RPOWineData.dbo.Wine
-)
-insert into Publication_TasteNote (PublicationID, TasteNoteID)
-select 
-	PublicationID = p.ID, 
-	TasteNoteID = tn.ID
-from r
-	join Publication p on r.PubName = p.Name
-	join TasteNote tn on r.Idn = tn.oldIdn
 GO
 
 print 'Done.'

@@ -11,6 +11,7 @@ CREATE PROCEDURE [dbo].[TastingEvent_Update]
 	@Title nvarchar(255) = NULL, 
 	@StartDate date = NULL, @EndDate date = NULL,
 
+	@Location nvarchar(100) = NULL,
 	@locCountry nvarchar(50) = NULL, @locRegion nvarchar(50) = NULL, 
 	@locLocation nvarchar(50) = NULL, @locLocale nvarchar(50) = NULL, @locSite nvarchar(50) = NULL,
 	
@@ -82,6 +83,7 @@ BEGIN TRY
 		Title = isnull(@Title, Title),
 		StartDate = isnull(@StartDate, StartDate),
 		EndDate = isnull(@EndDate, EndDate),
+		Location = isnull(@Location, Location),
 		locCountryID = case when @locCountry is NULL then locCountryID else @locCountryID end, 
 		locRegionID = case when @locRegion is NULL then locRegionID else @locRegionID end, 
 		locLocationID = case when @locLocation is NULL then locLocationID else @locLocationID end, 

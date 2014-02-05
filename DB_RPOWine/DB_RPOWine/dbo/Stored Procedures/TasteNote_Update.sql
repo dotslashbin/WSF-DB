@@ -16,7 +16,7 @@ CREATE PROCEDURE [dbo].[TasteNote_Update]
 	@IsBarrelTasting bit = NULL,
 
 	@Notes nvarchar(max) = NULL,
-	@PublicationDate date = NULL,
+	--@PublicationDate date = NULL,
 	
 	@WF_StatusID smallint = NULL,
 	--@UserName varchar(50),
@@ -91,11 +91,11 @@ BEGIN TRY
 		set @WF_StatusID = isnull(@WF_StatusID, 0)
 		insert into TasteNote (OriginID, ReviewerID, Wine_N_ID, TasteDate, MaturityID, 
 			Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, 
-			IsBarrelTasting, Notes, PublicationDate,
+			IsBarrelTasting, Notes, --oldPublicationDate,
 			created, updated, WF_StatusID)
 		select OriginID=@ID, ReviewerID, Wine_N_ID, TasteDate, MaturityID, 
 			Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, 
-			IsBarrelTasting, Notes, PublicationDate,
+			IsBarrelTasting, Notes, --oldPublicationDate,
 			created, getdate(), @WF_StatusID
 		from TasteNote 
 		where ID = @ID
@@ -120,7 +120,7 @@ BEGIN TRY
 		DrinkDate_Hi = isnull(@DrinkDate_Hi, DrinkDate_Hi), 
 		IsBarrelTasting = isnull(@IsBarrelTasting, IsBarrelTasting), 
 		Notes = isnull(@Notes, Notes), 
-		PublicationDate = isnull(@PublicationDate, PublicationDate),
+		--oldPublicationDate = isnull(@PublicationDate, oldPublicationDate),
 		updated = getdate(), 
 		WF_StatusID = isnull(@WF_StatusID, WF_StatusID)
 		--EditorID = @EditorID

@@ -22,6 +22,17 @@ BEGIN
 			+ '}}'
 		from WineProducer (nolock)
 		where ID = @ObjectID
+	end else 
+	if (lower(@ObjectName) = 'issue') begin
+		select @msg = '{"Issue": {'
+			+ '"id": ' + cast(i.ID as varchar(20)) 
+			+ ', "PublicationName": "' + p.Name + '"'
+			+ ', "Title": "' + i.Title + '"'
+			+ ', "PublicationDate": "' + isnull(cast(i.PublicationDate as varchar(20)), '') + '"'
+			+ '}}'
+		from Issue i (nolock)
+			join Publication p (nolock) on i.PublicationID = p.ID
+		where i.ID = @ObjectID
 	end
 	
 	RETURN @msg

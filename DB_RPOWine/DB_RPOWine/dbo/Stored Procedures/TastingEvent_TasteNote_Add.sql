@@ -21,8 +21,16 @@ set xact_abort on
 declare @Result int, 
 		@CreatorID int
 
+declare @sd date, @ed date
+
+		select @sd = StartDate, @ed = isnull(EndDate, dateadd(day, 20, StartDate))
+		from TastingEvent (nolock)
+		where ID = @TastingEventID
+
 ------------ Checks
-if not exists(select * from TastingEvent (nolock) where ID = @TastingEventID) begin
+select @Result = ID, @sd = StartDate, @ed = isnull(EndDate, dateadd(day, 20, StartDate)) 
+from TastingEvent (nolock) where ID = @TastingEventID
+if @Result is NULL begin
 	raiserror('TastingEvent_TasteNote_Add:: Tasting Event record with ID=%i does not exist.', 16, 1, @TastingEventID)
 	RETURN -1
 end
@@ -59,6 +67,11 @@ BEGIN TRY
 		ROLLBACK TRAN
 	end else begin
 		select @Result = 1
+		
+		update TasteNote set TastingEventID = @TastingEventID
+		where ID = @TasteNote and TastingEventID is NULL
+			and TasteDate between @sd and @ed
+		
 	--	declare @msg nvarchar(1024) = dbo.fn_GetObjectDescription('WineProducer', @Result)
 	--	exec Audit_Add @Type='Success', @Category='Add', @Source='SQL', @UserName=@UserName, @MachineName='', 
 	--		@ObjectType='WineProducer', @ObjectID=@Result, @Description='WineProducer added', @Message=@msg,

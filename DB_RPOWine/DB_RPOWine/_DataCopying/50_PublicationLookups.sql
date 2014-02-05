@@ -9,10 +9,12 @@ print '--------- delete data --------'
 GO
 --delete Wine_N
 --delete Wine_VinN
-delete Publisher
 delete Reviewer
+delete Publication
+delete Publisher
 
 DBCC CHECKIDENT (Publisher, RESEED, 0)
+DBCC CHECKIDENT (Publication, RESEED, 1)
 DBCC CHECKIDENT (Reviewer, RESEED, 0)
 GO
 
@@ -50,7 +52,9 @@ order by case when PubName = 'eRobertParker.com' then '!!!' else '' end + PubNam
 GO
 
 --------- Reviewer
-insert into Reviewer (Name, UserId, oldReviewerIdN, WF_StatusID) values (N'', 0, 1, 100)
+set identity_insert Reviewer on
+insert into Reviewer (ID, Name, UserId, oldReviewerIdN, WF_StatusID) values (0, N'', 0, 1, 100)
+set identity_insert Reviewer off
 go
 ; with r as (
 	select 

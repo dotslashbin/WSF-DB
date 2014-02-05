@@ -42,7 +42,9 @@ commit tran
 GO
 
 -------- WineTypes
-insert into WineType (Name, WF_StatusID) values (N'', 0)
+set identity_insert WineType on
+insert into WineType (ID, Name, WF_StatusID) values (0, N'', 0)
+set identity_insert WineType off
 go
 insert into WineType (Name, WF_StatusID)
 select wn.WineType, WF_StatusID = 100
@@ -53,7 +55,9 @@ group by wn.WineType
 GO
 
 ----------- WineLabel
-insert into WineLabel (Name, WF_StatusID) values (N'', 0)
+set identity_insert WineLabel on
+insert into WineLabel (ID, Name, WF_StatusID) values (0, N'', 0)
+set identity_insert WineLabel off
 go
 insert into WineLabel (Name, WF_StatusID)
 select wn.LabelName, WF_StatusID = 100
@@ -65,8 +69,10 @@ GO
 
 ---------- WineProducer
 --select top 200 * from RPOWineData.dbo.Wine
-insert into WineProducer (Name, NameToShow, locCountryID,locRegionID,locLocationID,locLocaleID,locSiteID, WF_StatusID) 
-values (N'', N'', 0,0,0,0,0, 0)
+set identity_insert WineProducer on
+insert into WineProducer (ID, Name, NameToShow, locCountryID,locRegionID,locLocationID,locLocaleID,locSiteID, WF_StatusID) 
+values (0, N'', N'', 0,0,0,0,0,0)
+set identity_insert WineProducer off
 go
 insert into WineProducer (Name, NameToShow, WebSiteURL, locCountryID,locRegionID,locLocationID,locLocaleID,locSiteID, WF_StatusID)
 select wn.Producer, NameToShow = max(wn.ProducerShow), WebSiteURL = max(wn.ProducerURL), 
@@ -80,7 +86,9 @@ GO
 
 -------- WineDryness
 --select max(len(Dryness)) from RPOWineData.dbo.Wine
-insert into WineDryness (Name, WF_StatusID) values (N'', 0)
+set identity_insert WineDryness on
+insert into WineDryness (ID, Name, WF_StatusID) values (0, N'', 0)
+set identity_insert WineDryness off
 go
 insert into WineDryness (Name, WF_StatusID)
 select wn.Dryness, WF_StatusID=100
@@ -91,7 +99,9 @@ group by wn.Dryness
 GO
 
 ---------- WineColor
-insert into WineColor (Name, WF_StatusID) values (N'', 0)
+set identity_insert WineColor on
+insert into WineColor (ID, Name, WF_StatusID) values (0, N'', 0)
+set identity_insert WineColor off
 go
 insert into WineColor (Name, WF_StatusID)
 select wn.ColorClass, WF_StatusID = 100
@@ -102,7 +112,9 @@ group by wn.ColorClass
 GO
 
 -------- WineVariety
-insert into WineVariety (Name, WF_StatusID) values (N'', 0)
+set identity_insert WineVariety on
+insert into WineVariety (ID, Name, WF_StatusID) values (0, N'', 0)
+set identity_insert WineVariety off
 go
 insert into WineVariety (Name, WF_StatusID)
 select wn.Variety, WF_StatusID = 100
@@ -115,7 +127,9 @@ GO
 -------- Bottle Size
 --select max(len(BottleSize)) from RPOWineData.dbo.Wine
 --select top 20 * from RPOWineData.dbo.Wine
-insert into WineBottleSize (Name, Volume, WF_StatusID) values (N'', 0, 0)
+set identity_insert WineBottleSize on
+insert into WineBottleSize (ID, Name, Volume, WF_StatusID) values (0, N'', 0, 0)
+set identity_insert WineBottleSize off
 go
 insert into WineBottleSize (Name, Volume, WF_StatusID)
 select name, Volume = litres, WF_StatusID = 0
@@ -140,7 +154,9 @@ GO
 
 -------- WineVintage
 --select max(len(Vintage)) from RPOWineData.dbo.Wine
-insert into WineVintage (Name, WF_StatusID) values (N'', 0)
+set identity_insert WineVintage on
+insert into WineVintage (ID, Name, WF_StatusID) values (0, N'', 0)
+set identity_insert WineVintage off
 go
 insert into WineVintage (Name, WF_StatusID)
 select wn.Vintage, WF_StatusID = 100

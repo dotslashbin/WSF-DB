@@ -7,8 +7,14 @@ USE [RPOWine]
 GO
 print '--------- delete data --------'
 GO
---delete WineProducer
---delete Wine_VinN
+delete TastingEvent_TasteNote
+delete Publication_TasteNote
+delete Issue_TasteNote
+delete TasteNote
+delete Wine_N
+delete Wine_VinN
+delete WineProducer
+
 delete LocationCountry
 delete LocationRegion
 delete LocationLocation
@@ -25,7 +31,9 @@ print '--------- copy data --------'
 GO
 --------  Country
 -- first dummy record for null values
-insert into LocationCountry (Name, WF_StatusID) values (N'', 0)
+set identity_insert LocationCountry on
+insert into LocationCountry (ID, Name, WF_StatusID) values (0, N'', 0)
+set identity_insert LocationCountry off
 go
 insert into LocationCountry (Name, WF_StatusID)
 select Country, WF_StatusID = 100
@@ -36,7 +44,9 @@ group by wn.Country
 GO
 
 --------  Region
-insert into LocationRegion (Name, WF_StatusID) values (N'', 0)
+set identity_insert LocationRegion on
+insert into LocationRegion (ID, Name, WF_StatusID) values (0, N'', 0)
+set identity_insert LocationRegion off
 go
 insert into LocationRegion (Name, WF_StatusID)
 select wn.Region, WF_StatusID = 100
@@ -47,7 +57,9 @@ group by wn.Region
 GO
 
 ----- location
-insert into LocationLocation (Name, WF_StatusID) values (N'', 0)
+set identity_insert LocationLocation on
+insert into LocationLocation (ID, Name, WF_StatusID) values (0, N'', 0)
+set identity_insert LocationLocation off
 go
 insert into LocationLocation (Name, WF_StatusID)
 select wn.Location, WF_StatusID = 100
@@ -58,7 +70,9 @@ group by wn.Location
 GO
 
 ------ locale
-insert into LocationLocale (Name, WF_StatusID) values (N'', 0)
+set identity_insert LocationLocale on
+insert into LocationLocale (ID, Name, WF_StatusID) values (0, N'', 0)
+set identity_insert LocationLocale off
 go
 insert into LocationLocale (Name, WF_StatusID)
 select wn.Locale, WF_StatusID = 100
@@ -69,7 +83,9 @@ group by wn.Locale
 GO
 
 ---- site
-insert into LocationSite (Name, WF_StatusID) values (N'', 0)
+set identity_insert LocationSite on
+insert into LocationSite (ID, Name, WF_StatusID) values (0, N'', 0)
+set identity_insert LocationSite off
 go
 insert into LocationSite (Name, WF_StatusID)
 select wn.Site, WF_StatusID = 100

@@ -10,6 +10,7 @@ CREATE PROCEDURE [dbo].[TastingEvent_Add]
 	@Title nvarchar(255), 
 	@StartDate date = NULL, @EndDate date = NULL,
 
+	@Location nvarchar(100) = NULL,
 	@locCountry nvarchar(50) = NULL, @locRegion nvarchar(50) = NULL, 
 	@locLocation nvarchar(50) = NULL, @locLocale nvarchar(50) = NULL, @locSite nvarchar(50) = NULL,
 	
@@ -77,12 +78,12 @@ BEGIN TRY
 	BEGIN TRANSACTION
 
 	insert into TastingEvent (ParentID, ReviewerID,
-		Title, StartDate, EndDate, 
+		Title, StartDate, EndDate, Location,
 		locCountryID, locRegionID, locLocationID, locLocaleID, locSiteID,
 		Notes, SortOrder,
 		created, updated, WF_StatusID)
 	values (@ParentID, @ReviewerID,
-		@Title, @StartDate, @EndDate, 
+		@Title, @StartDate, @EndDate, @Location,
 		@locCountryID, @locRegionID, @locLocationID, @locLocaleID, @locSiteID,
 		@Notes, isnull(@SortOrder, 0),
 		getdate(), null, isnull(@WF_StatusID, 0))

@@ -5,6 +5,7 @@
     [Title]         NVARCHAR (255) NOT NULL,
     [StartDate]     DATE           NULL,
     [EndDate]       DATE           NULL,
+    [Location]      NVARCHAR (100) NULL,
     [locCountryID]  INT            NULL,
     [locRegionID]   INT            NULL,
     [locLocationID] INT            NULL,
@@ -19,4 +20,6 @@
     CONSTRAINT [FK_TastingEvent_Reviewer] FOREIGN KEY ([ReviewerID]) REFERENCES [dbo].[Reviewer] ([ID]),
     CONSTRAINT [FK_TastingEvent_TastingEvent] FOREIGN KEY ([ParentID]) REFERENCES [dbo].[TastingEvent] ([ID])
 ) TEXTIMAGE_ON [TasteNotes];
+
+
 

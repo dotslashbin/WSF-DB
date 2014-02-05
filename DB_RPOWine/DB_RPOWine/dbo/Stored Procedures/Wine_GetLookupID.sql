@@ -79,6 +79,8 @@ end
 ------------- complex
 if (lower(@ObjectName) = 'wineproducer') begin
 	select @Result = ID from WineProducer where lower(Name) = lower(@ObjectValue)
+	if isnull(@Result, 0) < 1
+		select @Result = ID from WineProducer where lower(NameToShow) = lower(@ObjectValue)
 	if isnull(@Result, 0) < 1 and @IsAutoCreate = 1 and len(@ObjectValue) > 0 begin
 		insert into WineProducer (Name, NameToShow) values (left(@ObjectValue, 100), left(@ObjectValue, 100))
 		select @Result = scope_identity()

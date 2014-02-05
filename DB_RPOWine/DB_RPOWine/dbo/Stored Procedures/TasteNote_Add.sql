@@ -17,7 +17,8 @@ CREATE PROCEDURE [dbo].[TasteNote_Add]
 	@IsBarrelTasting bit = 0,
 
 	@Notes nvarchar(max),
-	@PublicationDate date = NULL,
+	
+	--@PublicationDate date = NULL,
 	
 	@WF_StatusID smallint = NULL,
 	--@UserName varchar(50),
@@ -82,11 +83,11 @@ BEGIN TRY
 
 	insert into TasteNote (OriginID, ReviewerID, Wine_N_ID, TasteDate, MaturityID, 
 		Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, 
-		IsBarrelTasting, Notes, PublicationDate,
+		IsBarrelTasting, Notes, --oldPublicationDate,
 		created, updated, WF_StatusID)
 	values (@OriginID, @ReviewerID, @Wine_N_ID, @TasteDate, @MaturityID, 
 		@Rating_Lo, @Rating_Hi, @DrinkDate_Lo, @DrinkDate_Hi, 
-		@IsBarrelTasting, @Notes, @PublicationDate,
+		@IsBarrelTasting, @Notes, --@PublicationDate,
 		getdate(), null, isnull(@WF_StatusID, 0))
 	if @@error <> 0 begin
 		select @Result = -1

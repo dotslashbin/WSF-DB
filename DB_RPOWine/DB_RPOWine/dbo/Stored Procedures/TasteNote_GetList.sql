@@ -59,7 +59,7 @@ end
 		DrinkDate_Hi = tn.DrinkDate_Hi, 
 		IsBarrelTasting = tn.IsBarrelTasting, 
 		Notes = tn.Notes, 
-		PublicationDate = tn.PublicationDate,
+		--PublicationDate = tn.oldPublicationDate,
 
 		WF_StatusID = tn.WF_StatusID,
 		WF_StatusName = wfs.Name,
