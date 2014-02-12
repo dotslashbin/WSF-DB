@@ -6,7 +6,7 @@
 CREATE PROCEDURE [dbo].[TasteNote_Update]
 	@ID int, 
 	@OriginID int = NULL, -- used to point to the "edited" note...
-	@ReviewerID int = NULL, @ReviewerUserID int = NULL, @ReviewerName nvarchar(120) = NULL, 
+	@UserId int = NULL,
 	@Wine_N_ID int = NULL,
 	
 	@TasteDate date = NULL,
@@ -25,7 +25,7 @@ CREATE PROCEDURE [dbo].[TasteNote_Update]
 /*
 select top 20 * from TasteNote order by ID desc
 declare @r int
-exec @r = TasteNote_Update @ID = 254320, @OriginID=NULL, @ReviewerID=2, @Wine_N_ID=6151,
+exec @r = TasteNote_Update @ID = 254320, @OriginID=NULL, @UserId=2, @Wine_N_ID=6151,
 	@TasteDate = '2/1/2013', @MaturityID = 2,
 	@Rating_Lo = 88, @Rating_Hi = 94, @Notes = 'First in my list... and a simple update.',
 	@WF_StatusID = NULL
@@ -43,7 +43,7 @@ declare @Result int,
 		@prevWF_StatusID smallint,
 		@prevOriginID int
 
-select @ReviewerID = nullif(@ReviewerID, 0)
+select @UserId = nullif(@UserId, 0)
 
 ------------ Checks
 select @prevWF_StatusID = WF_StatusID, @prevOriginID = OriginID from TasteNote (nolock) where ID = @ID
@@ -57,12 +57,13 @@ if isnull(@OriginID, 0) > 0 and not exists(select * from TasteNote (nolock) wher
 	RETURN -1
 end
 
-if @ReviewerID is NOT NULL 
-	select @ReviewerID = ID from Reviewer (nolock) where ID = @ReviewerID
-else if @ReviewerUserID is NOT NULL
-	select @ReviewerID = ID from Reviewer (nolock) where UserId = @ReviewerUserID
-else
-	select @ReviewerID = ID from Reviewer (nolock) where Name = @ReviewerName
+if @UserId is NOT NULL begin
+	select @UserId = UserId from Users (nolock) where UserId = @UserId
+	if @UserId is NULL begin
+		raiserror('TastingEvent_Update:: User record does not exist.', 16, 1)
+		RETURN -1
+	end
+end
 
 if @Wine_N_ID is NOT NULL and not exists(select * from Wine_N (nolock) where ID = @Wine_N_ID) begin
 	raiserror('TastingEvent_Update:: Wine_N record with ID=%i does not exist.', 16, 1, @Wine_N_ID)
@@ -89,11 +90,11 @@ BEGIN TRY
 	-- make a copy of the note IF current status is "published" and new status is not "published"
 	if @prevWF_StatusID >= 100 and isnull(@WF_StatusID, 0) < 100 begin
 		set @WF_StatusID = isnull(@WF_StatusID, 0)
-		insert into TasteNote (OriginID, ReviewerID, Wine_N_ID, TasteDate, MaturityID, 
+		insert into TasteNote (OriginID, UserId, Wine_N_ID, TasteDate, MaturityID, 
 			Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, 
 			IsBarrelTasting, Notes, --oldPublicationDate,
 			created, updated, WF_StatusID)
-		select OriginID=@ID, ReviewerID, Wine_N_ID, TasteDate, MaturityID, 
+		select OriginID=@ID, UserId, Wine_N_ID, TasteDate, MaturityID, 
 			Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, 
 			IsBarrelTasting, Notes, --oldPublicationDate,
 			created, getdate(), @WF_StatusID
@@ -110,7 +111,7 @@ BEGIN TRY
 
 	update TasteNote set 
 		OriginID = isnull(@OriginID, OriginID), 
-		ReviewerID = isnull(@ReviewerID, ReviewerID), 
+		UserId = isnull(@UserId, UserId), 
 		Wine_N_ID = isnull(@Wine_N_ID, Wine_N_ID), 
 		TasteDate = isnull(@TasteDate, TasteDate), 
 		MaturityID = isnull(@MaturityID, MaturityID), 

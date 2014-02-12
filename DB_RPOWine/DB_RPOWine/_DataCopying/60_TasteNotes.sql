@@ -11,15 +11,29 @@ truncate table Publication_TasteNote
 truncate table Issue_Article
 truncate table Issue_TasteNote
 truncate table Issue_TastingEvent
+truncate table TastingEvent_Article
 truncate table TastingEvent_TasteNote
 
+delete Article
+delete TastingEvent
 delete TasteNote
 delete Issue
+DBCC CHECKIDENT (Article, RESEED, 1)
+DBCC CHECKIDENT (TastingEvent, RESEED, 1)
 DBCC CHECKIDENT (TasteNote, RESEED, 1)
 DBCC CHECKIDENT (Issue, RESEED, 1)
 GO
 
 print '--------- copying data --------'
+GO
+print '----- TastingEvent -----'
+GO
+BEGIN TRAN
+	set identity_insert TastingEvent on
+	insert into TastingEvent (ID, ParentID, UserId, Title)
+	values (0, 0, 0, 'Root')
+	set identity_insert TastingEvent off
+COMMIT TRAN
 GO
 
 print '--------- Get Data Ready --------'
@@ -104,11 +118,11 @@ end else begin
 	group by PublicationID, Issue
 	
 	print '--------- Taste Notes --------'
-	insert into TasteNote (ReviewerID, Wine_N_ID, TastingEventID, TasteDate, MaturityID,
+	insert into TasteNote (UserId, Wine_N_ID, TastingEventID, TasteDate, MaturityID,
 		Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, oldIdn, Notes, 
 		WF_StatusID)
 	select 
-		ReviewerID = isnull(r.ID, 0), 
+		UserId = isnull(u.UserId, 0), 
 		Wine_N_ID = Wine_N_ID, 
 		ProducerNoteID = NULL, 
 		TasteDate = w.tasteDate,
@@ -123,7 +137,7 @@ end else begin
 		WF_StatusID = 100
 		--oldPublicationDate = w.SourceDate
 	from RPOWineData.dbo.Wine w (nolock)
-		left join Reviewer r on w.Source = r.Name
+		left join Users u on w.Source = u.FullName
 		join #t on w.Idn = #t.Idn
 
 	print '--------- Publication_TasteNote --------'

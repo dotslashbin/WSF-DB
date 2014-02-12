@@ -6,13 +6,13 @@
 -- =============================================
 CREATE PROCEDURE [dbo].[TasteNote_GetList]
 	@ID int = NULL, 
-	@ReviewerID int = NULL, @ReviewerUserID int = NULL, @ReviewerName nvarchar(120) = NULL,
+	@UserId int = NULL,
 	@Wine_N_ID int = NULL,
 
 	@ShowRes smallint = 1
 	
 /*
-exec TasteNote_GetList @ReviewerID = 5
+exec TasteNote_GetList @UserID = -5
 
 TODO: add filter by 
 	- Publication
@@ -23,12 +23,8 @@ TODO: add filter by
 AS
 set nocount on
 
-if @ReviewerID is NOT NULL 
-	select @ReviewerID = ID from Reviewer (nolock) where ID = @ReviewerID
-else if @ReviewerUserID is NOT NULL
-	select @ReviewerID = ID from Reviewer (nolock) where UserId = @ReviewerUserID
-else
-	select @ReviewerID = ID from Reviewer (nolock) where Name = @ReviewerName
+if @UserId is NOT NULL 
+	select @UserId = UserId from Users (nolock) where UserId = @UserId
 
 if @Wine_N_ID is NOT NULL and not exists(select * from Wine_N (nolock) where ID = @Wine_N_ID) begin
 	raiserror('TasteNote_GetList:: Wine_N record with ID=%i does not exist.', 16, 1, @Wine_N_ID)
@@ -38,8 +34,8 @@ end
 	select 
 		ID = tn.ID,
 		OriginID = tn.OriginID,
-		ReviewerID = tn.ReviewerID,
-		ReviewerName = r.Name,
+		UserId = tn.UserId,
+		UserrName = u.FullName,
 		
 		Wine_N_ID = tn.Wine_N_ID,
 		Wine_ProducerID = w.ProducerID,
@@ -66,14 +62,14 @@ end
 		created = tn.created, 
 		updated = tn.updated
 	from TasteNote tn (nolock)
-		join Reviewer r (nolock) on tn.ReviewerID = r.ID
+		join Users u (nolock) on tn.UserId = u.UserId
 		join WF_Statuses wfs (nolock) on tn.WF_StatusID = wfs.ID
 		join vWineDetails w on tn.Wine_N_ID = w.Wine_N_ID
 		join WineMaturity wm (nolock) on tn.MaturityID = wm.ID
 	where tn.ID = isnull(@ID, tn.ID)
-		and (@ReviewerID is NULL or tn.ReviewerID = @ReviewerID)
+		and (@UserId is NULL or tn.UserId = @UserId)
 		and (@Wine_N_ID is NULL or tn.Wine_N_ID = @Wine_N_ID)
-	order by TasteDate desc, ReviewerName, tn.ID
+	order by TasteDate desc, UserName, tn.ID
 	
 RETURN 1
 GO

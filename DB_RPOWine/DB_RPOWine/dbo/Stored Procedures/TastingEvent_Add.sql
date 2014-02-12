@@ -6,7 +6,7 @@
 CREATE PROCEDURE [dbo].[TastingEvent_Add]
 	--@ID int = NULL, 
 	@ParentID int = 0, 
-	@ReviewerID int = NULL, @ReviewerUserID int = NULL, @ReviewerName nvarchar(120) = NULL, 
+	@UserId int = NULL, 
 	@Title nvarchar(255), 
 	@StartDate date = NULL, @EndDate date = NULL,
 
@@ -38,7 +38,7 @@ set xact_abort on
 declare @Result int, 
 		@CreatorID int
 
-select @ParentID = isnull(@ParentID, 0), @ReviewerID = nullif(@ReviewerID, 0)
+select @ParentID = isnull(@ParentID, 0), @UserId = nullif(@UserId, 0)
 
 ------------ Checks
 if @ParentID > 0 and not exists(select * from TastingEvent (nolock) where ID = @ParentID) begin
@@ -46,14 +46,10 @@ if @ParentID > 0 and not exists(select * from TastingEvent (nolock) where ID = @
 	RETURN -1
 end
 
-if @ReviewerID is NOT NULL 
-	select @ReviewerID = ID from Reviewer (nolock) where ID = @ReviewerID
-else if @ReviewerUserID is NOT NULL
-	select @ReviewerID = ID from Reviewer (nolock) where UserId = @ReviewerUserID
-else
-	select @ReviewerID = ID from Reviewer (nolock) where Name = @ReviewerName
-if @ReviewerID is NULL begin
-	raiserror('TastingEvent_Add:: @ReviewerID is required.', 16, 1)
+if @UserId is NOT NULL 
+	select @UserId = UserId from Users (nolock) where UserId = @UserId
+if @UserId is NULL begin
+	raiserror('TastingEvent_Add:: @UserId is required.', 16, 1)
 	RETURN -2
 end
 
@@ -77,12 +73,12 @@ exec @locSiteID = Location_GetLookupID @ObjectName='locSite', @ObjectValue=@locS
 BEGIN TRY
 	BEGIN TRANSACTION
 
-	insert into TastingEvent (ParentID, ReviewerID,
+	insert into TastingEvent (ParentID, UserId,
 		Title, StartDate, EndDate, Location,
 		locCountryID, locRegionID, locLocationID, locLocaleID, locSiteID,
 		Notes, SortOrder,
 		created, updated, WF_StatusID)
-	values (@ParentID, @ReviewerID,
+	values (@ParentID, @UserId,
 		@Title, @StartDate, @EndDate, @Location,
 		@locCountryID, @locRegionID, @locLocationID, @locLocaleID, @locSiteID,
 		@Notes, isnull(@SortOrder, 0),

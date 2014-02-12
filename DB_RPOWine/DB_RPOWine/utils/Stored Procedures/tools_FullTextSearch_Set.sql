@@ -13,14 +13,14 @@ set nocount on
 declare @DBName varchar(30) = rtrim(db_name()),
 		@FTCatalogName varchar(30)
 		
---EXEC sp_fulltext_database @action = 'enable' 
+EXEC sp_fulltext_database @action = 'enable' 
 
 -- register an empty stop list
 CREATE FULLTEXT STOPLIST [RPOWineDataStopList]
 AUTHORIZATION [dbo];
 
 ------------- Wines ----------
---EXEC sp_fulltext_catalog @ftcat = 'RPOWine_FTSearchWine', @action = 'create'
+EXEC sp_fulltext_catalog @ftcat = 'RPOWine_FTSearchWine', @action = 'create'
 
 --CREATE FULLTEXT INDEX ON [dbo].[vWineDetails](
 --[Color] LANGUAGE [English], 

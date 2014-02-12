@@ -109,6 +109,7 @@
     <Folder Include="utils\Stored Procedures\" />
     <Folder Include="_DataCopying" />
     <Folder Include="dbo\User Defined Types\" />
+    <Folder Include="dbo\Synonyms\" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="dbo\Tables\Wine_VinN.sql">
@@ -482,6 +483,31 @@
     </Build>
     <Build Include="dbo\User Defined Types\IDList.sql" />
     <Build Include="dbo\User Defined Types\IDLink.sql" />
+    <Build Include="dbo\Tables\Users.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Tables\TastingEvent_Article.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="srv\Stored Procedures\Users_Refresh.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\WF_GetLookupID.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Stored Procedures\Issue_GetTastingEventList.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
+    <Build Include="dbo\Synonyms\SYN_t_MembershipUsersInRoles.sql" />
+    <Build Include="dbo\Synonyms\SYN_t_MembershipUsers.sql" />
+    <Build Include="dbo\Synonyms\SYN_t_MembershipRoles.sql" />
+    <Build Include="dbo\Synonyms\SYN_t_MembershipMembership.sql" />
+    <Build Include="dbo\Synonyms\SYN_t_MembershipErp_Profile.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SqlSchemaCompare_DBvsProject.scmp" />

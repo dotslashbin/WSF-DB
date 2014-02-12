@@ -7,7 +7,7 @@
 CREATE PROCEDURE [dbo].[TasteNote_Add]
 	--@ID int = NULL, 
 	@OriginID int = NULL, -- used to point to the "edited" note...
-	@ReviewerID int = NULL, @ReviewerUserID int = NULL, @ReviewerName nvarchar(120) = NULL, 
+	@UserId int,
 	@Wine_N_ID int,
 	
 	@TasteDate date,
@@ -27,7 +27,7 @@ CREATE PROCEDURE [dbo].[TasteNote_Add]
 /*
 select top 20 * from TasteNote order by ID desc
 declare @r int
-exec @r = TasteNote_Add @OriginID=0, @ReviewerID=2, @Wine_N_ID=6151,
+exec @r = TasteNote_Add @OriginID=0, @UserId=2, @Wine_N_ID=6151,
 	@TasteDate = '2/1/2013', @MaturityID = 1,
 	@Rating_Lo = 87, @Rating_Hi = 89, @DrinkDate_Lo='5/1/2015',
 	@Notes = 'First in my list...',
@@ -42,7 +42,7 @@ set xact_abort on
 declare @Result int, 
 		@CreatorID int
 
-select @OriginID = isnull(@OriginID, 0), @ReviewerID = nullif(@ReviewerID, 0)
+select @OriginID = isnull(@OriginID, 0), @UserId = nullif(@UserId, 0)
 
 ------------ Checks
 if @OriginID > 0 and not exists(select * from TasteNote (nolock) where ID = @OriginID) begin
@@ -50,14 +50,10 @@ if @OriginID > 0 and not exists(select * from TasteNote (nolock) where ID = @Ori
 	RETURN -1
 end
 
-if @ReviewerID is NOT NULL 
-	select @ReviewerID = ID from Reviewer (nolock) where ID = @ReviewerID
-else if @ReviewerUserID is NOT NULL
-	select @ReviewerID = ID from Reviewer (nolock) where UserId = @ReviewerUserID
-else
-	select @ReviewerID = ID from Reviewer (nolock) where Name = @ReviewerName
-if @ReviewerID is NULL begin
-	raiserror('TasteNote_Add:: @ReviewerID is required.', 16, 1)
+if @UserId is NOT NULL 
+	select @UserId = UserId from Users (nolock) where UserId = @UserId
+if @UserId is NULL begin
+	raiserror('TasteNote_Add:: @UserId is required.', 16, 1)
 	RETURN -2
 end
 
@@ -81,11 +77,11 @@ end
 BEGIN TRY
 	BEGIN TRANSACTION
 
-	insert into TasteNote (OriginID, ReviewerID, Wine_N_ID, TasteDate, MaturityID, 
+	insert into TasteNote (OriginID, UserId, Wine_N_ID, TasteDate, MaturityID, 
 		Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, 
 		IsBarrelTasting, Notes, --oldPublicationDate,
 		created, updated, WF_StatusID)
-	values (@OriginID, @ReviewerID, @Wine_N_ID, @TasteDate, @MaturityID, 
+	values (@OriginID, @UserId, @Wine_N_ID, @TasteDate, @MaturityID, 
 		@Rating_Lo, @Rating_Hi, @DrinkDate_Lo, @DrinkDate_Hi, 
 		@IsBarrelTasting, @Notes, --@PublicationDate,
 		getdate(), null, isnull(@WF_StatusID, 0))

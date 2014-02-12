@@ -1,7 +1,7 @@
 ﻿CREATE TABLE [dbo].[TastingEvent] (
     [ID]            INT            IDENTITY (1, 1) NOT NULL,
     [ParentID]      INT            CONSTRAINT [DF_TastingEvent_ParentID] DEFAULT ((0)) NOT NULL,
-    [ReviewerID]    INT            NOT NULL,
+    [UserId]        INT            NOT NULL,
     [Title]         NVARCHAR (255) NOT NULL,
     [StartDate]     DATE           NULL,
     [EndDate]       DATE           NULL,
@@ -17,9 +17,11 @@
     [updated]       SMALLDATETIME  NULL,
     [WF_StatusID]   SMALLINT       CONSTRAINT [DF_TastingEvent_WF_StatusID] DEFAULT ((0)) NOT NULL,
     CONSTRAINT [PK_TastingEvent] PRIMARY KEY CLUSTERED ([ID] ASC) ON [TasteNotes],
-    CONSTRAINT [FK_TastingEvent_Reviewer] FOREIGN KEY ([ReviewerID]) REFERENCES [dbo].[Reviewer] ([ID]),
-    CONSTRAINT [FK_TastingEvent_TastingEvent] FOREIGN KEY ([ParentID]) REFERENCES [dbo].[TastingEvent] ([ID])
+    CONSTRAINT [FK_TastingEvent_TastingEvent] FOREIGN KEY ([ParentID]) REFERENCES [dbo].[TastingEvent] ([ID]),
+    CONSTRAINT [FK_TastingEvent_Users] FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users] ([UserId])
 ) TEXTIMAGE_ON [TasteNotes];
+
+
 
 
 

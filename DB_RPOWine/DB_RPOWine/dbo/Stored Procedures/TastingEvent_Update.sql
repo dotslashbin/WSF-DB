@@ -7,7 +7,7 @@
 CREATE PROCEDURE [dbo].[TastingEvent_Update]
 	@ID int, 
 	@ParentID int = NULL, 
-	@ReviewerID int = NULL, @ReviewerUserID int = NULL, @ReviewerName nvarchar(120) = NULL, 
+	@UserId int = NULL, 
 	@Title nvarchar(255) = NULL, 
 	@StartDate date = NULL, @EndDate date = NULL,
 
@@ -37,7 +37,7 @@ set xact_abort on
 declare @Result int, 
 		@EditorID int
 
-select @ReviewerID = nullif(@ReviewerID, 0)
+select @UserId = nullif(@UserId, 0)
 
 ------------ Checks
 if not exists(select * from TastingEvent (nolock) where ID = @ID) begin
@@ -50,12 +50,13 @@ if @ParentID is not null and not exists(select * from TastingEvent (nolock) wher
 	RETURN -1
 end
 
-if @ReviewerID is NOT NULL 
-	select @ReviewerID = ID from Reviewer (nolock) where ID = @ReviewerID
-else if @ReviewerUserID is NOT NULL
-	select @ReviewerID = ID from Reviewer (nolock) where UserId = @ReviewerUserID
-else
-	select @ReviewerID = ID from Reviewer (nolock) where Name = @ReviewerName
+if @UserId is NOT NULL begin
+	select @UserId = UserId from Users (nolock) where UserId = @UserId
+	if @UserId is NULL begin
+		raiserror('TastingEvent_Update:: @UserId is required.', 16, 1)
+		RETURN -2
+	end
+end
 
 ------------- Audit
 --if len(isnull(@UserName, '')) < 1 begin
@@ -79,7 +80,7 @@ BEGIN TRY
 
 	update TastingEvent set
 		ParentID = isnull(@ParentID, ParentID), 
-		ReviewerID = isnull(@ReviewerID, ReviewerID), 
+		UserId = isnull(@UserId, UserId), 
 		Title = isnull(@Title, Title),
 		StartDate = isnull(@StartDate, StartDate),
 		EndDate = isnull(@EndDate, EndDate),

@@ -1,6 +1,6 @@
 ﻿CREATE TABLE [dbo].[TasteNote] (
     [ID]              INT            IDENTITY (1, 1) NOT NULL,
-    [ReviewerID]      INT            NOT NULL,
+    [UserId]          INT            NOT NULL,
     [Wine_N_ID]       INT            NOT NULL,
     [TastingEventID]  INT            NULL,
     [TasteDate]       DATE           NULL,
@@ -17,10 +17,12 @@
     [WF_StatusID]     SMALLINT       CONSTRAINT [DF_TasteNote_WF_StatusID] DEFAULT ((0)) NOT NULL,
     [OriginID]        INT            NULL,
     CONSTRAINT [PK_TasteNote] PRIMARY KEY CLUSTERED ([ID] ASC) ON [TasteNotes],
-    CONSTRAINT [FK_TasteNote_Reviewer] FOREIGN KEY ([ReviewerID]) REFERENCES [dbo].[Reviewer] ([ID]),
+    CONSTRAINT [FK_TasteNote_Users] FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users] ([UserId]),
     CONSTRAINT [FK_TasteNote_Wine_N] FOREIGN KEY ([Wine_N_ID]) REFERENCES [dbo].[Wine_N] ([ID]),
     CONSTRAINT [FK_TasteNote_WineMaturity] FOREIGN KEY ([MaturityID]) REFERENCES [dbo].[WineMaturity] ([ID])
 ) TEXTIMAGE_ON [TasteNotes];
+
+
 
 
 

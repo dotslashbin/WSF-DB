@@ -9,13 +9,19 @@ print '--------- delete data --------'
 GO
 --delete Wine_N
 --delete Wine_VinN
-delete Reviewer
+--delete Reviewer
+delete Users
+truncate table Issue_Article
+truncate table Issue_TasteNote
+truncate table Issue_TastingEvent
+delete Issue
 delete Publication
 delete Publisher
 
 DBCC CHECKIDENT (Publisher, RESEED, 0)
 DBCC CHECKIDENT (Publication, RESEED, 1)
-DBCC CHECKIDENT (Reviewer, RESEED, 0)
+DBCC CHECKIDENT (Issue, RESEED, 1)
+--DBCC CHECKIDENT (Reviewer, RESEED, 0)
 GO
 
 print '--------- copy data --------'
@@ -52,25 +58,45 @@ order by case when PubName = 'eRobertParker.com' then '!!!' else '' end + PubNam
 GO
 
 --------- Reviewer
-set identity_insert Reviewer on
-insert into Reviewer (ID, Name, UserId, oldReviewerIdN, WF_StatusID) values (0, N'', 0, 1, 100)
-set identity_insert Reviewer off
-go
+--set identity_insert Reviewer on
+--insert into Reviewer (ID, Name, UserId, oldReviewerIdN, WF_StatusID) values (0, N'', 0, 1, 100)
+--set identity_insert Reviewer off
+--go
+--; with r as (
+--	select 
+--		Name = isnull([Source], ''),
+--		UserName = '', 
+--		oldReviewerIdN = ReviewerIdN, 
+--		WF_StatusID = 100,
+--		cnt = count(*)
+--	from RPOWineData.dbo.Wine
+--	group by ReviewerIdN, Source
+--)
+--insert into Reviewer (Name, UserId, oldReviewerIdN, WF_StatusID)
+--select Name, UserId = isnull(u.UserId, 0), oldReviewerIdN, WF_StatusID
+--from r
+--	left join Membership..aspnet_Users u on r.Name != '' and r.Name != 'Robert Parker' 
+--		and u.UserName like '%' + replace(r.Name, ' ', '%') + '%'
+--where Name != ''
+--order by cnt desc
+--GO
 ; with r as (
 	select 
 		Name = isnull([Source], ''),
-		UserName = '', 
-		oldReviewerIdN = ReviewerIdN, 
-		WF_StatusID = 100,
+		RN = row_number() over(order by Source),
 		cnt = count(*)
 	from RPOWineData.dbo.Wine
-	group by ReviewerIdN, Source
+	group by Source
 )
-insert into Reviewer (Name, UserId, oldReviewerIdN, WF_StatusID)
-select Name, UserId = isnull(u.UserId, 0), oldReviewerIdN, WF_StatusID
+insert into Users ([UserId],[UserName],[FirstName],[LastName],[IsAvailable],[created])
+select UserId = min(isnull(u.UserId, -1*RN)), 
+	UserName = lower(replace(Name, ' ', '')), Name, '', 0, getdate()
 from r
-	left join Membership..aspnet_Users u on r.Name != '' and r.Name != 'Robert Parker' 
-		and u.UserName like '%' + replace(r.Name, ' ', '%') + '%'
-where Name != ''
-order by cnt desc
+	left join Membership..aspnet_Users u on 
+		u.UserName like '%' + replace(replace(r.Name,'-',''), ' ', '%') + '%'
+where r.Name != '' -- and u.UserName !='robertparker'
+group by lower(replace(Name, ' ', '')), Name
+--order by cnt desc
+GO
+exec srv.Users_Refresh
 GO

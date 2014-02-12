@@ -46,6 +46,7 @@ BEGIN TRY
 
 	--declare @msg nvarchar(1024) = dbo.fn_GetObjectDescription('WineProducer', @ID)
 	
+	delete TastingEvent_Article where TastingEventID = @ID
 	delete TastingEvent_TasteNote where TastingEventID = @ID
 	delete TastingEvent where ID = @ID
 	select @Result = @@ROWCOUNT
