@@ -12,6 +12,9 @@ CREATE PROCEDURE [dbo].[WineProducer_Update]
 	@Profile nvarchar(max) = NULL, @ContactInfo nvarchar(max) = NULL, 
 	
 	@WF_StatusID smallint = NULL,
+	@WF_AssignedByID int = NULL, @WF_AssignedToID int = NULL,
+	@WF_Note varchar(max) = NULL,
+	
 	@UserName varchar(50),
 	@ShowRes smallint = 1
 	
@@ -94,6 +97,12 @@ BEGIN TRY
 		exec Audit_Add @Type='Success', @Category='Update', @Source='SQL', @UserName=@UserName, @MachineName='', 
 			@ObjectType='WineProducer', @ObjectID=@ID, @Description='WineProducer updated', @Message=@msg,
 			@ShowRes=0
+			
+		-- store WF if necessary
+		if @WF_StatusID is NOT NULL and @WF_AssignedByID is NOT NULL and @WF_AssignedToID is NOT NULL begin
+			exec [WF_AddUpdate] @ObjectTypeName = 'WineProducer', @ObjectID = @ID, @StatusID = @WF_StatusID, 
+				@AssignedByID=@WF_AssignedByID, @AssignedToID=@WF_AssignedToID, @Note=@WF_Note
+		end
 	end
 
 	COMMIT TRANSACTION

@@ -12,6 +12,9 @@ CREATE PROCEDURE [dbo].[WineProducer_Add]
 	@Profile nvarchar(max) = NULL, @ContactInfo nvarchar(max) = NULL, 
 	
 	@WF_StatusID smallint = NULL,
+	@WF_AssignedByID int = NULL, @WF_AssignedToID int = NULL,
+	@WF_Note varchar(max) = NULL,
+
 	@UserName varchar(50),
 	@ShowRes smallint = 1
 	
@@ -32,7 +35,7 @@ set xact_abort on
 declare @Result int, 
 		@CreatorID int
 
-select @Name = rtrim(ltrim(@Name)), @NameToShow = rtrim(ltrim(isnull(@NameToShow, @Name)))
+select @Name = rtrim(ltrim(@Name)), @NameToShow = rtrim(ltrim(isnull(@NameToShow, @Name))), @WF_StatusID = isnull(@WF_StatusID, 0)
 
 ------------ Checks
 if len(isnull(@Name, '')) < 1 begin
@@ -82,6 +85,12 @@ BEGIN TRY
 		exec Audit_Add @Type='Success', @Category='Add', @Source='SQL', @UserName=@UserName, @MachineName='', 
 			@ObjectType='WineProducer', @ObjectID=@Result, @Description='WineProducer added', @Message=@msg,
 			@ShowRes=0
+			
+		-- store WF if necessary
+		if @WF_StatusID is NOT NULL and @WF_AssignedByID is NOT NULL and @WF_AssignedToID is NOT NULL begin
+			exec [WF_AddUpdate] @ObjectTypeName = 'WineProducer', @ObjectID = @Result, @StatusID = @WF_StatusID, 
+				@AssignedByID=@WF_AssignedByID, @AssignedToID=@WF_AssignedToID, @Note=@WF_Note
+		end
 	end
 
 	COMMIT TRANSACTION

@@ -59,6 +59,11 @@ when not matched then
 	insert (ObjectTypeID, ObjectID, StatusID, AssignedByID, AssignedToID, AssignedDate, Note)
 	values (s.ObjectTypeID, s.ObjectID, @StatusID, @AssignedByID, @AssignedToID, getdate(), @Note);
 
+------------------- adjust object records as well --------------
+--if exists(select * from WF_ObjectTypes (nolock) where ID = @ObjectTypeID and lower(Name) = lower('WineProducer')) begin
+--	update WineProducer set WF_StatusID = @StatusID where ID = @ObjectID
+--end
+
 RETURN 1
 GO
 GRANT EXECUTE

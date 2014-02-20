@@ -70,7 +70,7 @@ if @ID is not null begin
 		created = te.created, 
 		updated = te.updated,
 		
-		WF_StatusID = isnull(wf.StatusID, -1),
+		WF_StatusID = isnull(wfs.ID, -1),
 		WF_StatusName = isnull(wfs.Name, ''),
 		WF_AssignedByLogin = uby.UserName,
 		WF_AssignedByName = uby.FullName,
@@ -113,7 +113,7 @@ end else begin
 		created = te.created, 
 		updated = te.updated,
 		
-		WF_StatusID = isnull(wf.StatusID, -1),
+		WF_StatusID = isnull(wfs.ID, -1),
 		WF_StatusName = isnull(wfs.Name, ''),
 		WF_AssignedByLogin = uby.UserName,
 		WF_AssignedByName = uby.FullName,
