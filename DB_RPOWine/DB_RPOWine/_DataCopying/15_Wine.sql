@@ -5,12 +5,6 @@
 --
 USE [RPOWine]
 GO
-print '---------- Deleting Data ... ----------'
-GO
-delete Wine_N
-DBCC CHECKIDENT (Wine_N, RESEED, 1)
-delete Wine_VinN
-DBCC CHECKIDENT (Wine_VinN, RESEED, 1)
 print '---------- Loading Data... ------------'
 GO
 select

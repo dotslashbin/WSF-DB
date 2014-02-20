@@ -5,25 +5,6 @@
 --
 USE [RPOWine]
 GO
-print '--------- delete data --------'
-GO
---delete Wine_N
---delete Wine_VinN
---delete Reviewer
-delete Users
-truncate table Issue_Article
-truncate table Issue_TasteNote
-truncate table Issue_TastingEvent
-delete Issue
-delete Publication
-delete Publisher
-
-DBCC CHECKIDENT (Publisher, RESEED, 0)
-DBCC CHECKIDENT (Publication, RESEED, 1)
-DBCC CHECKIDENT (Issue, RESEED, 1)
---DBCC CHECKIDENT (Reviewer, RESEED, 0)
-GO
-
 print '--------- copy data --------'
 
 -------- Publisher : NOTE : 0 record allowed only for a transition time! ---------------

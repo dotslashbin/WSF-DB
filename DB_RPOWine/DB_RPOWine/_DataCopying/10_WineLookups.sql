@@ -5,29 +5,6 @@
 --
 USE [RPOWine]
 GO
-print '--------- delete data --------'
-GO
---delete Wine_N
---delete Wine_VinN
-delete WineMaturity
-delete WineType
-delete WineLabel
-delete WineProducer
-delete WineDryness
-delete WineColor
-delete WineVariety
-truncate table WineBottleSize
-delete WineVintage
-DBCC CHECKIDENT (WineMaturity, RESEED, 0)
-DBCC CHECKIDENT (WineType, RESEED, 0)
-DBCC CHECKIDENT (WineLabel, RESEED, 0)
-DBCC CHECKIDENT (WineProducer, RESEED, 0)
-DBCC CHECKIDENT (WineDryness, RESEED, 0)
-DBCC CHECKIDENT (WineColor, RESEED, 0)
-DBCC CHECKIDENT (WineVariety, RESEED, 0)
-DBCC CHECKIDENT (WineVintage, RESEED, 0)
-GO
-
 print '--------- copy data --------'
 GO
 -------- WineMaturity

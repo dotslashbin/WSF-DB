@@ -1,4 +1,10 @@
-﻿------------------ update WineProducer - location ----------------
+﻿-------- User List
+insert into Users (UserId, UserName, IsAvailable) 
+values (0, '', 0)
+GO
+exec srv.Users_Refresh
+GO
+------------------ update WineProducer - location ----------------
 --- country
 -- update WineProducer set locCountryID = 0
 ; with r as (

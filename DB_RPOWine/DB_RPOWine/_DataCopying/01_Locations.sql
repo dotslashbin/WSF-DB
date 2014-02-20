@@ -5,33 +5,6 @@
 --
 USE [RPOWine]
 GO
-print '--------- delete data --------'
-GO
-delete Audit
-delete WFHist
-delete WF
-GO
-delete Issue_TastingEvent
-delete TastingEvent_TasteNote
-delete Publication_TasteNote
-delete Issue_TasteNote
-delete TasteNote
-delete Wine_N
-delete Wine_VinN
-delete WineProducer
-
-delete LocationCountry
-delete LocationRegion
-delete LocationLocation
-delete LocationLocale
-delete LocationSite
-DBCC CHECKIDENT (Audit, RESEED, 1)
-DBCC CHECKIDENT (LocationCountry, RESEED, 0)
-DBCC CHECKIDENT (LocationRegion, RESEED, 0)
-DBCC CHECKIDENT (LocationLocation, RESEED, 0)
-DBCC CHECKIDENT (LocationLocale, RESEED, 0)
-DBCC CHECKIDENT (LocationSite, RESEED, 0)
-GO
 
 print '--------- copy data --------'
 GO

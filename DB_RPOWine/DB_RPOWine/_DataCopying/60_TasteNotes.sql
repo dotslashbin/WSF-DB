@@ -5,25 +5,6 @@
 --
 USE [RPOWine]
 GO
-print '--------- delete data --------'
-GO
-truncate table Publication_TasteNote
-truncate table Issue_Article
-truncate table Issue_TasteNote
-truncate table Issue_TastingEvent
-truncate table TastingEvent_Article
-truncate table TastingEvent_TasteNote
-
-delete Article
-delete TastingEvent
-delete TasteNote
-delete Issue
-DBCC CHECKIDENT (Article, RESEED, 1)
-DBCC CHECKIDENT (TastingEvent, RESEED, 1)
-DBCC CHECKIDENT (TasteNote, RESEED, 1)
-DBCC CHECKIDENT (Issue, RESEED, 1)
-GO
-
 print '--------- copying data --------'
 GO
 print '----- TastingEvent -----'
@@ -65,6 +46,7 @@ select --distinct
 	PublicationDate = wn.SourceDate,
 	ArticleId = wn.ArticleId,
 	ArticleIdNKey = wn.ArticleIdNKey,
+	FixedId = wn.FixedId,
 	ArticleClumpName = wn.clumpName,
 	ArticlePages = wn.Pages
 into #t
@@ -149,14 +131,15 @@ end else begin
 		join TasteNote tn on #t.Idn = tn.oldIdn
 
 	print '--------- Issue_TasteNote --------'
-	insert into Issue_TasteNote (IssueID, TasteNoteID, oldArticleIdNKey, oldArticleId, oldArticleClumpName, oldPages)
+	insert into Issue_TasteNote (IssueID, TasteNoteID, oldArticleIdNKey, oldArticleId, oldArticleClumpName, oldPages, oldFixedId)
 	select 
 		IssueID = i.ID, 
 		TasteNoteID = tn.ID, 
 		oldArticleIdNKey = #t.ArticleIdNKey, 
 		oldArticleId = #t.ArticleId, 
 		oldArticleClumpName = #t.ArticleClumpName, 
-		oldPages = #t.ArticlePages
+		oldPages = #t.ArticlePages,
+		oldFixedId = #t.FixedId
 	from #t
 		join TasteNote tn (nolock) on #t.Idn = tn.oldIdn
 		join Issue i (nolock) on #t.Issue = i.Title
