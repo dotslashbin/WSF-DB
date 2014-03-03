@@ -5,7 +5,7 @@
 --				Supposed to be ran preiodically by SQL Service Agent.
 --				REQUIRES dbo privilages to access Membership database.
 -- =============================================
-CREATE PROCEDURE srv.Users_Refresh
+CREATE PROCEDURE [srv].[Users_Refresh]
 
 AS
 set nocount on;
@@ -29,7 +29,13 @@ BEGIN TRAN
 				cross apply p.PropertyValues.nodes('/profile') as ref(name)
 			where r.ApplicationId = @appID
 				and m.IsApproved = 1 and m.IsLockedOut = 0
-				and r.LoweredRoleName in ('erp_role_editoradmin','erp_role_editorreviewer')
+				and r.LoweredRoleName in (
+					'erp_role_AdminEditor',
+					'erp_role_TWAReviewer',
+					'erp_role_ChiefEditor',
+					'erp_role_Editor',
+					'erp_role_SubEditor'
+				)
 		) as s
 		on t.UserId = s.UserId
 		when matched then

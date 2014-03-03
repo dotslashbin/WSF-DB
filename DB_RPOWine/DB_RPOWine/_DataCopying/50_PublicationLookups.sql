@@ -32,7 +32,13 @@ GO
 )
 insert into [Publication] (PublisherID, Name)
 select 
-	PublisherID = case when PubName = 'eRobertParker.com' then 1 else 0 end,
+	PublisherID = case 
+		when PubName = 'eRobertParker.com' then 1 
+		when PubName like 'Bordeaux%' then 1 
+		when PubName like 'Burgundy%' then 1 
+		when PubName like 'Buying%' then 1 
+		else 2
+	end,
 	Name = PubName
 from r
 order by case when PubName = 'eRobertParker.com' then '!!!' else '' end + PubName
@@ -61,6 +67,7 @@ GO
 --where Name != ''
 --order by cnt desc
 --GO
+--select * from Users
 ; with r as (
 	select 
 		Name = isnull([Source], ''),
@@ -71,13 +78,15 @@ GO
 )
 insert into Users ([UserId],[UserName],[FirstName],[LastName],[IsAvailable],[created])
 select UserId = min(isnull(u.UserId, -1*RN)), 
-	UserName = lower(replace(Name, ' ', '')), Name, '', 0, getdate()
+	UserName = lower(replace(Name, ' ', '')), 
+	Name, '', 0, getdate()
 from r
 	left join Membership..aspnet_Users u on 
 		u.UserName like '%' + replace(replace(r.Name,'-',''), ' ', '%') + '%'
-where r.Name != '' -- and u.UserName !='robertparker'
+	left join Users us on u.UserId = us.UserId or r.Name = us.FullName
+where r.Name != '' and us.UserId is NULL -- and u.UserName !='robertparker'
 group by lower(replace(Name, ' ', '')), Name
 --order by cnt desc
 GO
-exec srv.Users_Refresh
+--exec srv.Users_Refresh
 GO

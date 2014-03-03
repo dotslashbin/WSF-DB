@@ -5,7 +5,6 @@
 -- =============================================
 CREATE PROCEDURE [dbo].[TastingEvent_Add]
 	--@ID int = NULL, 
-	@ParentID int = 0, 
 	@UserId int = NULL, 
 	@Title nvarchar(255), 
 	@StartDate date = NULL, @EndDate date = NULL,
@@ -23,7 +22,7 @@ CREATE PROCEDURE [dbo].[TastingEvent_Add]
 	
 /*
 declare @r int
-exec @r = TastingEvent_Add @ParentID=0, @ReviewerID=2,
+exec @r = TastingEvent_Add @ReviewerID=2,
 	@Title = 'Test Flight', @StartDate=NULL,
 	@locCountry = 'France',
 	@Notes = 'First in my list...',
@@ -38,14 +37,9 @@ set xact_abort on
 declare @Result int, 
 		@CreatorID int
 
-select @ParentID = isnull(@ParentID, 0), @UserId = nullif(@UserId, 0)
+select @UserId = nullif(@UserId, 0)
 
 ------------ Checks
-if @ParentID > 0 and not exists(select * from TastingEvent (nolock) where ID = @ParentID) begin
-	raiserror('TastingEvent_Add:: Parent record with ID=%i does not exist.', 16, 1, @ParentID)
-	RETURN -1
-end
-
 if @UserId is NOT NULL 
 	select @UserId = UserId from Users (nolock) where UserId = @UserId
 if @UserId is NULL begin
@@ -73,12 +67,12 @@ exec @locSiteID = Location_GetLookupID @ObjectName='locSite', @ObjectValue=@locS
 BEGIN TRY
 	BEGIN TRANSACTION
 
-	insert into TastingEvent (ParentID, UserId,
+	insert into TastingEvent (UserId,
 		Title, StartDate, EndDate, Location,
 		locCountryID, locRegionID, locLocationID, locLocaleID, locSiteID,
 		Notes, SortOrder,
 		created, updated, WF_StatusID)
-	values (@ParentID, @UserId,
+	values (@UserId,
 		@Title, @StartDate, @EndDate, @Location,
 		@locCountryID, @locRegionID, @locLocationID, @locLocaleID, @locSiteID,
 		@Notes, isnull(@SortOrder, 0),

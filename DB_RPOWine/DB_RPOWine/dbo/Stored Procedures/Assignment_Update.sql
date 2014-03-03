@@ -5,7 +5,7 @@
 -- =============================================
 CREATE PROCEDURE [dbo].[Assignment_Update]
 	@ID int, 
-	@AuthorId int = NULL, 
+	@IssueID int = NULL, @AuthorId int = NULL, 
 	@Title nvarchar(255) = NULL, 
 	@Deadline date = NULL,
 	@Notes nvarchar(max) = NULL,
@@ -29,6 +29,11 @@ set xact_abort on
 declare @Result int
 
 ------------ Checks
+if @IssueID is NOT NULL and not exists(select * from Issue (nolock) where ID = @IssueID) begin
+	raiserror('Assignment_Add:: @IssueID is required.', 16, 1)
+	RETURN -2
+end
+
 -- cannot check - decision on 2/17/2014
 --if @AuthorId is NOT NULL and not exists(select * from Users (nolock) where UserId = @AuthorId) begin
 --	raiserror('Assignment_Add:: @AuthorId is required.', 16, 1)
@@ -48,6 +53,7 @@ BEGIN TRY
 	BEGIN TRANSACTION
 
 	update Assignment set 
+		IssueID = isnull(@IssueID, IssueID),
 		AuthorId = isnull(@AuthorId, AuthorId), 
 		Title = isnull(@Title, Title), 
 		Deadline = isnull(@Deadline, Deadline), 

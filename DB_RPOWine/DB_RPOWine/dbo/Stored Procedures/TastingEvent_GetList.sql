@@ -4,10 +4,9 @@
 -- Create date: 1/26/2014
 -- Description:	Gets List of Tasting Events.
 --				Input parameters are used as a filter.
---				If @ParentID is not specified only 1st level events will be showsn (ParentID = 0)
 -- =============================================
 CREATE PROCEDURE [dbo].[TastingEvent_GetList]
-	@ID int = NULL, @ParentID int = NULL,
+	@ID int = NULL, 
 	--@NameToShow nvarchar(100) = NULL,
 	--@locCountry nvarchar(50) = NULL, @locRegion nvarchar(50) = NULL, 
 	--@locLocation nvarchar(50) = NULL, @locLocale nvarchar(50) = NULL, @locSite nvarchar(50) = NULL
@@ -27,8 +26,6 @@ exec TastingEvent_GetList
 	
 AS
 set nocount on
-
-select @ParentID = isnull(@ParentID, 0)
 
 ------- WF attributes ---
 declare @ObjectTypeID int
@@ -53,7 +50,6 @@ end
 if @ID is not null begin
 	select 
 		ID = te.ID,
-		ParentID = te.ParentID,
 		UserId = te.UserId,
 		UserName = u.FullName,
 		Title = te.Title,
@@ -96,7 +92,6 @@ if @ID is not null begin
 end else begin
 	select 
 		ID = te.ID,
-		ParentID = te.ParentID,
 		UserId = te.UserId,
 		UserName = u.FullName,
 		Title = te.Title,
@@ -135,8 +130,7 @@ end else begin
 		left join LocationLocale ll (nolock) on te.locLocaleID = ll.ID
 		left join LocationSite ls (nolock) on te.locSiteID = ls.ID
 	where te.ID > 0 
-		and te.ParentID = @ParentID
-	order by ParentID, StartDate desc, SortOrder
+	order by StartDate, SortOrder
 end
 	
 RETURN 1

@@ -5,18 +5,17 @@
 --
 USE [RPOWine]
 GO
+--print '--------- deleting data --------'
+--GO
+--truncate table Issue_TasteNote
+--truncate table Publication_TasteNote
+--delete TasteNote
+--delete Issue
+--DBCC CHECKIDENT (Issue, RESEED, 1)
+--DBCC CHECKIDENT (TasteNote, RESEED, 1)
+--GO
 print '--------- copying data --------'
 GO
-print '----- TastingEvent -----'
-GO
-BEGIN TRAN
-	set identity_insert TastingEvent on
-	insert into TastingEvent (ID, ParentID, UserId, Title)
-	values (0, 0, 0, 'Root')
-	set identity_insert TastingEvent off
-COMMIT TRAN
-GO
-
 print '--------- Get Data Ready --------'
 GO
 select --distinct 
@@ -98,13 +97,14 @@ end else begin
 	from #t
 	where len(isnull(Issue,'')) > 0
 	group by PublicationID, Issue
+--select * from Issue where Title = '210'
 	
 	print '--------- Taste Notes --------'
 	insert into TasteNote (UserId, Wine_N_ID, TastingEventID, TasteDate, MaturityID,
-		Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, oldIdn, Notes, 
-		WF_StatusID)
+		Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, Notes, 
+		oldIdn, oldFixedId, WF_StatusID)
 	select 
-		UserId = isnull(u.UserId, 0), 
+		UserId = isnull(u.UserId, isnull(u2.UserId, 0)), 
 		Wine_N_ID = Wine_N_ID, 
 		ProducerNoteID = NULL, 
 		TasteDate = w.tasteDate,
@@ -114,15 +114,19 @@ end else begin
 		DrinkDate_Lo = w.DrinkDate,	
 		DrinkDate_Hi = w.DrinkDate_Hi, 
 		IsBarrelTasting = IsBarrelTasting, 
-		oldIdn = #t.Idn,
 		Notes = w.Notes,
+		oldIdn = #t.Idn,
+		oldFixedId = #t.FixedId,
 		WF_StatusID = 100
 		--oldPublicationDate = w.SourceDate
 	from RPOWineData.dbo.Wine w (nolock)
-		left join Users u on w.Source = u.FullName
 		join #t on w.Idn = #t.Idn
+		left join Users u on isnull(w.Source, '') != '' and w.Source = u.FullName
+		left join RPOWineData.dbo.tocMap m on #t.FixedId = m.fixedId
+		left join RPOWineData.dbo.Articles a on a.idN = m.idN
+		left join Users u2 on isnull(a.Source, '') != '' and a.Source = u2.FullName
 
-	print '--------- Publication_TasteNote --------'
+	print '--------- Publication_TasteNote - 278788 -------'
 	insert into Publication_TasteNote (PublicationID, TasteNoteID)
 	select 
 		PublicationID = #t.PublicationID, 
@@ -142,9 +146,9 @@ end else begin
 		oldFixedId = #t.FixedId
 	from #t
 		join TasteNote tn (nolock) on #t.Idn = tn.oldIdn
-		join Issue i (nolock) on #t.Issue = i.Title
+		join Issue i (nolock) on #t.PublicationID = i.PublicationID and #t.Issue = i.Title
 	where len(isnull(#t.Issue, '')) > 0
-
+	
 end
 
 drop table #t

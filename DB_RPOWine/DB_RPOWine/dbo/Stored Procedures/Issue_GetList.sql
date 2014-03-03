@@ -1,4 +1,5 @@
-﻿-- =============================================
+﻿
+-- =============================================
 -- Author:		Alex B.
 -- Create date: 2/4/2014
 -- Description:	Gets List of Issues.
@@ -52,14 +53,31 @@ st_tn as (
 		join TasteNote tn (nolock) on i.TasteNoteID = tn.ID
 	group by i.IssueID
 ),
+
+-- commented by sergiy, not sure if I did proper changes
+--st_te as (
+--	select IssueID = i.IssueID,
+--		Cnt = count(*),
+--		Cnt_Published = sum(case when te.WF_StatusID > 99 then 1 else 0 end)
+--	from Issue_TastingEvent i (nolock)
+--		join TastingEvent te (nolock) on i.TastingEventID = te.ID
+--	group by i.IssueID
+--)
+
 st_te as (
-	select IssueID = i.IssueID,
+	select AssignmentID = i.AssignmentID,
 		Cnt = count(*),
 		Cnt_Published = sum(case when te.WF_StatusID > 99 then 1 else 0 end)
-	from Issue_TastingEvent i (nolock)
+	from Assignment_TastingEvent i (nolock)
 		join TastingEvent te (nolock) on i.TastingEventID = te.ID
-	group by i.IssueID
+	group by i.AssignmentID
 )
+
+
+
+
+
+
 select 
 	ID = i.ID,
 	PublicationID = i.PublicationID,
@@ -84,7 +102,7 @@ from Issue i (nolock)
 	join Publication p (nolock) on i.PublicationID = p.ID
 	left join st_a on i.ID = st_a.IssueID
 	left join st_tn on i.ID = st_tn.IssueID
-	left join st_te on i.ID = st_te.IssueID
+	left join st_te on i.ID = st_te.AssignmentID
 	left join Users u (nolock) on i.ChiefEditorUserId = u.UserId
 where i.ID = isnull(@ID, i.ID)
 	and (@PublicationID is NULL or i.PublicationID = @PublicationID)
@@ -96,13 +114,9 @@ order by i.PublicationDate desc, i.ID
 	
 RETURN 1
 GO
-GRANT EXECUTE
-    ON OBJECT::[dbo].[Issue_GetList] TO [RP_DataAdmin]
-    AS [dbo];
+
 
 
 GO
-GRANT EXECUTE
-    ON OBJECT::[dbo].[Issue_GetList] TO [RP_Customer]
-    AS [dbo];
+
 

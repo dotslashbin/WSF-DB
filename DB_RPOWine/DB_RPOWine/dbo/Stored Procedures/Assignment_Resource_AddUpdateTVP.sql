@@ -1,5 +1,4 @@
-﻿
--- =============================================
+﻿-- =============================================
 -- Author:		Alex B.
 -- Create date: 2/18/2014
 -- Description:	Adds a new Resource to the Assignment or updates deadline.
@@ -12,8 +11,8 @@ CREATE PROCEDURE [dbo].[Assignment_Resource_AddUpdateTVP]
 /*
 set nocount on
 declare @t as dbo.AssignmentResource
-insert into @t (UserId, UserRoleID, UserRoleName, Deadline) 
-values (2, null, 'Reviewer', '2/26/2014'), (3, null, 'Reviewer', '2/28/2014')
+insert into @t (UserId, UserRoleID, UserRoleName) 
+values (2, null, 'Reviewer'), (3, null, 'Reviewer')
 exec Assignment_Resource_AddUpdateTVP @AssignmentID=2, @tvpResourceList = @t
 */	
 
@@ -30,10 +29,10 @@ if @Result is NULL begin
 	RETURN -1
 end
 
-if exists(select * from @tvpResourceList where UserRoleID is NULL and UserRoleName is NULL) begin
-	raiserror('Assignment_Resource_AddUpdateTVP:: User Roles are required for all records.', 16, 1)
-	RETURN -1
-end
+--if exists(select * from @tvpResourceList where UserRoleID is NULL and UserRoleName is NULL) begin
+--	raiserror('Assignment_Resource_AddUpdateTVP:: User Roles are required for all records.', 16, 1)
+--	RETURN -1
+--end
 
 ------------ Checks
 
@@ -45,14 +44,14 @@ BEGIN TRY
 	select distinct n.UserRoleName
 	from @tvpResourceList n
 		left join UserRoles ur on lower(n.UserRoleName) = lower(ur.Name)
-	where isnull(n.UserRoleID, 0) < 1 and ur.ID is NULL
+	where len(isnull(n.UserRoleName, '')) > 0 
+		and isnull(n.UserRoleID, 0) < 1 and ur.ID is NULL
 
 	-- 2. merging 
 	merge Assignment_Resource as t
 	using (
 		select UserId = rl.UserId,
-			UserRoleID = ur.ID,
-			Deadline = rl.Deadline
+			UserRoleID = isnull(ur.ID, 0)
 		from @tvpResourceList rl
 			left join UserRoles ur on rl.UserRoleID = ur.ID or lower(rl.UserRoleName) = lower(ur.Name)
 	) as s 
@@ -60,12 +59,11 @@ BEGIN TRY
 	when matched then
 		UPDATE set 
 			UserRoleID = isnull(s.UserRoleID, t.UserRoleID),
-			Deadline = isnull(s.Deadline, t.Deadline),
 			updated = getdate()
 	when not matched by target 
 		and s.UserRoleID is NOT NULL then
-		INSERT (AssignmentID, UserId, UserRoleID, Deadline, created)
-		values (@AssignmentID, s.UserId, s.UserRoleID, s.Deadline, getdate());
+		INSERT (AssignmentID, UserId, UserRoleID, created)
+		values (@AssignmentID, s.UserId, isnull(s.UserRoleID, 0), getdate());
 	select @Result = @@rowcount
 	
 	COMMIT TRANSACTION

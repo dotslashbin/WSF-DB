@@ -50,8 +50,8 @@ if @OriginID > 0 and not exists(select * from TasteNote (nolock) where ID = @Ori
 	RETURN -1
 end
 
-if @UserId is NOT NULL 
-	select @UserId = UserId from Users (nolock) where UserId = @UserId
+--if @UserId is NOT NULL 
+--	select @UserId = UserId from Users (nolock) where UserId = @UserId
 if @UserId is NULL begin
 	raiserror('TasteNote_Add:: @UserId is required.', 16, 1)
 	RETURN -2

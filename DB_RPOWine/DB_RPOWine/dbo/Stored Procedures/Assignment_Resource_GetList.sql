@@ -8,7 +8,7 @@ CREATE PROCEDURE [dbo].[Assignment_Resource_GetList]
 	@ShowRes smallint = 1
 
 /*
-exec Assignment_Resource_GetList
+exec Assignment_Resource_GetList 2
 */	
 
 AS
@@ -29,11 +29,10 @@ select
 	AssignmentID = ar.AssignmentID,
 	UserId = ar.UserId,
 	UserName = isnull(u.FullName, ''),
-	UserRoleID = ar.UserRoleID,
-	UserRoleName = ur.Name,
-	Deadline = ar.Deadline
+	UserRoleID = isnull(ar.UserRoleID, 0),
+	UserRoleName = isnull(ur.Name, '')
 from Assignment_Resource ar (nolock)
-	join UserRoles ur (nolock) on ar.UserRoleID = ur.ID
+	left join UserRoles ur (nolock) on ar.UserRoleID = ur.ID
 	left join Users u (nolock) on ar.UserId = u.UserId
 where ar.AssignmentID = @AssignmentID
 

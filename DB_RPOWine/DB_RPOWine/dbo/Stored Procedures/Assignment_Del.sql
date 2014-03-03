@@ -43,6 +43,7 @@ BEGIN TRY
 	
 	delete Assignment_Article where AssignmentID = @ID
 	delete Assignment_Resource where AssignmentID = @ID
+	delete Assignment_ResourceD where AssignmentID = @ID
 	delete Assignment_TasteNote where AssignmentID = @ID
 	delete Assignment_TastingEvent where AssignmentID = @ID
 	delete Assignment where ID = @ID

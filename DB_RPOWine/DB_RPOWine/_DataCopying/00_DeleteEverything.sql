@@ -17,13 +17,14 @@ GO
 delete Assignment_TastingEvent
 delete Assignment_TasteNote
 delete Assignment_Resource
+delete Assignment_ResourceD
 delete Assignment_Article
 delete Assignment
 DBCC CHECKIDENT (Assignment, RESEED, 1)
 GO
 print '--------- delete Publication: Issue data --------'
 GO
-delete Issue_TastingEvent
+--delete Issue_TastingEvent
 delete Issue_TasteNote
 delete Issue_Article
 delete Issue

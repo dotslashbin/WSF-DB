@@ -28,11 +28,6 @@ if not exists(select * from TastingEvent (nolock) where ID = @ID) begin
 	RETURN -1
 end
 
-if exists(select * from TastingEvent (nolock) where ParentID = @ID) begin
-	raiserror('[USERERROR]:: Tasting Event cannot be deleted because there are sub event record(s) associated with this Event.', 16, 1)
-	RETURN -1
-end
-
 ------------ Audit Log
 --if len(isnull(@UserName, '')) < 1 begin
 --	raiserror('TastingEvent_Del:: @UserName is required.', 16, 1)

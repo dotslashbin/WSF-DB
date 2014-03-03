@@ -6,7 +6,6 @@
 -- =============================================
 CREATE PROCEDURE [dbo].[TastingEvent_Update]
 	@ID int, 
-	@ParentID int = NULL, 
 	@UserId int = NULL, 
 	@Title nvarchar(255) = NULL, 
 	@StartDate date = NULL, @EndDate date = NULL,
@@ -45,11 +44,6 @@ if not exists(select * from TastingEvent (nolock) where ID = @ID) begin
 	RETURN -1
 end
 
-if @ParentID is not null and not exists(select * from TastingEvent (nolock) where ID = @ParentID) begin
-	raiserror('TastingEvent_Update:: Parent record with ID=%i does not exist.', 16, 1, @ParentID)
-	RETURN -1
-end
-
 if @UserId is NOT NULL begin
 	select @UserId = UserId from Users (nolock) where UserId = @UserId
 	if @UserId is NULL begin
@@ -79,7 +73,6 @@ BEGIN TRY
 	BEGIN TRANSACTION
 
 	update TastingEvent set
-		ParentID = isnull(@ParentID, ParentID), 
 		UserId = isnull(@UserId, UserId), 
 		Title = isnull(@Title, Title),
 		StartDate = isnull(@StartDate, StartDate),

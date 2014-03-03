@@ -25,7 +25,7 @@ CREATE PROCEDURE [dbo].[TasteNote_Update]
 /*
 select top 20 * from TasteNote order by ID desc
 declare @r int
-exec @r = TasteNote_Update @ID = 254320, @OriginID=NULL, @UserId=2, @Wine_N_ID=6151,
+exec @r = TasteNote_Update @ID = 278791, @OriginID=NULL, @UserId=2, @Wine_N_ID=6151,
 	@TasteDate = '2/1/2013', @MaturityID = 2,
 	@Rating_Lo = 88, @Rating_Hi = 94, @Notes = 'First in my list... and a simple update.',
 	@WF_StatusID = NULL
@@ -57,13 +57,13 @@ if isnull(@OriginID, 0) > 0 and not exists(select * from TasteNote (nolock) wher
 	RETURN -1
 end
 
-if @UserId is NOT NULL begin
-	select @UserId = UserId from Users (nolock) where UserId = @UserId
-	if @UserId is NULL begin
-		raiserror('TastingEvent_Update:: User record does not exist.', 16, 1)
-		RETURN -1
-	end
-end
+--if @UserId is NOT NULL begin
+--	select @UserId = UserId from Users (nolock) where UserId = @UserId
+--	if @UserId is NULL begin
+--		raiserror('TastingEvent_Update:: User record does not exist.', 16, 1)
+--		RETURN -1
+--	end
+--end
 
 if @Wine_N_ID is NOT NULL and not exists(select * from Wine_N (nolock) where ID = @Wine_N_ID) begin
 	raiserror('TastingEvent_Update:: Wine_N record with ID=%i does not exist.', 16, 1, @Wine_N_ID)

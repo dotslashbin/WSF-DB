@@ -10,17 +10,19 @@
     [DrinkDate_Lo]    DATE           NULL,
     [DrinkDate_Hi]    DATE           NULL,
     [IsBarrelTasting] BIT            CONSTRAINT [DF_TasteNotes_IsBarrelTasting] DEFAULT ((0)) NOT NULL,
-    [oldIdn]          INT            NULL,
     [Notes]           NVARCHAR (MAX) NULL,
     [created]         SMALLDATETIME  CONSTRAINT [DF_TasteNote_created] DEFAULT (getdate()) NOT NULL,
     [updated]         SMALLDATETIME  NULL,
     [WF_StatusID]     SMALLINT       CONSTRAINT [DF_TasteNote_WF_StatusID] DEFAULT ((0)) NOT NULL,
     [OriginID]        INT            NULL,
+    [oldIdn]          INT            NULL,
+    [oldFixedId]      INT            NULL,
     CONSTRAINT [PK_TasteNote] PRIMARY KEY CLUSTERED ([ID] ASC) ON [TasteNotes],
-    CONSTRAINT [FK_TasteNote_Users] FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users] ([UserId]),
     CONSTRAINT [FK_TasteNote_Wine_N] FOREIGN KEY ([Wine_N_ID]) REFERENCES [dbo].[Wine_N] ([ID]),
     CONSTRAINT [FK_TasteNote_WineMaturity] FOREIGN KEY ([MaturityID]) REFERENCES [dbo].[WineMaturity] ([ID])
 ) TEXTIMAGE_ON [TasteNotes];
+
+
 
 
 

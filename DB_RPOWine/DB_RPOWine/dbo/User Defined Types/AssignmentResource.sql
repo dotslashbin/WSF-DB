@@ -1,8 +1,9 @@
 ﻿CREATE TYPE [dbo].[AssignmentResource] AS TABLE (
     [UserId]       INT          NOT NULL,
     [UserRoleID]   INT          NULL,
-    [UserRoleName] VARCHAR (30) NULL,
-    [Deadline]     DATE         NULL);
+    [UserRoleName] VARCHAR (30) NULL);
+
+
 
 
 GO

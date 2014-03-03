@@ -5,7 +5,7 @@
 -- =============================================
 CREATE PROCEDURE [dbo].[Assignment_Add]
 	--@ID int = NULL, 
-	@AuthorId int, 
+	@IssueID int, @AuthorId int = NULL, 
 	@Title nvarchar(255), 
 	@Deadline date = NULL,
 	@Notes nvarchar(max) = NULL,
@@ -16,7 +16,7 @@ CREATE PROCEDURE [dbo].[Assignment_Add]
 	
 /*
 declare @r int
-exec @r = Assignment_Add @AuthorID=791768,
+exec @r = Assignment_Add @AuthorID=7, @IssueID=1,
 	@Title = 'Test Assignment', @Deadline = '3/1/2014',
 	@Notes = 'First in my list...',
 	@WF_StatusID = NULL
@@ -36,6 +36,11 @@ declare @Result int
 --	RETURN -2
 --end
 
+if not exists(select * from Issue (nolock) where ID = @IssueID) begin
+	raiserror('Assignment_Add:: @IssueID is required.', 16, 1)
+	RETURN -2
+end
+
 ------------- Audit
 --declare @CreatorID int
 --if len(isnull(@UserName, '')) < 1 begin
@@ -48,9 +53,9 @@ declare @Result int
 BEGIN TRY
 	BEGIN TRANSACTION
 
-	insert into Assignment (AuthorId, Title, Deadline, Notes,
+	insert into Assignment (IssueID, AuthorId, Title, Deadline, Notes,
 		created, updated, WF_StatusID)
-	values (@AuthorId, @Title, @Deadline, @Notes,
+	values (@IssueID, isnull(@AuthorId, 0), @Title, @Deadline, @Notes,
 		getdate(), null, isnull(@WF_StatusID, 0))
 	if @@error <> 0 begin
 		select @Result = -1

@@ -1,5 +1,6 @@
 ﻿CREATE TABLE [dbo].[Assignment] (
     [ID]          INT            IDENTITY (1, 1) NOT NULL,
+    [IssueID]     INT            NOT NULL,
     [AuthorId]    INT            NOT NULL,
     [Title]       NVARCHAR (255) NOT NULL,
     [Deadline]    DATE           NULL,
@@ -7,8 +8,11 @@
     [created]     SMALLDATETIME  CONSTRAINT [DF_Assignment_created] DEFAULT (getdate()) NOT NULL,
     [updated]     SMALLDATETIME  NULL,
     [WF_StatusID] SMALLINT       CONSTRAINT [DF_Assignment_WF_StatusID] DEFAULT ((0)) NOT NULL,
-    CONSTRAINT [PK_Assignment] PRIMARY KEY CLUSTERED ([ID] ASC) ON [Articles]
+    CONSTRAINT [PK_Assignment] PRIMARY KEY CLUSTERED ([ID] ASC) ON [Articles],
+    CONSTRAINT [FK_Assignment_Issue] FOREIGN KEY ([IssueID]) REFERENCES [dbo].[Issue] ([ID])
 ) TEXTIMAGE_ON [Articles];
+
+
 
 
 GO
