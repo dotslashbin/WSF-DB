@@ -74,5 +74,18 @@ where wn.Site is not null and LEN(wn.Site) > 0 and r.ID is NULL
 group by wn.Site
 GO
 
+---- places
+set identity_insert LocationPlaces on
+insert into LocationPlaces (ID, Name, WF_StatusID) values (0, N'', 0)
+set identity_insert LocationPlaces off
+go
+insert into LocationPlaces (Name, WF_StatusID)
+select wn.Places, WF_StatusID = 100
+from RPOWineData.dbo.Wine wn
+	left join LocationPlaces r on wn.Site = r.Name
+where wn.Places is not null and LEN(wn.Places) > 0 and r.ID is NULL
+group by wn.Places
+GO
+
 print 'Done.'
 GO

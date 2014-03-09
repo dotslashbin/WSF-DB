@@ -51,8 +51,8 @@ insert into WineProducer (ID, Name, NameToShow, locCountryID,locRegionID,locLoca
 values (0, N'', N'', 0,0,0,0,0,0)
 set identity_insert WineProducer off
 go
-insert into WineProducer (Name, NameToShow, WebSiteURL, locCountryID,locRegionID,locLocationID,locLocaleID,locSiteID, WF_StatusID)
-select wn.Producer, NameToShow = max(wn.ProducerShow), WebSiteURL = max(wn.ProducerURL), 
+insert into WineProducer (Name, NameToShow, WebSiteURL, ProfileFileName, locCountryID,locRegionID,locLocationID,locLocaleID,locSiteID, WF_StatusID)
+select wn.Producer, NameToShow = max(wn.ProducerShow), WebSiteURL = max(wn.ProducerURL), ProfileFileName = max(wn.ProducerProfileFileName), 
 	0,0,0,0,0, WF_StatusID = 100
 from RPOWineData.dbo.Wine wn
 	left join WineProducer l on wn.Producer = l.Name

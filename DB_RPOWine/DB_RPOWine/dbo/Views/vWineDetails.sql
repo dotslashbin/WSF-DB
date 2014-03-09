@@ -1,4 +1,5 @@
 ﻿
+
 CREATE VIEW [dbo].[vWineDetails]
 WITH SCHEMABINDING
 
@@ -14,7 +15,9 @@ AS
 			nullif(ls.Name,''), nullif(lloc.name,''), nullif(ll.name,''), nullif(lr.name,''), nullif(lc.name,'')
 		),
 
-		Producer = wp.Name, ProducerToShow = wp.NameToShow,
+		Producer = wp.Name, ProducerToShow = wp.NameToShow, ProducerURL = wp.WebSiteURL, 
+		ProducerProfileFileName = wp.ProfileFileName,
+		
 		[Type] = wt.Name, Label = wl.Name,
 		Variety = wv.Name, Dryness = wd.Name, Color = wc.Name,
 		Vintage = wvin.Name,
@@ -44,7 +47,7 @@ AS
 		oldFixedId = wn.oldFixedId, oldWineNameIdN = wn.oldWineNameIdN,
 
 		Wine_N_WF_StatusID = wn.WF_StatusID
-	from dbo.Wine_N wn
+	from dbo.Wine_N wn	-- (nolock)
 		join dbo.Wine_VinN vn on wn.Wine_VinN_ID = vn.ID
 
 		join dbo.WineProducer wp on vn.ProducerID = wp.ID

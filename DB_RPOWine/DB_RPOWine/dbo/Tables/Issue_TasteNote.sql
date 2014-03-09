@@ -14,3 +14,11 @@
 
 
 
+
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Issue_TasteNote_Old]
+    ON [dbo].[Issue_TasteNote]([TasteNoteID] ASC)
+    INCLUDE([IssueID], [oldArticleIdNKey], [oldArticleId]);
+

@@ -32,11 +32,14 @@ select --distinct
 	locLocationID = isnull(ll.ID, 0),
 	locLocaleID = isnull(lloc.ID, 0),
 	locSiteID = isnull(ls.ID, 0),
+	locPlacesID = isnull(lp.ID, 0),
+	
 	Producer = isnull(wn.Producer, ''), WineType = isnull(wn.WineType, ''),
 	LabelName = isnull(wn.LabelName, ''), Variety = isnull(wn.Variety, ''),
 	Dryness = isnull(wn.Dryness, ''), ColorClass = isnull(wn.ColorClass, ''),
 	Country = isnull(wn.Country, ''), Region = isnull(wn.Region, ''),
-	Location = isnull(wn.Location, ''), Locale = isnull(wn.Locale, ''), Site = isnull(wn.Site, ''),
+	Location = isnull(wn.Location, ''), Locale = isnull(wn.Locale, ''), 
+	Site = isnull(wn.Site, ''), Places = isnull(wn.Places, ''),
 	Wine_VinN_ID = 0,
 	Wine_N_ID = 0,
 	
@@ -63,6 +66,7 @@ from RPOWineData.dbo.Wine wn
 	left join LocationLocation ll on isnull(wn.Location, '') = ll.Name
 	left join LocationLocale lloc on isnull(wn.Locale, '') = lloc.Name
 	left join LocationSite ls on isnull(wn.Site, '') = ls.Name
+	left join LocationPlaces lp on isnull(wn.Places, '') = lp.Name
 
 	left join Publication p on p.Name = case
 		when Publication like '%robertpark%' then 'eRobertParker.com'
@@ -100,13 +104,16 @@ end else begin
 --select * from Issue where Title = '210'
 	
 	print '--------- Taste Notes --------'
-	insert into TasteNote (UserId, Wine_N_ID, TastingEventID, TasteDate, MaturityID,
+	insert into TasteNote (UserId, Wine_N_ID, locPlacesID, TastingEventID, TasteDate, MaturityID,
 		Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, Notes, 
-		oldIdn, oldFixedId, WF_StatusID)
+		oldIdn, oldFixedId, oldClumpName, oldEncodedKeyWords, oldReviewerIdN, oldIsErpTasting, oldIsWjTasting,
+		oldShowForERP, oldShowForWJ, oldSourceDate,
+		WF_StatusID)
 	select 
 		UserId = isnull(u.UserId, isnull(u2.UserId, 0)), 
-		Wine_N_ID = Wine_N_ID, 
-		ProducerNoteID = NULL, 
+		Wine_N_ID = #t.Wine_N_ID, 
+		locPlacesID = #t.locPlacesID, 
+		TastingEventID = NULL, 
 		TasteDate = w.tasteDate,
 		MaturityID = isnull(w.Maturity, -1), 
 		Rating_Lo = w.Rating, 
@@ -117,6 +124,14 @@ end else begin
 		Notes = w.Notes,
 		oldIdn = #t.Idn,
 		oldFixedId = #t.FixedId,
+		oldClumpName = w.clumpName, 
+		oldEncodedKeyWords = w.encodedKeyWords, 
+		oldReviewerIdN = w.ReviewerIdN, 
+		oldIsErpTasting = w.isErpTasting, 
+		oldIsWjTasting = w.isWjTasting,
+		oldShowForERP = w.showForERP, 
+		oldShowForWJ = w.showForWJ, 
+		oldSourceDate = w.SourceDate,
 		WF_StatusID = 100
 		--oldPublicationDate = w.SourceDate
 	from RPOWineData.dbo.Wine w (nolock)

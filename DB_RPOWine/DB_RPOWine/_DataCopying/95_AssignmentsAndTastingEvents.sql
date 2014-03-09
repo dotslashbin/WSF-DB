@@ -111,6 +111,7 @@ set nocount on
 		set identity_insert UserRoles on
 		insert into UserRoles(ID, Name) values (0, '')
 		set identity_insert UserRoles off
+		set @uRoleID = 0
 	end
 
 	insert into Assignment_Resource (AssignmentID, UserId, UserRoleID)
@@ -138,13 +139,20 @@ set nocount on
 	-- Articles
 	; with a as (
 		select 
-			ArticleId, ArticleIdN = idN, ArticleIdNKey,
-			Country = isnull(Country, ''), Region = isnull(Region, ''), Location = isnull(Location, ''),
-			Publication, Issue, 
-			Author = Source, 
+			a.ArticleId, ArticleIdN = a.idN, a.ArticleIdNKey,
+			Country = isnull(a.Country, ''), Region = isnull(a.Region, ''), Location = isnull(a.Location, ''),
+			a.Publication, a.Issue, 
+			Author = a.Source, 
 			Date = isnull(a.sourceDate, a.dateUpdated),
-			a.Title
+			Title = a.Title,
+			ShortTitle = max(w.ShortTitle)
 		from RPOWineData.dbo.Articles a
+			left join RPOWineData.dbo.tocMap m on a.idN = m.idN
+			left join RPOWineData.dbo.Wine w on w.FixedId = m.fixedId
+		group by a.ArticleId, a.idN, a.ArticleIdNKey,
+			isnull(a.Country, ''), isnull(a.Region, ''), isnull(a.Location, ''), a.Publication, a.Issue, 
+			a.Source, isnull(a.sourceDate, a.dateUpdated),
+			a.Title
 	)
 	insert into Article (AuthorId, Title, Date, Notes, MetaTags, WF_StatusID, 
 		oldArticleIdN, oldArticleId, oldArticleIdNKey)
@@ -171,9 +179,11 @@ set nocount on
 	order by ArticleID
 	
 	insert into Issue_Article (IssueID, ArticleID)
-	select distinct a.IssueID, aa.ArticleID
-	from Assignment_Article aa
-		join Assignment a on aa.AssignmentID = a.ID
+	select i.ID, a.ID
+	from Article a
+		join RPOWineData.dbo.Articles s on a.oldArticleIdN = s.idN
+		join Publication p on s.Publication = p.Name
+		join Issue i on s.Issue = i.Title and p.ID = i.PublicationID
 		
 --COMMIT TRAN
 --ROLLBACK TRAN
@@ -182,3 +192,14 @@ drop table #t
 
 print '--- Done. ---'
 GO
+
+/*
+select top 2000 
+	a.Title, ST = max(w.ShortTitle)
+from RPOWineData.dbo.Articles a
+	join RPOWineData.dbo.tocMap m on a.idN = m.idN
+	join RPOWineData.dbo.Wine w on w.FixedId = m.fixedId
+where isnull(a.Title, '') != '' and isnull(w.ShortTitle, '') != ''
+	and isnull(a.Title, '') != isnull(w.ShortTitle, '')
+group by a.Title
+*/

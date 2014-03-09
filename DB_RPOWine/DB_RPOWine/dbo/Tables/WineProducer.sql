@@ -1,20 +1,21 @@
 ﻿CREATE TABLE [dbo].[WineProducer] (
-    [ID]            INT            IDENTITY (0, 1) NOT NULL,
-    [Name]          NVARCHAR (100) NOT NULL,
-    [NameToShow]    NVARCHAR (100) NOT NULL,
-    [WebSiteURL]    NVARCHAR (255) NULL,
-    [locCountryID]  INT            NOT NULL,
-    [locRegionID]   INT            NOT NULL,
-    [locLocationID] INT            NOT NULL,
-    [locLocaleID]   INT            NOT NULL,
-    [locSiteID]     INT            NOT NULL,
-    [Profile]       NVARCHAR (MAX) NULL,
-    [ContactInfo]   NVARCHAR (MAX) NULL,
-    [created]       SMALLDATETIME  CONSTRAINT [DF_WineProducer_created] DEFAULT (getdate()) NOT NULL,
-    [updated]       SMALLDATETIME  NULL,
-    [WF_StatusID]   SMALLINT       CONSTRAINT [DF_WineProducer_WF_StatusID] DEFAULT ((0)) NOT NULL,
-    [CreatorID]     INT            NULL,
-    [EditorID]      INT            NULL,
+    [ID]              INT            IDENTITY (0, 1) NOT NULL,
+    [Name]            NVARCHAR (100) NOT NULL,
+    [NameToShow]      NVARCHAR (100) NOT NULL,
+    [WebSiteURL]      NVARCHAR (255) NULL,
+    [locCountryID]    INT            NOT NULL,
+    [locRegionID]     INT            NOT NULL,
+    [locLocationID]   INT            NOT NULL,
+    [locLocaleID]     INT            NOT NULL,
+    [locSiteID]       INT            NOT NULL,
+    [Profile]         NVARCHAR (MAX) NULL,
+    [ContactInfo]     NVARCHAR (MAX) NULL,
+    [created]         SMALLDATETIME  CONSTRAINT [DF_WineProducer_created] DEFAULT (getdate()) NOT NULL,
+    [updated]         SMALLDATETIME  NULL,
+    [WF_StatusID]     SMALLINT       CONSTRAINT [DF_WineProducer_WF_StatusID] DEFAULT ((0)) NOT NULL,
+    [CreatorID]       INT            NULL,
+    [EditorID]        INT            NULL,
+    [ProfileFileName] VARCHAR (50)   NULL,
     CONSTRAINT [PK_WineProducer] PRIMARY KEY CLUSTERED ([ID] ASC),
     CONSTRAINT [FK_WineProducer_LocationCountry] FOREIGN KEY ([locCountryID]) REFERENCES [dbo].[LocationCountry] ([ID]),
     CONSTRAINT [FK_WineProducer_LocationLocale] FOREIGN KEY ([locLocaleID]) REFERENCES [dbo].[LocationLocale] ([ID]),
@@ -22,6 +23,8 @@
     CONSTRAINT [FK_WineProducer_LocationRegion] FOREIGN KEY ([locRegionID]) REFERENCES [dbo].[LocationRegion] ([ID]),
     CONSTRAINT [FK_WineProducer_LocationSite] FOREIGN KEY ([locSiteID]) REFERENCES [dbo].[LocationSite] ([ID])
 );
+
+
 
 
 

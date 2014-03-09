@@ -57,6 +57,7 @@ DBCC CHECKIDENT (Publisher, RESEED, 0)
 GO
 print '--------- delete Wine data --------'
 GO
+truncate table Wine_N_Stat
 delete Wine_N
 delete Wine_VinN
 truncate table WineBottleSize
@@ -86,11 +87,13 @@ delete LocationRegion
 delete LocationLocation
 delete LocationLocale
 delete LocationSite
+delete LocationPlaces
 DBCC CHECKIDENT (LocationCountry, RESEED, 0)
 DBCC CHECKIDENT (LocationRegion, RESEED, 0)
 DBCC CHECKIDENT (LocationLocation, RESEED, 0)
 DBCC CHECKIDENT (LocationLocale, RESEED, 0)
 DBCC CHECKIDENT (LocationSite, RESEED, 0)
+DBCC CHECKIDENT (LocationPlaces, RESEED, 0)
 GO
 print '--------- delete Users data --------'
 GO

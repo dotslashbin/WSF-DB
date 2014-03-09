@@ -2,6 +2,7 @@
     [ID]               INT            IDENTITY (1, 1) NOT NULL,
     [AuthorId]         INT            NOT NULL,
     [Title]            NVARCHAR (255) NOT NULL,
+    [ShortTitle]       NVARCHAR (150) NULL,
     [Date]             DATE           NULL,
     [Notes]            NVARCHAR (MAX) NULL,
     [MetaTags]         NVARCHAR (MAX) NULL,
@@ -13,6 +14,8 @@
     [oldArticleIdNKey] INT            NULL,
     CONSTRAINT [PK_Article] PRIMARY KEY CLUSTERED ([ID] ASC) ON [Articles]
 ) TEXTIMAGE_ON [Articles];
+
+
 
 
 

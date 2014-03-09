@@ -5,7 +5,7 @@
 --				It will automatically add new records into lookup tables, if necessary AND @IsAutoCreate = 1.
 -- =============================================
 CREATE PROCEDURE [dbo].[Location_GetLookupID]
-	@ObjectName as varchar(30), @ObjectValue as nvarchar(120),
+	@ObjectName as varchar(30), @ObjectValue as nvarchar(150),
 	@IsAutoCreate bit = 1
 
 --
@@ -59,6 +59,14 @@ if (lower(@ObjectName) = 'locsite') begin
 	select @Result = ID from LocationSite where lower(Name) = lower(@ObjectValue)
 	if isnull(@Result, 0) < 1 and @IsAutoCreate = 1 and len(@ObjectValue) > 0 begin
 		insert into LocationSite (Name) values (left(@ObjectValue, 50))
+		select @Result = scope_identity()
+	end
+end
+
+if (lower(@ObjectName) = 'locplaces') begin
+	select @Result = ID from LocationPlaces where lower(Name) = lower(@ObjectValue)
+	if isnull(@Result, 0) < 1 and @IsAutoCreate = 1 and len(@ObjectValue) > 0 begin
+		insert into LocationPlaces (Name) values (left(@ObjectValue, 150))
 		select @Result = scope_identity()
 	end
 end

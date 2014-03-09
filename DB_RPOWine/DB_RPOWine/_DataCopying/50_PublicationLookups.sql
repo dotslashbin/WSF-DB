@@ -68,6 +68,9 @@ GO
 --order by cnt desc
 --GO
 --select * from Users
+GO
+exec srv.Users_Refresh
+GO
 ; with r as (
 	select 
 		Name = isnull([Source], ''),
@@ -87,6 +90,4 @@ from r
 where r.Name != '' and us.UserId is NULL -- and u.UserName !='robertparker'
 group by lower(replace(Name, ' ', '')), Name
 --order by cnt desc
-GO
---exec srv.Users_Refresh
 GO

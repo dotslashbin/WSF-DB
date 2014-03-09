@@ -15,6 +15,7 @@ CREATE PROCEDURE [dbo].[TasteNote_Update]
 	@DrinkDate_Lo date = NULL, @DrinkDate_Hi date = NULL,
 	@IsBarrelTasting bit = NULL,
 
+	@Places nvarchar(150) = null,
 	@Notes nvarchar(max) = NULL,
 	--@PublicationDate date = NULL,
 	
@@ -75,6 +76,10 @@ if @MaturityID is NOT NULL and not exists(select * from WineMaturity (nolock) wh
 	RETURN -1
 end
 
+------------ Lookup IDs
+declare @locPlacesID int
+exec @locPlacesID = Location_GetLookupID @ObjectName='locPlaces', @ObjectValue=@Places, @IsAutoCreate=1
+
 ------------- Audit
 --if len(isnull(@UserName, '')) < 1 begin
 --	raiserror('TastingEvent_Update:: @UserName is required.', 16, 1)
@@ -91,12 +96,12 @@ BEGIN TRY
 	if @prevWF_StatusID >= 100 and isnull(@WF_StatusID, 0) < 100 begin
 		set @WF_StatusID = isnull(@WF_StatusID, 0)
 		insert into TasteNote (OriginID, UserId, Wine_N_ID, TasteDate, MaturityID, 
-			Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, 
-			IsBarrelTasting, Notes, --oldPublicationDate,
+			Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, 
+			locPlacesID, Notes,
 			created, updated, WF_StatusID)
 		select OriginID=@ID, UserId, Wine_N_ID, TasteDate, MaturityID, 
-			Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, 
-			IsBarrelTasting, Notes, --oldPublicationDate,
+			Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, 
+			locPlacesID, Notes,
 			created, getdate(), @WF_StatusID
 		from TasteNote 
 		where ID = @ID
@@ -120,8 +125,8 @@ BEGIN TRY
 		DrinkDate_Lo = isnull(DrinkDate_Lo, DrinkDate_Lo), 
 		DrinkDate_Hi = isnull(@DrinkDate_Hi, DrinkDate_Hi), 
 		IsBarrelTasting = isnull(@IsBarrelTasting, IsBarrelTasting), 
+		locPlacesID = isnull(@locPlacesID, locPlacesID),
 		Notes = isnull(@Notes, Notes), 
-		--oldPublicationDate = isnull(@PublicationDate, oldPublicationDate),
 		updated = getdate(), 
 		WF_StatusID = isnull(@WF_StatusID, WF_StatusID)
 		--EditorID = @EditorID

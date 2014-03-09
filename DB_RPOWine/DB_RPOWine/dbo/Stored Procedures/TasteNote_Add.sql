@@ -16,9 +16,8 @@ CREATE PROCEDURE [dbo].[TasteNote_Add]
 	@DrinkDate_Lo date = NULL, @DrinkDate_Hi date = NULL,
 	@IsBarrelTasting bit = 0,
 
+	@Places nvarchar(150) = null,
 	@Notes nvarchar(max),
-	
-	--@PublicationDate date = NULL,
 	
 	@WF_StatusID smallint = NULL,
 	--@UserName varchar(50),
@@ -66,6 +65,11 @@ if not exists(select * from WineMaturity (nolock) where ID = @MaturityID) begin
 	raiserror('TasteNote_Add:: WineMaturity record with ID=%i does not exist.', 16, 1, @MaturityID)
 	RETURN -1
 end
+
+------------ Lookup IDs
+declare @locPlacesID int
+exec @locPlacesID = Location_GetLookupID @ObjectName='locPlaces', @ObjectValue=@Places, @IsAutoCreate=1
+
 ------------- Audit
 --if len(isnull(@UserName, '')) < 1 begin
 --	raiserror('TasteNote_Add:: @UserName is required.', 16, 1)
@@ -78,12 +82,12 @@ BEGIN TRY
 	BEGIN TRANSACTION
 
 	insert into TasteNote (OriginID, UserId, Wine_N_ID, TasteDate, MaturityID, 
-		Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, 
-		IsBarrelTasting, Notes, --oldPublicationDate,
+		Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, 
+		locPlacesID, Notes,
 		created, updated, WF_StatusID)
 	values (@OriginID, @UserId, @Wine_N_ID, @TasteDate, @MaturityID, 
-		@Rating_Lo, @Rating_Hi, @DrinkDate_Lo, @DrinkDate_Hi, 
-		@IsBarrelTasting, @Notes, --@PublicationDate,
+		@Rating_Lo, @Rating_Hi, @DrinkDate_Lo, @DrinkDate_Hi, @IsBarrelTasting, 
+		@locPlacesID, @Notes,
 		getdate(), null, isnull(@WF_StatusID, 0))
 	if @@error <> 0 begin
 		select @Result = -1

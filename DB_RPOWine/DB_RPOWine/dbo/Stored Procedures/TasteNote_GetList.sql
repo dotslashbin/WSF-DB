@@ -55,17 +55,19 @@ end
 		DrinkDate_Hi = tn.DrinkDate_Hi, 
 		IsBarrelTasting = tn.IsBarrelTasting, 
 		Notes = tn.Notes, 
-		--PublicationDate = tn.oldPublicationDate,
 
 		WF_StatusID = tn.WF_StatusID,
 		WF_StatusName = wfs.Name,
 		created = tn.created, 
-		updated = tn.updated
+		updated = tn.updated,
+		
+		Places = isnull(lp.Name, '')
 	from TasteNote tn (nolock)
 		join Users u (nolock) on tn.UserId = u.UserId
 		join WF_Statuses wfs (nolock) on tn.WF_StatusID = wfs.ID
 		join vWineDetails w on tn.Wine_N_ID = w.Wine_N_ID
 		join WineMaturity wm (nolock) on tn.MaturityID = wm.ID
+		left join LocationPlaces lp (nolock) on tn.locPlacesID = lp.ID
 	where tn.ID = isnull(@ID, tn.ID)
 		and (@UserId is NULL or tn.UserId = @UserId)
 		and (@Wine_N_ID is NULL or tn.Wine_N_ID = @Wine_N_ID)
