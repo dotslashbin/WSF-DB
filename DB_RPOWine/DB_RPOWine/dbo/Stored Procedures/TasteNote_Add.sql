@@ -7,7 +7,7 @@
 CREATE PROCEDURE [dbo].[TasteNote_Add]
 	--@ID int = NULL, 
 	@OriginID int = NULL, -- used to point to the "edited" note...
-	@UserId int,
+	@UserId int, @IssueID int,
 	@Wine_N_ID int,
 	
 	@TasteDate date,
@@ -26,7 +26,7 @@ CREATE PROCEDURE [dbo].[TasteNote_Add]
 /*
 select top 20 * from TasteNote order by ID desc
 declare @r int
-exec @r = TasteNote_Add @OriginID=0, @UserId=2, @Wine_N_ID=6151,
+exec @r = TasteNote_Add @OriginID=0, @UserId=2, @IssueID=101, @Wine_N_ID=6151,
 	@TasteDate = '2/1/2013', @MaturityID = 1,
 	@Rating_Lo = 87, @Rating_Hi = 89, @DrinkDate_Lo='5/1/2015',
 	@Notes = 'First in my list...',
@@ -49,11 +49,15 @@ if @OriginID > 0 and not exists(select * from TasteNote (nolock) where ID = @Ori
 	RETURN -1
 end
 
---if @UserId is NOT NULL 
---	select @UserId = UserId from Users (nolock) where UserId = @UserId
-if @UserId is NULL begin
+exec [dbo].[User_Add] @UserId = @UserId
+if @UserId is NULL or not exists(select * from Users (nolock) where UserId = @UserId) begin
 	raiserror('TasteNote_Add:: @UserId is required.', 16, 1)
 	RETURN -2
+end
+
+if not exists(select * from Issue (nolock) where ID = @IssueID) begin
+	raiserror('TasteNote_Add:: Issue record with ID=%i does not exist.', 16, 1, @IssueID)
+	RETURN -1
 end
 
 if not exists(select * from Wine_N (nolock) where ID = @Wine_N_ID) begin
@@ -79,13 +83,14 @@ exec @locPlacesID = Location_GetLookupID @ObjectName='locPlaces', @ObjectValue=@
 ------------ Checks
 
 BEGIN TRY
+
 	BEGIN TRANSACTION
 
-	insert into TasteNote (OriginID, UserId, Wine_N_ID, TasteDate, MaturityID, 
+	insert into TasteNote (OriginID, UserId, IssueID, Wine_N_ID, TasteDate, MaturityID, 
 		Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, 
 		locPlacesID, Notes,
 		created, updated, WF_StatusID)
-	values (@OriginID, @UserId, @Wine_N_ID, @TasteDate, @MaturityID, 
+	values (@OriginID, @UserId, @IssueID, @Wine_N_ID, @TasteDate, @MaturityID, 
 		@Rating_Lo, @Rating_Hi, @DrinkDate_Lo, @DrinkDate_Hi, @IsBarrelTasting, 
 		@locPlacesID, @Notes,
 		getdate(), null, isnull(@WF_StatusID, 0))

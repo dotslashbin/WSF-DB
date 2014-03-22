@@ -1,4 +1,5 @@
 ﻿
+
 -- =============================================
 -- Author:		Sergiy Savchenko
 -- Create date: 2/23/2014
@@ -51,7 +52,10 @@ set nocount on
 		WF_StatusID = tn.WF_StatusID,
 		WF_StatusName = wfs.Name,
 		created = tn.created, 
-		updated = tn.updated
+		updated = tn.updated, 
+        Wine_N_WF_StatusID = w.Wine_N_WF_StatusID,
+		Vin_N_WF_StatusID = w.Vin_N_WF_StatusID
+				
 	from TasteNote tn (nolock)
 		join Users u (nolock) on tn.UserId = u.UserId
 		join WF_Statuses wfs (nolock) on tn.WF_StatusID = wfs.ID

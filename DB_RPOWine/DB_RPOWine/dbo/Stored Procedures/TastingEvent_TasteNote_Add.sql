@@ -1,4 +1,5 @@
 ﻿
+
 -- =============================================
 -- Author:		Alex B.
 -- Create date: 1/26/2014
@@ -21,14 +22,9 @@ set xact_abort on
 declare @Result int, 
 		@CreatorID int
 
-declare @sd date, @ed date
-
-		select @sd = StartDate, @ed = isnull(EndDate, dateadd(day, 20, StartDate))
-		from TastingEvent (nolock)
-		where ID = @TastingEventID
 
 ------------ Checks
-select @Result = ID, @sd = StartDate, @ed = isnull(EndDate, dateadd(day, 20, StartDate)) 
+select @Result = ID 
 from TastingEvent (nolock) where ID = @TastingEventID
 if @Result is NULL begin
 	raiserror('TastingEvent_TasteNote_Add:: Tasting Event record with ID=%i does not exist.', 16, 1, @TastingEventID)
@@ -58,10 +54,9 @@ end
 BEGIN TRY
 	BEGIN TRANSACTION
 
-	insert into TastingEvent_TasteNote (TastingEventID, TasteNoteID,
-		created)
-	values (@TastingEventID, @TasteNote,
-		getdate())
+	insert into TastingEvent_TasteNote (TastingEventID, TasteNoteID,created)
+	values (@TastingEventID, @TasteNote,getdate())
+	
 	if @@error <> 0 begin
 		select @Result = -1
 		ROLLBACK TRAN
@@ -70,7 +65,6 @@ BEGIN TRY
 		
 		update TasteNote set TastingEventID = @TastingEventID
 		where ID = @TasteNote and TastingEventID is NULL
-			and TasteDate between @sd and @ed
 		
 	--	declare @msg nvarchar(1024) = dbo.fn_GetObjectDescription('WineProducer', @Result)
 	--	exec Audit_Add @Type='Success', @Category='Add', @Source='SQL', @UserName=@UserName, @MachineName='', 
@@ -101,7 +95,5 @@ if @ShowRes = 1 ---> always return new ID in the ADD procedure
 
 RETURN isnull(@Result, -1)
 GO
-GRANT EXECUTE
-    ON OBJECT::[dbo].[TastingEvent_TasteNote_Add] TO [RP_DataAdmin]
-    AS [dbo];
+
 

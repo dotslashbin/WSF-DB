@@ -27,8 +27,6 @@ GO
 --delete Issue_TastingEvent
 delete Issue_TasteNote
 delete Issue_Article
-delete Issue
-DBCC CHECKIDENT (Issue, RESEED, 1)
 GO
 print '--------- delete Publication: TastingEvent data --------'
 GO
@@ -42,11 +40,15 @@ GO
 delete Publication_TasteNote
 delete TasteNote
 DBCC CHECKIDENT (TasteNote, RESEED, 1)
+delete Issue
+DBCC CHECKIDENT (Issue, RESEED, 1)
 GO
 print '--------- delete Publication: Article data --------'
 GO
 delete Article
+delete Cuisine
 DBCC CHECKIDENT (Article, RESEED, 1)
+DBCC CHECKIDENT (Cuisine, RESEED, 0)
 GO
 print '--------- delete Publication: Publication data --------'
 GO
@@ -57,7 +59,6 @@ DBCC CHECKIDENT (Publisher, RESEED, 0)
 GO
 print '--------- delete Wine data --------'
 GO
-truncate table Wine_N_Stat
 delete Wine_N
 delete Wine_VinN
 truncate table WineBottleSize
@@ -88,12 +89,16 @@ delete LocationLocation
 delete LocationLocale
 delete LocationSite
 delete LocationPlaces
+delete LocationState
+delete LocationCity
 DBCC CHECKIDENT (LocationCountry, RESEED, 0)
 DBCC CHECKIDENT (LocationRegion, RESEED, 0)
 DBCC CHECKIDENT (LocationLocation, RESEED, 0)
 DBCC CHECKIDENT (LocationLocale, RESEED, 0)
 DBCC CHECKIDENT (LocationSite, RESEED, 0)
 DBCC CHECKIDENT (LocationPlaces, RESEED, 0)
+DBCC CHECKIDENT (LocationState, RESEED, 0)
+DBCC CHECKIDENT (LocationCity, RESEED, 0)
 GO
 print '--------- delete Users data --------'
 GO

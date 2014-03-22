@@ -3,11 +3,11 @@
     [Name]            NVARCHAR (100) NOT NULL,
     [NameToShow]      NVARCHAR (100) NOT NULL,
     [WebSiteURL]      NVARCHAR (255) NULL,
-    [locCountryID]    INT            NOT NULL,
-    [locRegionID]     INT            NOT NULL,
-    [locLocationID]   INT            NOT NULL,
-    [locLocaleID]     INT            NOT NULL,
-    [locSiteID]       INT            NOT NULL,
+    [locCountryID]    INT            CONSTRAINT [DF_WineProducer_locCountryID] DEFAULT ((0)) NOT NULL,
+    [locRegionID]     INT            CONSTRAINT [DF_WineProducer_locRegionID] DEFAULT ((0)) NOT NULL,
+    [locLocationID]   INT            CONSTRAINT [DF_WineProducer_locLocationID] DEFAULT ((0)) NOT NULL,
+    [locLocaleID]     INT            CONSTRAINT [DF_WineProducer_locLocaleID] DEFAULT ((0)) NOT NULL,
+    [locSiteID]       INT            CONSTRAINT [DF_WineProducer_locSiteID] DEFAULT ((0)) NOT NULL,
     [Profile]         NVARCHAR (MAX) NULL,
     [ContactInfo]     NVARCHAR (MAX) NULL,
     [created]         SMALLDATETIME  CONSTRAINT [DF_WineProducer_created] DEFAULT (getdate()) NOT NULL,
@@ -23,6 +23,8 @@
     CONSTRAINT [FK_WineProducer_LocationRegion] FOREIGN KEY ([locRegionID]) REFERENCES [dbo].[LocationRegion] ([ID]),
     CONSTRAINT [FK_WineProducer_LocationSite] FOREIGN KEY ([locSiteID]) REFERENCES [dbo].[LocationSite] ([ID])
 );
+
+
 
 
 

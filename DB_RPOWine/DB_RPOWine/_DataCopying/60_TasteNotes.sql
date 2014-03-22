@@ -18,7 +18,7 @@ print '--------- copying data --------'
 GO
 print '--------- Get Data Ready --------'
 GO
-select --distinct 
+select distinct 
 	wn.Idn,
 	ProducerID = isnull(wp.ID, 0),
 	TypeID = isnull(wt.ID, 0),
@@ -44,7 +44,7 @@ select --distinct
 	Wine_N_ID = 0,
 	
 	PublicationID = isnull(p.ID, 1),
-	Issue = wn.Issue,
+	Issue = isnull(wn.Issue, 'Lost & Found'),
 	PublicationDate = wn.SourceDate,
 	ArticleId = wn.ArticleId,
 	ArticleIdNKey = wn.ArticleIdNKey,
@@ -92,28 +92,31 @@ if exists(select * from #t where Wine_VinN_ID = 0 or Wine_N_ID = 0) begin
 	select * from #t where Wine_VinN_ID = 0 or Wine_N_ID = 0
 end else begin
 	print '--------- Issues --------'
-	insert into Issue(PublicationID, Title, CreatedDate, PublicationDate)
+	insert into Issue(PublicationID, Title, CreatedDate, PublicationDate, WF_StatusID)
 	select distinct 
-		PublicationID,
-		Title = Issue,
-		CreatedDate = min(isnull(PublicationDate, '1/1/2000')),
-		PublicationDate = min(isnull(PublicationDate, '1/1/2000'))
+		#t.PublicationID,
+		Title = #t.Issue,
+		CreatedDate = min(isnull(#t.PublicationDate, '1/1/2000')),
+		PublicationDate = min(isnull(#t.PublicationDate, '1/1/2000')),
+		WF_StatusID = 100
 	from #t
-	where len(isnull(Issue,'')) > 0
-	group by PublicationID, Issue
+		left join Issue i on #t.PublicationID = i.PublicationID and #t.Issue = i.Title
+	where len(isnull(Issue,'')) > 0 and i.ID is NULL
+	group by #t.PublicationID, #t.Issue
 --select * from Issue where Title = '210'
 	
 	print '--------- Taste Notes --------'
-	insert into TasteNote (UserId, Wine_N_ID, locPlacesID, TastingEventID, TasteDate, MaturityID,
+	insert into TasteNote (UserId, Wine_N_ID, IssueID, TastingEventID, locPlacesID, TasteDate, MaturityID,
 		Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, Notes, 
 		oldIdn, oldFixedId, oldClumpName, oldEncodedKeyWords, oldReviewerIdN, oldIsErpTasting, oldIsWjTasting,
 		oldShowForERP, oldShowForWJ, oldSourceDate,
 		WF_StatusID)
-	select 
+	select distinct
 		UserId = isnull(u.UserId, isnull(u2.UserId, 0)), 
 		Wine_N_ID = #t.Wine_N_ID, 
-		locPlacesID = #t.locPlacesID, 
+		IssueID = i.ID, 
 		TastingEventID = NULL, 
+		locPlacesID = #t.locPlacesID, 
 		TasteDate = w.tasteDate,
 		MaturityID = isnull(w.Maturity, -1), 
 		Rating_Lo = w.Rating, 
@@ -136,10 +139,36 @@ end else begin
 		--oldPublicationDate = w.SourceDate
 	from RPOWineData.dbo.Wine w (nolock)
 		join #t on w.Idn = #t.Idn
-		left join Users u on isnull(w.Source, '') != '' and w.Source = u.FullName
-		left join RPOWineData.dbo.tocMap m on #t.FixedId = m.fixedId
-		left join RPOWineData.dbo.Articles a on a.idN = m.idN
-		left join Users u2 on isnull(a.Source, '') != '' and a.Source = u2.FullName
+		join Issue i (nolock) on #t.PublicationID = i.PublicationID and #t.Issue = i.Title
+		left join Users u on isnull(w.Source, '') != '' and u.FullName = case 
+			when w.Source = 'Robert Parker' then 'Robert M. Parker, Jr.' 
+			when w.Source = 'Jay Miller' then 'Jay S Miller' 
+			else w.Source 
+		end
+		left join (
+			select FixedId = m.fixedId, UserId = max(u.UserId)
+			from RPOWineData.dbo.tocMap m
+				join RPOWineData.dbo.Articles a on a.idN = m.idN
+				join Users u on isnull(a.Source, '') != '' and u.FullName = case
+					when a.Source = 'Robert Parker' then 'Robert M. Parker, Jr.' 
+					when a.Source = 'Jay Miller' then 'Jay S Miller' 
+					else a.Source 
+				end
+			group by m.fixedId
+		) u2 on #t.FixedId = u2.FixedId
+
+	print '------------ Completeness Check ------------'
+	declare @tnSource int, @tnDest int
+
+	-- TasteNote
+	select @tnSource = count(*) from RPOWineData.dbo.Wine
+	select @tnDest = count(*) from TasteNote
+
+	if @tnSource != @tnDest
+		select 'TasteNote - ERROR: Total # of TasteNote on a source is different than on a target'
+	else
+		select 'Wine_VinN - SUCCESS!!!'
+	select Source = @tnSource, Destination = @tnDest
 
 	print '--------- Publication_TasteNote - 278788 -------'
 	insert into Publication_TasteNote (PublicationID, TasteNoteID)

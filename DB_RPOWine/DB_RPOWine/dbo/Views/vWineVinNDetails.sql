@@ -1,7 +1,5 @@
-﻿
-
-CREATE VIEW [dbo].[vWineVinNDetails]
-WITH SCHEMABINDING
+﻿CREATE VIEW [dbo].[vWineVinNDetails]
+WITH SCHEMABINDING 
 
 AS
 
@@ -46,9 +44,15 @@ GO
 CREATE UNIQUE CLUSTERED INDEX [PK_vWineVinNDetails]
     ON [dbo].[vWineVinNDetails]([Wine_VinN_ID] ASC)
     ON [WineIndx];
-
-
 GO
+
+CREATE FULLTEXT INDEX ON [dbo].[vWineVinNDetails]
+    ([Country] LANGUAGE 1033, [Region] LANGUAGE 1033, [Location] LANGUAGE 1033, [Locale] LANGUAGE 1033, [Site] LANGUAGE 1033, [Appellation] LANGUAGE 1033, [Producer] LANGUAGE 1033, [ProducerToShow] LANGUAGE 1033, [Type] LANGUAGE 1033, [Label] LANGUAGE 1033, [Variety] LANGUAGE 1033, [Dryness] LANGUAGE 1033, [Color] LANGUAGE 1033, [Name] LANGUAGE 1033)
+    KEY INDEX [PK_vWineVinNDetails]
+    ON ([RPOWine_FTSearchWine], FILEGROUP [WineIndx])
+    WITH STOPLIST OFF;
+GO
+
 GRANT SELECT
     ON OBJECT::[dbo].[vWineVinNDetails] TO [RP_DataAdmin]
     AS [dbo];

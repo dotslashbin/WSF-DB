@@ -1,5 +1,7 @@
 ﻿
 
+
+
 CREATE VIEW [dbo].[vWineDetails]
 WITH SCHEMABINDING
 
@@ -46,7 +48,9 @@ AS
 		oldIdn = wn.oldIdn, oldEntryN = wn.oldEntryN, 
 		oldFixedId = wn.oldFixedId, oldWineNameIdN = wn.oldWineNameIdN,
 
-		Wine_N_WF_StatusID = wn.WF_StatusID
+		Wine_N_WF_StatusID = wn.WF_StatusID,
+		Vin_N_WF_StatusID = vn.WF_StatusID
+		
 	from dbo.Wine_N wn	-- (nolock)
 		join dbo.Wine_VinN vn on wn.Wine_VinN_ID = vn.ID
 
@@ -65,15 +69,11 @@ AS
 		join dbo.LocationSite ls on vn.locSiteID = ls.ID
 	--where wn.WF_StatusID > 99
 GO
-GRANT SELECT
-    ON OBJECT::[dbo].[vWineDetails] TO [RP_Customer]
-    AS [dbo];
+
 
 
 GO
-GRANT SELECT
-    ON OBJECT::[dbo].[vWineDetails] TO [RP_DataAdmin]
-    AS [dbo];
+
 GO
 --SET ARITHABORT ON
 --GO
@@ -96,9 +96,19 @@ CREATE UNIQUE CLUSTERED INDEX [PK_vWineDetails] ON [dbo].[vWineDetails]
 ON [WineIndx]
 GO
 
-CREATE FULLTEXT INDEX ON [dbo].[vWineDetails](
-[Keywords] LANGUAGE [English]
-)
-KEY INDEX [PK_vWineDetails]ON ([RPOWine_FTSearchWine], FILEGROUP [WineIndx])
-WITH (CHANGE_TRACKING = AUTO, STOPLIST = OFF)
+CREATE FULLTEXT INDEX ON [dbo].[vWineDetails]
+    ([Keywords] LANGUAGE 1033)
+    KEY INDEX [PK_vWineDetails]
+    ON ([RPOWine_FTSearchWine], FILEGROUP [WineIndx])
+    WITH STOPLIST OFF;
+GO
+
+GRANT SELECT
+    ON OBJECT::[dbo].[vWineDetails] TO [RP_Customer]
+    AS [dbo];
+GO
+
+GRANT SELECT
+    ON OBJECT::[dbo].[vWineDetails] TO [RP_DataAdmin]
+    AS [dbo];
 GO

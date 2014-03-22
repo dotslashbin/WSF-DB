@@ -6,7 +6,7 @@
 CREATE PROCEDURE [dbo].[TasteNote_Update]
 	@ID int, 
 	@OriginID int = NULL, -- used to point to the "edited" note...
-	@UserId int = NULL,
+	@UserId int = NULL, @IssueID int = NULL,
 	@Wine_N_ID int = NULL,
 	
 	@TasteDate date = NULL,
@@ -58,13 +58,18 @@ if isnull(@OriginID, 0) > 0 and not exists(select * from TasteNote (nolock) wher
 	RETURN -1
 end
 
---if @UserId is NOT NULL begin
---	select @UserId = UserId from Users (nolock) where UserId = @UserId
---	if @UserId is NULL begin
---		raiserror('TastingEvent_Update:: User record does not exist.', 16, 1)
---		RETURN -1
---	end
---end
+if @UserId is NOT NULL begin
+	exec [dbo].[User_Add] @UserId = @UserId
+	if @UserId is NULL or not exists(select * from Users (nolock) where UserId = @UserId) begin
+		raiserror('TastingEvent_Update:: @UserId is required.', 16, 1)
+		RETURN -2
+	end
+end
+
+if @IssueID is NOT NULL and not exists(select * from Issue (nolock) where ID = @IssueID) begin
+	raiserror('TastingEvent_Update:: Issue record with ID=%i does not exist.', 16, 1, @IssueID)
+	RETURN -1
+end
 
 if @Wine_N_ID is NOT NULL and not exists(select * from Wine_N (nolock) where ID = @Wine_N_ID) begin
 	raiserror('TastingEvent_Update:: Wine_N record with ID=%i does not exist.', 16, 1, @Wine_N_ID)
@@ -80,6 +85,8 @@ end
 declare @locPlacesID int
 exec @locPlacesID = Location_GetLookupID @ObjectName='locPlaces', @ObjectValue=@Places, @IsAutoCreate=1
 
+if @UserId is NOT NULL
+	exec [dbo].[User_Add] @UserId = @UserId
 ------------- Audit
 --if len(isnull(@UserName, '')) < 1 begin
 --	raiserror('TastingEvent_Update:: @UserName is required.', 16, 1)
@@ -95,11 +102,11 @@ BEGIN TRY
 	-- make a copy of the note IF current status is "published" and new status is not "published"
 	if @prevWF_StatusID >= 100 and isnull(@WF_StatusID, 0) < 100 begin
 		set @WF_StatusID = isnull(@WF_StatusID, 0)
-		insert into TasteNote (OriginID, UserId, Wine_N_ID, TasteDate, MaturityID, 
+		insert into TasteNote (OriginID, UserId, IssueID, Wine_N_ID, TasteDate, MaturityID, 
 			Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, 
 			locPlacesID, Notes,
 			created, updated, WF_StatusID)
-		select OriginID=@ID, UserId, Wine_N_ID, TasteDate, MaturityID, 
+		select OriginID=@ID, UserId, IssueID, Wine_N_ID, TasteDate, MaturityID, 
 			Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, 
 			locPlacesID, Notes,
 			created, getdate(), @WF_StatusID
@@ -117,6 +124,7 @@ BEGIN TRY
 	update TasteNote set 
 		OriginID = isnull(@OriginID, OriginID), 
 		UserId = isnull(@UserId, UserId), 
+		IssueID = isnull(@IssueID, IssueID),
 		Wine_N_ID = isnull(@Wine_N_ID, Wine_N_ID), 
 		TasteDate = isnull(@TasteDate, TasteDate), 
 		MaturityID = isnull(@MaturityID, MaturityID), 

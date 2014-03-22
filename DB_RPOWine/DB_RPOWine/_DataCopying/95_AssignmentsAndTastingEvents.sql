@@ -4,8 +4,8 @@
 --select count(*) from TastingEvent
 --select count(*) from TastingEvent_TasteNote
 --------------------------------------
-print '---------- Deleting Data... ------------'
-GO
+--print '---------- Deleting Data... ------------'
+--GO
 --rollback tran
 --truncate table Issue_Article
 --truncate table Assignment_TastingEvent
@@ -30,6 +30,7 @@ GO
 --GO
 print '---------- Loading Data... ------------'
 GO
+/*
 select distinct
 	PublicationID = p.ID,
 	IssueID = itn.IssueID, 
@@ -38,7 +39,7 @@ select distinct
 	AssDeadline = i.PublicationDate,
 	WineProducerID = vn.ProducerID,
 	WineProducerName = wp.NameToShow,
-	AssignmentID = 0, TastingEventID = 0
+	AssignmentID = 0, TastingEventID = 0, ArticleID = 0
 into #t
 from TasteNote tn (nolock)
 	join Issue_TasteNote itn (nolock) on tn.ID = itn.TasteNoteID
@@ -50,6 +51,64 @@ from TasteNote tn (nolock)
 	join WineProducer wp (nolock) on vn.ProducerID = wp.ID
 order by PublicationID, IssueID, AssTitle
 --select * from #t
+*/
+; with ttn as (
+	select distinct
+		PublicationID = p.ID,
+		IssueID = itn.IssueID, 
+		AuthorId = tn.UserId, 
+		AssTitle = p.Name + '. ' + i.Title + '. ' + isnull(u.FullName, ''), 
+		AssDeadline = i.PublicationDate,
+		WineProducerID = vn.ProducerID,
+		WineProducerName = wp.NameToShow,
+		AssignmentID = 0, TastingEventID = 0, ArticleID = 0, TasteNoteID = tn.ID
+	from TasteNote tn (nolock)
+		join Issue_TasteNote itn (nolock) on tn.ID = itn.TasteNoteID
+		join Issue i (nolock) on itn.IssueID = i.ID
+		join Publication p (nolock) on i.PublicationID = p.ID
+		join Users u (nolock) on tn.UserId = u.UserId
+		join Wine_N wn (nolock) on tn.Wine_N_ID = wn.ID
+		join Wine_VinN vn (nolock) on wn.Wine_VinN_ID = vn.ID
+		join WineProducer wp (nolock) on vn.ProducerID = wp.ID
+),
+art as (
+	select
+		PublicationID = a.PublicationID,
+		IssueID = ia.IssueID, 
+		AuthorId = a.AuthorId, 
+		AssTitle = p.Name + '. ' + a.Title + '. ' + isnull(u.FullName, ''), 
+		AssDeadline = a.Date,
+		WineProducerID = isnull(wp.ID,0),
+		WineProducerName = isnull(a.Producer, isnull(ww.WineProducer, isnull(nullif(a.Event, ''), a.Title))),
+		AssignmentID = 0, TastingEventID = 0, ArticleID = a.ID, TasteNoteID = 0
+	from Article a (nolock)
+		join Publication p (nolock) on a.PublicationID = p.ID
+		join Issue_Article ia (nolock) on a.ID = ia.ArticleID
+		join Users u (nolock) on a.AuthorId = u.UserId
+		left join (
+			select idN = m.idN, WineProducer=max(w.Producer)
+			from RPOWineData.dbo.tocMap m
+				left join RPOWineData.dbo.Wine w on w.FixedId = m.fixedId
+			group by m.idN) ww on a.oldArticleIdN = ww.idN
+		left join WineProducer wp (nolock) on ww.WineProducer = wp.Name
+)
+select * into #t from (
+	select PublicationID, IssueID, AuthorId, AssTitle, AssDeadline,	WineProducerID, WineProducerName,
+		AssignmentID, TastingEventID, ArticleID, TasteNoteID
+	from art
+	UNION 
+	select PublicationID, IssueID, AuthorId, AssTitle, AssDeadline,	WineProducerID, WineProducerName,
+		AssignmentID, TastingEventID, ArticleID, ttn.TasteNoteID
+	from ttn
+		left join (
+			select atn.TasteNoteID
+			from Article_TasteNote atn 
+				join art on atn.ArticleID = art.ArticleID
+			) f on ttn.TasteNoteID = f.TasteNoteID
+	where f.TasteNoteID is NULL
+) a 
+order by PublicationID, IssueID, AssTitle
+;
 
 alter table #t add ID int not null identity(1,1);
 
@@ -79,16 +138,14 @@ set nocount on
 		
 		if isnull(@assID, 0) > 0 begin
 			-- Flights == TastingEvents
-			insert into TastingEvent (UserId, Title, StartDate, EndDate,
-				Location, locCountryID, locRegionID, locLocationID, locLocaleID, locSiteID,
-				Notes, SortOrder, WF_StatusID)
+			insert into TastingEvent (Title, Location, Notes)
 			select 
-				UserId=isnull(AuthorId,0), 
+				--UserId=isnull(AuthorId,0), 
 				Title = WineProducerName,
-				StartDate=NULL, EndDate=NULL,
+				--StartDate=NULL, EndDate=NULL,
 				Location = ltrim(rtrim(lc.Name + ' ' + lr.Name + ' ' + ll.Name)),
-				locCountryID=wp.locCountryID, locRegionID=wp.locRegionID, locLocationID=wp.locLocationID, locLocaleID=wp.locLocaleID, locSiteID=0,
-				Notes=NULL, SortOrder=0, WF_StatusID=100
+				--locCountryID=wp.locCountryID, locRegionID=wp.locRegionID, locLocationID=wp.locLocationID, locLocaleID=wp.locLocaleID, locSiteID=0,
+				Notes=NULL --, SortOrder=0, WF_StatusID=100
 			from #t 
 				join WineProducer wp (nolock) on #t.WineProducerID = wp.ID
 				join LocationCountry lc (nolock) on wp.locCountryID = lc.ID
@@ -119,8 +176,9 @@ set nocount on
 	from #t where AssignmentID > 0
 
 	insert into Assignment_ResourceD (AssignmentID, TypeID, Deadline)
-	select distinct AssignmentID, 0, AssDeadline
+	select AssignmentID, 0, AssDeadline=max(AssDeadline)
 	from #t where AssignmentID > 0
+	group by AssignmentID
 
 	-- TastingEvents
 	insert into Assignment_TastingEvent(AssignmentID, TastingEventID)
@@ -135,56 +193,24 @@ set nocount on
 		join TasteNote tn (nolock) on tn.Wine_N_ID = wn.ID and #t.AuthorId = tn.UserId
 		join Issue_TasteNote itn (nolock) on tn.ID = itn.TasteNoteID and #t.IssueID = itn.IssueID
 	where #t.TastingEventID > 0
+	
+	-- the rest of TasteNotes from Articles
+	insert into TastingEvent_TasteNote (TastingEventID, TasteNoteID)
+	select distinct te.TEID, atn.TasteNoteID
+	from Assignment ass
+		join Assignment_Article assa on ass.ID = assa.AssignmentID
+		join Article_TasteNote atn on assa.ArticleID = atn.ArticleID
+		join (select AssignmentID, TEID = max(ate.TastingEventID) from Assignment_TastingEvent ate group by ate.AssignmentID) te
+			on ass.ID = te.AssignmentID
+		left join TastingEvent_TasteNote tetn on te.TEID = tetn.TastingEventID and atn.TasteNoteID = tetn.TasteNoteID
+	where tetn.TasteNoteID is NULL
 
 	-- Articles
-	; with a as (
-		select 
-			a.ArticleId, ArticleIdN = a.idN, a.ArticleIdNKey,
-			Country = isnull(a.Country, ''), Region = isnull(a.Region, ''), Location = isnull(a.Location, ''),
-			a.Publication, a.Issue, 
-			Author = a.Source, 
-			Date = isnull(a.sourceDate, a.dateUpdated),
-			Title = a.Title,
-			ShortTitle = max(w.ShortTitle)
-		from RPOWineData.dbo.Articles a
-			left join RPOWineData.dbo.tocMap m on a.idN = m.idN
-			left join RPOWineData.dbo.Wine w on w.FixedId = m.fixedId
-		group by a.ArticleId, a.idN, a.ArticleIdNKey,
-			isnull(a.Country, ''), isnull(a.Region, ''), isnull(a.Location, ''), a.Publication, a.Issue, 
-			a.Source, isnull(a.sourceDate, a.dateUpdated),
-			a.Title
-	)
-	insert into Article (AuthorId, Title, Date, Notes, MetaTags, WF_StatusID, 
-		oldArticleIdN, oldArticleId, oldArticleIdNKey)
-	select isnull(u.UserId, 0), a.Title, a.Date, '', '', 100,
-		a.ArticleIdN, a.ArticleId, a.ArticleIdNKey
-	from a
-		join Publication p (nolock) on a.Publication = p.Name
-		join Issue i (nolock) on i.PublicationID = p.ID and a.Issue = i.Title
-		left join LocationCountry lc (nolock) on a.Country = lc.Name
-		left join LocationRegion lr (nolock) on a.Region = lr.Name
-		left join LocationLocation ll (nolock) on a.Location = ll.Name
-		left join Users u (nolock) on isnull(a.Author, '') != '' and a.Author = u.FullName
-
 	insert into Assignment_Article (AssignmentID, ArticleID)
-	select distinct 
-		AssignmentID = ate.AssignmentID, 
-		ArticleID = a.ID
-	from Article a
-		join RPOWineData.dbo.tocMap m on a.oldArticleIdN = m.idN
-		join TasteNote tn on m.fixedId = tn.oldFixedId and a.AuthorId = tn.UserId
-		join TastingEvent_TasteNote tetn on tn.ID = tetn.TasteNoteID
-		join Assignment_TastingEvent ate on tetn.TastingEventID = ate.TastingEventID
-	where isnull(tn.oldFixedId, 0) > 0
-	order by ArticleID
-	
-	insert into Issue_Article (IssueID, ArticleID)
-	select i.ID, a.ID
-	from Article a
-		join RPOWineData.dbo.Articles s on a.oldArticleIdN = s.idN
-		join Publication p on s.Publication = p.Name
-		join Issue i on s.Issue = i.Title and p.ID = i.PublicationID
-		
+	select #t.AssignmentID, #t.ArticleID
+	from #t
+	where #t.AssignmentID > 0 and #t.ArticleID > 0
+
 --COMMIT TRAN
 --ROLLBACK TRAN
 
@@ -193,13 +219,46 @@ drop table #t
 print '--- Done. ---'
 GO
 
-/*
-select top 2000 
-	a.Title, ST = max(w.ShortTitle)
-from RPOWineData.dbo.Articles a
-	join RPOWineData.dbo.tocMap m on a.idN = m.idN
-	join RPOWineData.dbo.Wine w on w.FixedId = m.fixedId
-where isnull(a.Title, '') != '' and isnull(w.ShortTitle, '') != ''
-	and isnull(a.Title, '') != isnull(w.ShortTitle, '')
-group by a.Title
+/* ------------ check ----------
+select * from #t where WineProducerID = 0
+select * from Article where ID in (226, 1016)
+select * from RPOWineData..Articles where ArticleIdNKey in (294, -99900051)
+select * from Assignment where ID = 481
+select * from Assignment_Article where AssignmentID = 481 
+select * from Assignment_TastingEvent where AssignmentID = 481 
+select * from Assignment_TasteNote where AssignmentID = 481 
+select * from TastingEvent_TasteNote where TastingEventID in (2790,2791)
+*/
+
+/* ---- Basic Stats by Issue
+--- Articles
+; with i as (
+	select * from Issue where Title = '210'
+)
+select TasteNotesNumber = atn.cnt, *
+from Article a
+	join Issue_Article ia on ia.ArticleID = a.ID
+	join i on ia.IssueID = i.ID
+	left join (select ArticleID, cnt=count(*) from Article_TasteNote group by ArticleID) atn on a.ID = atn.ArticleID
+--------------------	
+--- Assignments
+; with i as (
+	select * from Issue where Title = '210'
+)
+select ass.ID, ass.IssueID, ass.AuthorId, Author = u.FullName, ass.Title, ass.Deadline,
+	Num_Articles = isnull(asa.cnt, 0),
+	Num_TastingEvents = isnull(ast.cnt, 0),
+	Num_TasteNotes = isnull(asn.cnt, 0)
+from Assignment ass
+	join i on ass.IssueID = i.ID
+	join Users u on ass.AuthorId = u.UserId
+
+	left join (select AssignmentID, cnt=count(*) from Assignment_Article group by AssignmentID) asa on ass.ID = asa.AssignmentID
+	left join (select AssignmentID, cnt=count(*) from Assignment_TastingEvent group by AssignmentID) ast on ass.ID = ast.AssignmentID
+	left join (select AssignmentID, cnt=count(*) 
+		from Assignment_TastingEvent ate
+			join TastingEvent_TasteNote ttn on ate.TastingEventID = ttn.TastingEventID
+		group by AssignmentID) asn on ass.ID = asn.AssignmentID
+
+
 */

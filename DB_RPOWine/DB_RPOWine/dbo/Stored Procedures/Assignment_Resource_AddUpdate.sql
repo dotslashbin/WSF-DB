@@ -1,11 +1,14 @@
-﻿-- =============================================
+﻿
+-- =============================================
 -- Author:		Alex B.
 -- Create date: 2/18/2014
 -- Description:	Adds a new Resource to the Assignment or updates deadline.
 -- =============================================
 CREATE PROCEDURE [dbo].[Assignment_Resource_AddUpdate]
-	@AssignmentID int, @UserId int, 
-	@UserRoleID int = NULL, @UserRoleName varchar(30) = NULL,
+	@AssignmentID int, 
+	@UserId int, 
+	@UserRoleID int ,
+	@UserRoleName varchar(30) = NULL,
 	@ShowRes smallint = 1
 
 /*
@@ -25,13 +28,17 @@ if @Result is NULL begin
 	RETURN -1
 end
 
-if @UserRoleName is NOT NULL and (@UserRoleID is NULL or not exists(select * from UserRoles (nolock) where ID = @UserRoleID))
-	exec @UserRoleID = GetLookupID @ObjectName='userrole', @ObjectValue=@UserRoleName
+
+-- BB 03.04.2014 role name is defined outside
+-- if @UserRoleName is NOT NULL and (@UserRoleID is NULL or not exists(select * from UserRoles (nolock) where ID = @UserRoleID))
+--	exec @UserRoleID = GetLookupID @ObjectName='userrole', @ObjectValue=@UserRoleName
 ------------ Checks
 
 BEGIN TRY
 	BEGIN TRANSACTION
-
+/*  change in logic. if you has multiple roles for an assignment, multiple records should be added
+    although, avoid duplication
+    
 	if exists(select * from Assignment_Resource where AssignmentID=@AssignmentID and UserId = @UserId) begin
 		update Assignment_Resource set 
 			UserRoleID = isnull(@UserRoleID, UserRoleID),
@@ -39,15 +46,22 @@ BEGIN TRY
 		where AssignmentID=@AssignmentID and UserId = @UserId
 		select @Result = @@ROWCOUNT
 	end else begin
-		--if isnull(@UserRoleID, 0) < 1 begin
-		--	raiserror('Assignment_Resource_AddUpdate:: User Role is required.', 16, 1)
-		--	RETURN -1
-		--end
 		insert into Assignment_Resource (AssignmentID, UserId, UserRoleID, created)
 		values (@AssignmentID, @UserId, isnull(@UserRoleID, 0), getdate())
 		select @Result = @@ROWCOUNT
 	end
-	
+*/	
+	if not exists(select * from Assignment_Resource 
+	        where AssignmentID=@AssignmentID
+	        and UserRoleID = @UserRoleID 
+	        and UserId = @UserId) 
+	begin
+		insert into Assignment_Resource (AssignmentID, UserId, UserRoleID, created)
+		values (@AssignmentID, @UserId, isnull(@UserRoleID, 0), getdate())
+		select @Result = @@ROWCOUNT
+	end 
+
+
 	COMMIT TRANSACTION
 END TRY
 BEGIN CATCH
@@ -71,7 +85,5 @@ if @ShowRes = 1 ---> always return new ID in the ADD procedure
 
 RETURN isnull(@Result, -1)
 GO
-GRANT EXECUTE
-    ON OBJECT::[dbo].[Assignment_Resource_AddUpdate] TO [RP_DataAdmin]
-    AS [dbo];
+
 

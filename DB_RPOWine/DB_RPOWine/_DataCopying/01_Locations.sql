@@ -1,6 +1,6 @@
 ﻿-- ======= Locations ========
 --
--- Data Source: RPOWineData.dbo
+-- Data Source: RPOWineData.dbo, ArticlesParser.dbo
 --
 --
 USE [RPOWine]
@@ -86,6 +86,35 @@ from RPOWineData.dbo.Wine wn
 where wn.Places is not null and LEN(wn.Places) > 0 and r.ID is NULL
 group by wn.Places
 GO
+
+-------- State
+set identity_insert LocationState on
+insert into LocationState (ID, Name, WF_StatusID) values (0, N'', 0)
+set identity_insert LocationState off
+go
+insert into LocationState (Name, WF_StatusID)
+select a.State, WF_StatusID = 100
+from ArticlesParser.dbo.Articles a
+	left join LocationState c on a.State = c.Name
+where a.State is not null and LEN(a.State) > 0 and c.ID is NULL
+	and a.State != 'xxxx' and a.State not like 'Maryland>%'
+group by a.State
+GO
+
+-------- City
+set identity_insert LocationCity on
+insert into LocationCity (ID, Name, WF_StatusID) values (0, N'', 0)
+set identity_insert LocationCity off
+go
+insert into LocationCity (Name, WF_StatusID)
+select rtrim(ltrim(a.City)), WF_StatusID = 100
+from ArticlesParser.dbo.Articles a
+	left join LocationCity c on a.City = c.Name
+where a.City is not null and LEN(a.City) > 0 and c.ID is NULL
+	and a.City != 'xxxx' 
+group by rtrim(ltrim(a.City))
+GO
+
 
 print 'Done.'
 GO

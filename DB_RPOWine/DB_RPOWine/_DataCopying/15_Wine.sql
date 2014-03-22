@@ -25,7 +25,20 @@ select
 	oldEntryN = max(wn.EntryN),
 	oldFixedId = max(wn.FixedId),
 	oldWineNameIdN = max(wn.WineNameIdN),
-	DateUpdated = max(case when isnull(IsActiveWineN, 1) = 1 then wn.DateUpdated else '1/1/2000' end)
+	DateUpdated = max(case when isnull(IsActiveWineN, 1) = 1 then wn.DateUpdated else '1/1/2000' end),
+
+	EstimatedCost = max(EstimatedCost), 
+	MostRecentPrice = max(MostRecentPrice), 
+	MostRecentPriceHi = max(MostRecentPriceHi), 
+	MostRecentPriceCnt = max(MostRecentPriceCnt),
+	MostRecentAuctionPrice = max(MostRecentAuctionPrice), 
+	MostRecentAuctionPriceHi = max(MostRecentAuctionPriceHi), 
+	MostRecentAuctionPriceCnt = max(MostRecentAuctionPriceCnt), 
+	hasWJTasting = max(cast(hasWJTasting as smallint)), 
+	hasERPTasting = max(cast(hasERPTasting as smallint)), 
+	IsActiveWineN = max(cast(IsActiveWineN as smallint)), 
+	IsCurrentlyForSale = max(cast(IsCurrentlyForSale as smallint)),
+	IsCurrentlyOnAuction = max(cast(IsCurrentlyOnAuction as smallint))
 into #t
 from RPOWineData.dbo.Wine wn
 	left join WineProducer wp on isnull(wn.Producer, '') = wp.Name
@@ -67,7 +80,9 @@ commit tran
 
 -------- WineN
 begin tran
-	insert into Wine_N (Wine_VinN_ID,VintageID, oldIdn,oldEntryN,oldFixedId,oldWineNameIdN, WF_StatusID)
+	insert into Wine_N (Wine_VinN_ID,VintageID, oldIdn,oldEntryN,oldFixedId,oldWineNameIdN, WF_StatusID,
+		EstimatedCost, MostRecentPrice, MostRecentPriceHi, MostRecentPriceCnt, MostRecentAuctionPrice, MostRecentAuctionPriceHi, 
+		MostRecentAuctionPriceCnt, hasWJTasting, hasERPTasting, IsActiveWineN, IsCurrentlyForSale, IsCurrentlyOnAuction)
 	select 
 		VinNID = v.ID,
 		VintageID = #t.VintageID, 
@@ -75,7 +90,9 @@ begin tran
 		oldEntryN = max(oldEntryN),
 		oldFixedId = max(oldFixedId),
 		oldWineNameIdN = max(oldWineNameIdN), 
-		WF_StatusID = 100
+		WF_StatusID = 100,
+		#t.EstimatedCost, #t.MostRecentPrice, #t.MostRecentPriceHi, #t.MostRecentPriceCnt, #t.MostRecentAuctionPrice, #t.MostRecentAuctionPriceHi, 
+		#t.MostRecentAuctionPriceCnt, #t.hasWJTasting, #t.hasERPTasting, #t.IsActiveWineN, #t.IsCurrentlyForSale, #t.IsCurrentlyOnAuction
 	from #t
 		join Wine_VinN v on #t.ProducerID = v.ProducerID and #t.TypeID = v.TypeID 
 			and #t.LabelID = v.LabelID and #t.VarietyID = v.VarietyID
@@ -83,56 +100,58 @@ begin tran
 			and #t.locCountryID = v.locCountryID and #t.locRegionID = v.locRegionID
 			and #t.locLocationID = v.locLocationID and #t.locLocaleID = v.locLocaleID
 			and #t.locSiteID = v.locSiteID
-	group by v.ID, #t.VintageID
+	group by v.ID, #t.VintageID,
+		#t.EstimatedCost, #t.MostRecentPrice, #t.MostRecentPriceHi, #t.MostRecentPriceCnt, #t.MostRecentAuctionPrice, #t.MostRecentAuctionPriceHi, 
+		#t.MostRecentAuctionPriceCnt, #t.hasWJTasting, #t.hasERPTasting, #t.IsActiveWineN, #t.IsCurrentlyForSale, #t.IsCurrentlyOnAuction
 	--rollback tran
 commit tran
 
 -------- WineN_Stat
-begin tran
-	; with w as (
-		select 
-			VinNID = v.ID,
-			VintageID = #t.VintageID,
-			wineIdn = max(wn.Idn)
-		from #t
-			join Wine_VinN v on #t.ProducerID = v.ProducerID and #t.TypeID = v.TypeID 
-				and #t.LabelID = v.LabelID and #t.VarietyID = v.VarietyID
-				and #t.DrynessID = v.DrynessID and #t.ColorID = v.ColorID
-				and #t.locCountryID = v.locCountryID and #t.locRegionID = v.locRegionID
-				and #t.locLocationID = v.locLocationID and #t.locLocaleID = v.locLocaleID
-				and #t.locSiteID = v.locSiteID
-			join RPOWineData.dbo.Wine wn on #t.ProducerName = isnull(wn.Producer, '') 
-				and #t.TypeName = isnull(wn.WineType, '') and #t.LabelName = isnull(wn.LabelName, '')
-				and #t.VarietyName = isnull(wn.Variety, '') and #t.DrynessName = isnull(wn.Dryness, '')
-				and #t.ColorName = isnull(wn.ColorClass, '') and #t.VintageName = isnull(wn.Vintage, '')
-				and #t.locCountry = isnull(wn.Country, '') and #t.locRegion = isnull(wn.Region, '')
-				and #t.locLocation = isnull(wn.Location, '') and #t.locLocale = isnull(wn.Locale, '')
-				and #t.locSite = isnull(wn.Site, '')
-				and #t.DateUpdated = isnull(wn.DateUpdated, '1/1/1999') and isnull(wn.IsActiveWineN, 1) = 1
-		group by v.ID, #t.VintageID
-	)
-	insert into Wine_N_Stat ([Wine_N_ID], [EstimatedCost], [MostRecentPrice], [MostRecentPriceHi], [MostRecentPriceCnt],
-		[MostRecentAuctionPrice], [MostRecentAuctionPriceHi], [MostRecentAuctionPriceCnt], 
-		[hasWJTasting], [hasERPTasting], [IsActiveWineN], [IsCurrentlyForSale], [IsCurrentlyOnAuction])
-	select 
-		Wine_N_ID = wn.ID, 
-		EstimatedCost, 
-		MostRecentPrice, 
-		MostRecentPriceHi, 
-		MostRecentPriceCnt,
-		MostRecentAuctionPrice, 
-		MostRecentAuctionPriceHi, 
-		MostRecentAuctionPriceCnt, 
-		hasWJTasting, 
-		hasERPTasting, 
-		IsActiveWineN, 
-		IsCurrentlyForSale,
-		IsCurrentlyOnAuction
-	from w
-		join Wine_N wn on w.VinNID = wn.Wine_VinN_ID and w.VintageID = wn.VintageID
-		join RPOWineData.dbo.Wine ow on w.wineIdn = ow.Idn
---rollback tran
-commit tran
+--begin tran
+--	; with w as (
+--		select 
+--			VinNID = v.ID,
+--			VintageID = #t.VintageID,
+--			wineIdn = max(wn.Idn)
+--		from #t
+--			join Wine_VinN v on #t.ProducerID = v.ProducerID and #t.TypeID = v.TypeID 
+--				and #t.LabelID = v.LabelID and #t.VarietyID = v.VarietyID
+--				and #t.DrynessID = v.DrynessID and #t.ColorID = v.ColorID
+--				and #t.locCountryID = v.locCountryID and #t.locRegionID = v.locRegionID
+--				and #t.locLocationID = v.locLocationID and #t.locLocaleID = v.locLocaleID
+--				and #t.locSiteID = v.locSiteID
+--			join RPOWineData.dbo.Wine wn on #t.ProducerName = isnull(wn.Producer, '') 
+--				and #t.TypeName = isnull(wn.WineType, '') and #t.LabelName = isnull(wn.LabelName, '')
+--				and #t.VarietyName = isnull(wn.Variety, '') and #t.DrynessName = isnull(wn.Dryness, '')
+--				and #t.ColorName = isnull(wn.ColorClass, '') and #t.VintageName = isnull(wn.Vintage, '')
+--				and #t.locCountry = isnull(wn.Country, '') and #t.locRegion = isnull(wn.Region, '')
+--				and #t.locLocation = isnull(wn.Location, '') and #t.locLocale = isnull(wn.Locale, '')
+--				and #t.locSite = isnull(wn.Site, '')
+--				and #t.DateUpdated = isnull(wn.DateUpdated, '1/1/1999') and isnull(wn.IsActiveWineN, 1) = 1
+--		group by v.ID, #t.VintageID
+--	)
+--	insert into Wine_N_Stat ([Wine_N_ID], [EstimatedCost], [MostRecentPrice], [MostRecentPriceHi], [MostRecentPriceCnt],
+--		[MostRecentAuctionPrice], [MostRecentAuctionPriceHi], [MostRecentAuctionPriceCnt], 
+--		[hasWJTasting], [hasERPTasting], [IsActiveWineN], [IsCurrentlyForSale], [IsCurrentlyOnAuction])
+--	select 
+--		Wine_N_ID = wn.ID, 
+--		EstimatedCost, 
+--		MostRecentPrice, 
+--		MostRecentPriceHi, 
+--		MostRecentPriceCnt,
+--		MostRecentAuctionPrice, 
+--		MostRecentAuctionPriceHi, 
+--		MostRecentAuctionPriceCnt, 
+--		hasWJTasting, 
+--		hasERPTasting, 
+--		IsActiveWineN, 
+--		IsCurrentlyForSale,
+--		IsCurrentlyOnAuction
+--	from w
+--		join Wine_N wn on w.VinNID = wn.Wine_VinN_ID and w.VintageID = wn.VintageID
+--		join RPOWineData.dbo.Wine ow on w.wineIdn = ow.Idn
+----rollback tran
+--commit tran
 
 drop table #t
 GO
@@ -180,5 +199,6 @@ else
 	select 'Wine_N - SUCCESS!!!'
 select Source = @uwSource, Destination = @uwDest
 GO
+
 print 'Done.'
 GO

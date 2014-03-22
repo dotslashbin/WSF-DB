@@ -1,4 +1,6 @@
 ﻿
+
+
 -- =============================================
 -- Author:		Alex B.
 -- Create date: 2/4/2014
@@ -67,7 +69,7 @@ st_tn as (
 st_te as (
 	select AssignmentID = i.AssignmentID,
 		Cnt = count(*),
-		Cnt_Published = sum(case when te.WF_StatusID > 99 then 1 else 0 end)
+		Cnt_Published = 1
 	from Assignment_TastingEvent i (nolock)
 		join TastingEvent te (nolock) on i.TastingEventID = te.ID
 	group by i.AssignmentID
@@ -88,6 +90,7 @@ select
 	CreatedDate = i.CreatedDate,
 	PublicationDate = i.PublicationDate,
 	Notes = i.Notes, 
+	WF_StatusID = i.WF_StatusID,
 
 	created = i.created, 
 	updated = i.updated,

@@ -8,9 +8,12 @@
     [Notes]             NVARCHAR (MAX) NULL,
     [created]           SMALLDATETIME  CONSTRAINT [DF_Issue_created] DEFAULT (getdate()) NOT NULL,
     [updated]           SMALLDATETIME  NULL,
+    [WF_StatusID]       INT            CONSTRAINT [DF_Issue_WF_StatusID] DEFAULT ((0)) NOT NULL,
     CONSTRAINT [PK_Issue] PRIMARY KEY CLUSTERED ([ID] ASC),
     CONSTRAINT [FK_Issue_Publication] FOREIGN KEY ([PublicationID]) REFERENCES [dbo].[Publication] ([ID])
 );
+
+
 
 
 

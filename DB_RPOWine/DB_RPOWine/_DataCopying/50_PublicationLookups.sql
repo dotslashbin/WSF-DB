@@ -86,8 +86,11 @@ select UserId = min(isnull(u.UserId, -1*RN)),
 from r
 	left join Membership..aspnet_Users u on 
 		u.UserName like '%' + replace(replace(r.Name,'-',''), ' ', '%') + '%'
-	left join Users us on u.UserId = us.UserId or r.Name = us.FullName
-where r.Name != '' and us.UserId is NULL -- and u.UserName !='robertparker'
+	left join Users us on u.UserId = us.UserId or us.FullName = case
+		when r.Name = 'Robert Parker' then 'Robert M. Parker, Jr.' 
+		when r.Name = 'Jay Miller' then 'Jay S Miller' 
+		else r.Name
+	end	
+where r.Name != '' and us.UserId is NULL
 group by lower(replace(Name, ' ', '')), Name
---order by cnt desc
 GO
