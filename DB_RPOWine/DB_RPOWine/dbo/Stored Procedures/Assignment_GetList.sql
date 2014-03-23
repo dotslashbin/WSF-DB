@@ -1,4 +1,5 @@
 ﻿
+
 -- =============================================
 -- Author:		Alex B.
 -- Create date: 2/17/2014
@@ -49,10 +50,23 @@ if @IssueID is not null begin
 		userRoleId = u.UserRoleID,
 		userFullName = uu.FullName,
 		deadlineId = null,
-		deadline = null
+		deadline = null,
+		notesCount = nc.NotesCount
 		
-	from Assignment a (nolock)
+	from  
+
+	    Assignment a (nolock)
+	
+	
 		join Issue i (nolock) on a.IssueID = i.ID
+
+		join 
+		(select notesCount = COUNT(ten.TasteNoteID), AssignmentID = ate.AssignmentID from Assignment as aa   
+		left join Assignment_TastingEvent as ate on ate.AssignmentID = aa.ID
+		left join TastingEvent_TasteNote  as ten on ten.TastingEventID = ate.TastingEventID
+		where aa.IssueID=@IssueID
+		group by ate.AssignmentID )  nc on  nc.AssignmentID = a.ID
+
 		join Publication p (nolock) on i.PublicationID = p.ID
 		join WF_Statuses wfs (nolock) on a.WF_StatusID = wfs.ID
 		join Assignment_Resource u (nolock) on a.ID = u.AssignmentID
@@ -79,11 +93,20 @@ union
 		userRoleId = null,
 		userRoleName = null,
 		deadlineId = d.TypeID,
-		deadline = d.Deadline
-
+		deadline = d.Deadline,
+		notesCount = nc.NotesCount            -- BB, at the moment I do not know how to make it in efficient way
 		
 	from Assignment a (nolock)
 		join Issue i (nolock) on a.IssueID = i.ID
+
+
+		join 
+		(select notesCount = COUNT(ten.TasteNoteID), AssignmentID = ate.AssignmentID from Assignment as aa   
+		left join Assignment_TastingEvent as ate on ate.AssignmentID = aa.ID
+		left join TastingEvent_TasteNote  as ten on ten.TastingEventID = ate.TastingEventID
+		where aa.IssueID=@IssueID
+		group by ate.AssignmentID )  nc on  nc.AssignmentID = a.ID
+		
 		join Publication p (nolock) on i.PublicationID = p.ID
 		join WF_Statuses wfs (nolock) on a.WF_StatusID = wfs.ID
 		join Assignment_ResourceD d (nolock) on a.ID = d.AssignmentID
@@ -110,54 +133,34 @@ end else if @Resource_UserID is NOT NULL begin
 		IssueTitle = i.Title,
 		PublicationID = p.ID,
 		PublicationName = p.Name,
-		null,
-		null,
-		null,
-		d.TypeID,
-		d.Deadline
+		userId = u.UserId  ,
+		userRoleId = u.UserRoleID,
+		userFullName = uu.FullName,
+		deadlineId = null,
+		deadline = null,
+		notesCount = nc.NotesCount
 		
-	from Assignment a (nolock)
+	from  
+
+	    Assignment a (nolock)
+	
 		join Issue i (nolock) on a.IssueID = i.ID
+
+		join 
+		(select notesCount = COUNT(ten.TasteNoteID), AssignmentID = ate.AssignmentID from Assignment as aa   
+		left join Assignment_TastingEvent as ate on ate.AssignmentID = aa.ID
+		left join TastingEvent_TasteNote  as ten on ten.TastingEventID = ate.TastingEventID
+		where aa.IssueID= isnull(@IssueID, aa.IssueID) 
+		group by ate.AssignmentID )  nc on  nc.AssignmentID = a.ID
+
 		join Publication p (nolock) on i.PublicationID = p.ID
 		join WF_Statuses wfs (nolock) on a.WF_StatusID = wfs.ID
 		join Assignment_Resource u (nolock) on a.ID = u.AssignmentID
-		join Assignment_ResourceD d (nolock) on a.ID = d.AssignmentID
+		join Users uu (nolock) on u.UserId = uu.UserId
+
 	where a.IssueID = isnull(@IssueID, a.IssueID)
 		and u.UserId = @Resource_UserID
 
-	order by id
-
-
-	select 
-		ID = a.ID,
-		--AuthorId = a.AuthorId,
-		--AuthorName = isnull(u.FullName, ''),
-		Title = a.Title,
-		Deadline = a.Deadline,
-		Notes = a.Notes,
-		created = a.created, 
-		updated = a.updated,
-		
-		WF_StatusID = isnull(wfs.ID, -1),
-		WF_StatusName = isnull(wfs.Name, ''),
-
-		IssueID = a.IssueID,
-		IssueTitle = i.Title,
-		PublicationID = p.ID,
-		PublicationName = p.Name
-	from Assignment a (nolock)
-		join Issue i (nolock) on a.IssueID = i.ID
-		join Publication p (nolock) on i.PublicationID = p.ID
---		left join Users u (nolock) on a.AuthorId = u.UserId
-		left join WF_Statuses wfs (nolock) on a.WF_StatusID = wfs.ID
-		join Assignment_Resource ar (nolock) on a.ID = ar.AssignmentID
-	where a.IssueID = isnull(@IssueID, a.IssueID)
-		--and a.AuthorId = isnull(@AuthorId, a.AuthorId)
-		and (@Title is NULL or a.Title like @Title)
-		and a.WF_StatusID = isnull(@WF_StatusID, a.WF_StatusID)
-		and ar.UserId = @Resource_UserID
-	order by Deadline desc, a.ID
-	
 	
 	
 	

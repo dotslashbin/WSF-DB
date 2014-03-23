@@ -4,6 +4,8 @@
     [created]       SMALLDATETIME CONSTRAINT [DF_Publication_TasteNote_created] DEFAULT (getdate()) NOT NULL,
     CONSTRAINT [PK_Publication_TasteNote] PRIMARY KEY CLUSTERED ([PublicationID] ASC, [TasteNoteID] ASC),
     CONSTRAINT [FK_Publication_TasteNote_Publication] FOREIGN KEY ([PublicationID]) REFERENCES [dbo].[Publication] ([ID]),
-    CONSTRAINT [FK_Publication_TasteNote_TasteNote] FOREIGN KEY ([TasteNoteID]) REFERENCES [dbo].[TasteNote] ([ID])
+    CONSTRAINT [FK_Publication_TasteNote_TasteNote] FOREIGN KEY ([TasteNoteID]) REFERENCES [dbo].[TasteNote] ([ID]) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+
 

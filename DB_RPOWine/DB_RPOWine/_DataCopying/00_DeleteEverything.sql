@@ -45,6 +45,7 @@ DBCC CHECKIDENT (Issue, RESEED, 1)
 GO
 print '--------- delete Publication: Article data --------'
 GO
+truncate table Article_TasteNote
 delete Article
 delete Cuisine
 DBCC CHECKIDENT (Article, RESEED, 1)

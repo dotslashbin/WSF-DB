@@ -26,11 +26,11 @@ GO
 ; with pa as (
 	select 
 		Publication = case
-			when Filename is NOT NULL and Filename like 'ag[0..9]%.asp' then 'In the Cellar'
-			when Filename is NOT NULL and Filename like 'article[0..9]%.asp' then 'The Wine Advocate'
-			when Filename is NOT NULL and Filename like 'articleofmerit[0..9]%.asp' then 'Articles Of Merit'
-			when Filename is NOT NULL and Filename like 'nm[0..9]%.asp' then 'Wine Journal'
-			when Filename is NOT NULL and Filename like 'rp[0..9]%.asp' then 'Uncensored and Live'
+			when Filename is NOT NULL and Filename like 'ag[0-9]%.asp' then 'In the Cellar'
+			when Filename is NOT NULL and Filename like 'article[0-9]%.asp' then 'Wine Advocate'
+			when Filename is NOT NULL and Filename like 'articleofmerit[0-9]%.asp' then 'Articles Of Merit'
+			when Filename is NOT NULL and Filename like 'nm[0-9]%.asp' then 'Wine Journal'
+			when Filename is NOT NULL and Filename like 'rp[0-9]%.asp' then 'Uncensored and Live'
 			else 'Wine Journal'
 		end,
 		Issue = NULL, Author = a.Author, Title = a.Title,
