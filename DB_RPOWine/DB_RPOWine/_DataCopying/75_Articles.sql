@@ -43,8 +43,8 @@ GO
 )
 select * into #t from (
 	select 
-		Publication = isnull(a.Publication, ww.Publication),
-		Issue = isnull(a.Issue, ww.Issue), 
+		Publication = isnull(ww.Publication, a.Publication),
+		Issue = isnull(ww.Issue, a.Issue), 
 		Author = a.Source, 
 		Title = isnull(a.Title, pa.Title),
 
@@ -63,7 +63,7 @@ select * into #t from (
 				left join RPOWineData.dbo.Wine w on w.FixedId = m.fixedId
 			group by m.idN) ww on a.idN = ww.idN
 		left join pa on 'article' + cast(a.ArticleId as varchar(20)) + '.asp' = pa.FileName
-	group by isnull(a.Publication, ww.Publication), isnull(a.Issue, ww.Issue), a.Source, isnull(a.Title, pa.Title), a.ArticleId
+	group by isnull(ww.Publication, a.Publication), isnull(ww.Issue, a.Issue), a.Source, isnull(a.Title, pa.Title), a.ArticleId
 	UNION
 	select pa.Publication, pa.Issue, pa.Author, pa.Title, pa.ArticleId, pa.ArticleIdN, pa.ArticleIdNKey,
 		pa.Country, pa.Region, pa.Location, pa.Locale, pa.Site, pa.State, pa.City,
