@@ -1,5 +1,6 @@
 ﻿
 
+
 -- =============================================
 -- Author:		Sergiy Savchenko
 -- Create date: 2/23/2014
@@ -50,7 +51,7 @@ set nocount on
 		--PublicationDate = tn.oldPublicationDate,
 
 		WF_StatusID = tn.WF_StatusID,
-		WF_StatusName = wfs.Name,
+		WF_StatusName = '',
 		created = tn.created, 
 		updated = tn.updated, 
         Wine_N_WF_StatusID = w.Wine_N_WF_StatusID,
@@ -58,7 +59,6 @@ set nocount on
 				
 	from TasteNote tn (nolock)
 		join Users u (nolock) on tn.UserId = u.UserId
-		join WF_Statuses wfs (nolock) on tn.WF_StatusID = wfs.ID
 		join vWineDetails w on tn.Wine_N_ID = w.Wine_N_ID
 		join WineMaturity wm (nolock) on tn.MaturityID = wm.ID
 		join TastingEvent_TasteNote ttn  (nolock) on ttn.TasteNoteID = tn.ID

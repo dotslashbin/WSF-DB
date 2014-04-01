@@ -51,7 +51,7 @@ if @IssueID is not null begin
 		userFullName = uu.FullName,
 		deadlineId = null,
 		deadline = null,
-		notesCount = nc.NotesCount
+		notesCount = isnull(nc.NotesCount,0)
 		
 	from  
 
@@ -60,7 +60,7 @@ if @IssueID is not null begin
 	
 		join Issue i (nolock) on a.IssueID = i.ID
 
-		join 
+		left outer join 
 		(select notesCount = COUNT(ten.TasteNoteID), AssignmentID = ate.AssignmentID from Assignment as aa   
 		left join Assignment_TastingEvent as ate on ate.AssignmentID = aa.ID
 		left join TastingEvent_TasteNote  as ten on ten.TastingEventID = ate.TastingEventID
@@ -94,13 +94,13 @@ union
 		userRoleName = null,
 		deadlineId = d.TypeID,
 		deadline = d.Deadline,
-		notesCount = nc.NotesCount            -- BB, at the moment I do not know how to make it in efficient way
+		notesCount = isnull(nc.NotesCount,0)            -- BB, at the moment I do not know how to make it in efficient way
 		
 	from Assignment a (nolock)
 		join Issue i (nolock) on a.IssueID = i.ID
 
 
-		join 
+		left outer join 
 		(select notesCount = COUNT(ten.TasteNoteID), AssignmentID = ate.AssignmentID from Assignment as aa   
 		left join Assignment_TastingEvent as ate on ate.AssignmentID = aa.ID
 		left join TastingEvent_TasteNote  as ten on ten.TastingEventID = ate.TastingEventID
@@ -138,7 +138,7 @@ end else if @Resource_UserID is NOT NULL begin
 		userFullName = uu.FullName,
 		deadlineId = null,
 		deadline = null,
-		notesCount = nc.NotesCount
+		notesCount = isnull(nc.NotesCount,0)
 		
 	from  
 
@@ -146,7 +146,7 @@ end else if @Resource_UserID is NOT NULL begin
 	
 		join Issue i (nolock) on a.IssueID = i.ID
 
-		join 
+		left outer join 
 		(select notesCount = COUNT(ten.TasteNoteID), AssignmentID = ate.AssignmentID from Assignment as aa   
 		left join Assignment_TastingEvent as ate on ate.AssignmentID = aa.ID
 		left join TastingEvent_TasteNote  as ten on ten.TastingEventID = ate.TastingEventID

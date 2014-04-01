@@ -48,23 +48,39 @@ end
 ------------ Checks
 
 BEGIN TRY
-	BEGIN TRANSACTION
+	--BEGIN TRANSACTION
 	
-	update Issue set 
-		PublicationID = isnull(@PublicationID, PublicationID), 
-		ChiefEditorUserId = isnull(@ChiefEditorUserId, ChiefEditorUserId), 
-		Title = isnull(@Title, Title), 
-		CreatedDate = isnull(@CreatedDate, CreatedDate), 
-		PublicationDate = isnull(@PublicationDate, PublicationDate), 
-		Notes = isnull(@Notes, Notes),
-		updated = getdate()
-		--EditorID = @EditorID
-	where ID = @ID
+	-- Update of PublicationID is very rare, but creates some sort of locks in the view Wine (compatibility view)
+	-- Therefore, as a temporary solution, we are trying to avoid updating PublicationID, when possible
+	
+	if @PublicationID is NULL or exists(select * from Issue (nolock) where ID = @ID and PublicationID = @PublicationID) begin
+		update Issue set 
+			--PublicationID = isnull(@PublicationID, PublicationID), 
+			ChiefEditorUserId = isnull(@ChiefEditorUserId, ChiefEditorUserId), 
+			Title = isnull(@Title, Title), 
+			CreatedDate = isnull(@CreatedDate, CreatedDate), 
+			PublicationDate = isnull(@PublicationDate, PublicationDate), 
+			Notes = isnull(@Notes, Notes),
+			updated = getdate()
+			--EditorID = @EditorID
+		where ID = @ID
+	end else begin
+		update Issue set 
+			PublicationID = isnull(@PublicationID, PublicationID), 
+			ChiefEditorUserId = isnull(@ChiefEditorUserId, ChiefEditorUserId), 
+			Title = isnull(@Title, Title), 
+			CreatedDate = isnull(@CreatedDate, CreatedDate), 
+			PublicationDate = isnull(@PublicationDate, PublicationDate), 
+			Notes = isnull(@Notes, Notes),
+			updated = getdate()
+			--EditorID = @EditorID
+		where ID = @ID
+	end	
 
 	select @Result = @@ROWCOUNT
 	if @@error <> 0 begin
 		select @Result = -1
-		ROLLBACK TRAN
+		--ROLLBACK TRAN
 	--end else begin
 	--	declare @msg nvarchar(1024) = dbo.fn_GetObjectDescription('Issue', @ID)
 	--	exec Audit_Add @Type='Success', @Category='Update', @Source='SQL', @UserName=@UserName, @MachineName='', 
@@ -72,7 +88,7 @@ BEGIN TRY
 	--		@ShowRes=0
 	end
 
-	COMMIT TRANSACTION
+	--COMMIT TRANSACTION
 END TRY
 BEGIN CATCH
 	declare @errSeverity int,
