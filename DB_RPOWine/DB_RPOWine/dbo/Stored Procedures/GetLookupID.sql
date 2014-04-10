@@ -21,6 +21,14 @@ if (lower(@ObjectName) = 'userrole') begin
 	end
 end
 
+if (lower(@ObjectName) = 'cuisine') begin
+	select @Result = ID from Cuisine (nolock) where lower(Name) = lower(@ObjectValue)
+	if isnull(@Result, 0) < 1 and len(isnull(@ObjectValue,'')) > 0 begin
+		insert into Cuisine (Name) values (@ObjectValue)
+		select @Result = scope_identity()
+	end
+end
+
 if isnull(@Result, 0) < 1
 	raiserror('Cannot find or create an entry in the [%s] with value [%s].', 16, 1, @ObjectName, @ObjectValue)
 

@@ -43,12 +43,18 @@ select
 	Places = isnull(lp.Name, ''),
 	Region = lr.Name,
 	Rating = tn.Rating_Lo, 
-	RatingShow = case
-		when tn.Rating_Lo is NOT NULL and tn.Rating_Hi is NOT NULL then '(' + cast(tn.Rating_Lo as varchar(20)) + '-' + cast(tn.Rating_Hi as varchar(20)) + ')'
-		when tn.Rating_Lo is NOT NULL and tn.Rating_Hi is NULL then cast(tn.Rating_Lo as varchar(20))
-		when tn.Rating_Lo is NULL and tn.Rating_Hi is NOT NULL then cast(tn.Rating_Hi as varchar(20))
-		else ''
-	end, 
+	RatingShow = 
+		case when tn.IsBarrelTasting = 1 then '(' else '' end +
+		+ case
+			when tn.Rating_Lo is NOT NULL and tn.Rating_Hi is NOT NULL 
+				then cast(tn.Rating_Lo as varchar(20)) + '-' + cast(tn.Rating_Hi as varchar(20))
+			when tn.Rating_Lo is NOT NULL and tn.Rating_Hi is NULL then cast(tn.Rating_Lo as varchar(20))
+			when tn.Rating_Lo is NULL and tn.Rating_Hi is NOT NULL then '?-' + cast(tn.Rating_Hi as varchar(20))
+			else ''
+		end
+		+ isnull(tn.RatingQ, '')
+		+ case when tn.IsBarrelTasting = 1 then ')' else '' end
+	, 
 	ReviewerIdN = tn.oldReviewerIdN,
 	showForERP = tn.oldShowForERP, 
 	showForWJ = tn.oldShowForWJ,

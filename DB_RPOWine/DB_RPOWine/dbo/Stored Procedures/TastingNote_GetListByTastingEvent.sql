@@ -1,12 +1,13 @@
 ﻿
 
 
+
 -- =============================================
 -- Author:		Sergiy Savchenko
 -- Create date: 2/23/2014
 -- Description:	Gets List of Taste Notes mapped to tasting event
 -- =============================================
-CREATE PROCEDURE [dbo].[TasteNote_GetListByTastingEvent]
+CREATE PROCEDURE [dbo].[TastingNote_GetListByTastingEvent]
 	@TastingEventID int 
 
 

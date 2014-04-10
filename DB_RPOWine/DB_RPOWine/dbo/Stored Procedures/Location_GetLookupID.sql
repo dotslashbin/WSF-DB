@@ -71,6 +71,22 @@ if (lower(@ObjectName) = 'locplaces') begin
 	end
 end
 
+if (lower(@ObjectName) = 'locstate') begin
+	select @Result = ID from LocationState where lower(Name) = lower(@ObjectValue)
+	if isnull(@Result, 0) < 1 and @IsAutoCreate = 1 and len(@ObjectValue) > 0 begin
+		insert into LocationState (Name) values (left(@ObjectValue, 50))
+		select @Result = scope_identity()
+	end
+end
+
+if (lower(@ObjectName) = 'loccity') begin
+	select @Result = ID from LocationCity where lower(Name) = lower(@ObjectValue)
+	if isnull(@Result, 0) < 1 and @IsAutoCreate = 1 and len(@ObjectValue) > 0 begin
+		insert into LocationCity (Name) values (left(@ObjectValue, 150))
+		select @Result = scope_identity()
+	end
+end
+
 -- allow 0 values - each lookup table has an entry with ID = 0
 --if isnull(@Result, 0) < 1
 --	raiserror('Cannot find or create an entry in the [%s] with value "%s".', 16, 1, @ObjectName, @ObjectValue)

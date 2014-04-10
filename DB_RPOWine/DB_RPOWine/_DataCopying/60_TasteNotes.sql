@@ -107,7 +107,7 @@ end else begin
 	
 	print '--------- Taste Notes --------'
 	insert into TasteNote (UserId, Wine_N_ID, IssueID, TastingEventID, locPlacesID, TasteDate, MaturityID,
-		Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, Notes, 
+		Rating_Lo, Rating_Hi, RatingQ, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, Notes, 
 		oldIdn, oldFixedId, oldClumpName, oldEncodedKeyWords, oldReviewerIdN, oldIsErpTasting, oldIsWjTasting,
 		oldShowForERP, oldShowForWJ, oldSourceDate,
 		WF_StatusID)
@@ -121,6 +121,7 @@ end else begin
 		MaturityID = isnull(w.Maturity, -1), 
 		Rating_Lo = w.Rating, 
 		Rating_Hi = w.Rating_Hi, 
+		RatingQ = w.ratingQ,
 		DrinkDate_Lo = w.DrinkDate,	
 		DrinkDate_Hi = w.DrinkDate_Hi, 
 		IsBarrelTasting = IsBarrelTasting, 

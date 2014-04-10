@@ -99,16 +99,13 @@ GO
 CREATE FULLTEXT INDEX ON [dbo].[vWineDetails]
     ([Keywords] LANGUAGE 1033)
     KEY INDEX [PK_vWineDetails]
-    ON ([RPOWine_FTSearchWine], FILEGROUP [WineIndx])
-    WITH STOPLIST OFF;
+    ON ([RPOWine_FTSearchWine], FILEGROUP [WineIndx]);
+
+
 GO
 
-GRANT SELECT
-    ON OBJECT::[dbo].[vWineDetails] TO [RP_Customer]
-    AS [dbo];
+
 GO
 
-GRANT SELECT
-    ON OBJECT::[dbo].[vWineDetails] TO [RP_DataAdmin]
-    AS [dbo];
+
 GO
