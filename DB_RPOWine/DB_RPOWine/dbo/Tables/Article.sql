@@ -44,3 +44,12 @@
 
 
 
+
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Article_oldarticleIdNKey]
+    ON [dbo].[Article]([oldArticleIdNKey] ASC)
+    INCLUDE([ID], [PublicationID], [AuthorId], [Title])
+    ON [PRIMARY];
+

@@ -1,5 +1,4 @@
-﻿
-CREATE VIEW [dbo].[Wine]
+﻿CREATE VIEW [dbo].[Wine]
 WITH SCHEMABINDING 
 
 AS
@@ -9,8 +8,8 @@ select
 	Wine_N_ID = tn.Wine_N_ID,
 	Wine_VinN_ID = wn.Wine_VinN_ID,
 	
-	articleID = cast(null as int),	--itn.oldArticleId,
-	articleIdNKey = cast(null as int),	--itn.oldArticleIdNKey,
+	articleID = tn.oldArticleId,
+	articleIdNKey = tn.oldArticleIdNKey,
 	ColorClass = wc.Name,
 	Country = lc.Name,
 	ClumpName = tn.oldClumpName,

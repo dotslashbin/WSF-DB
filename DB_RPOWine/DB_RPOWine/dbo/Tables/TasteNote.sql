@@ -1,4 +1,4 @@
-﻿CREATE TABLE [dbo].[TasteNote] (
+CREATE TABLE [dbo].[TasteNote] (
     [ID]                 INT            IDENTITY (1, 1) NOT NULL,
     [UserId]             INT            NOT NULL,
     [Wine_N_ID]          INT            NOT NULL,
@@ -28,12 +28,17 @@
     [oldShowForERP]      BIT            NULL,
     [oldShowForWJ]       BIT            NULL,
     [oldSourceDate]      DATE           NULL,
+    [oldArticleId]       INT            NULL,
+    [oldArticleIdNKey]   INT            NULL,
+    [ArticleID]          INT            NULL,
     CONSTRAINT [PK_TasteNote] PRIMARY KEY CLUSTERED ([ID] ASC) ON [TasteNotes],
     CONSTRAINT [FK_TasteNote_Issue] FOREIGN KEY ([IssueID]) REFERENCES [dbo].[Issue] ([ID]),
     CONSTRAINT [FK_TasteNote_Users] FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users] ([UserId]),
     CONSTRAINT [FK_TasteNote_Wine_N] FOREIGN KEY ([Wine_N_ID]) REFERENCES [dbo].[Wine_N] ([ID]),
     CONSTRAINT [FK_TasteNote_WineMaturity] FOREIGN KEY ([MaturityID]) REFERENCES [dbo].[WineMaturity] ([ID])
 ) TEXTIMAGE_ON [TasteNotes];
+
+
 
 
 
@@ -64,8 +69,15 @@ CREATE NONCLUSTERED INDEX [IX_TasteNote_OldWine]
 
 
 GO
-CREATE NONCLUSTERED INDEX [ID_TN_DailyProcessing_revIDN]
+CREATE NONCLUSTERED INDEX [IX_TN_DailyProcessing_revIDN]
     ON [dbo].[TasteNote]([oldReviewerIdN] ASC)
     INCLUDE([Wine_N_ID], [oldFixedId], [oldSourceDate])
     ON [TasteNotes];
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_TN_DailyProcessing_fixedId]
+    ON [dbo].[TasteNote]([oldFixedId] ASC)
+    INCLUDE([oldShowForERP], [oldShowForWJ], [ID])
+    ON [PRIMARY];
 
