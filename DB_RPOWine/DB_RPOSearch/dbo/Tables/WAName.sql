@@ -57,3 +57,36 @@
     CONSTRAINT [PK_WAName] PRIMARY KEY CLUSTERED ([idN] ASC)
 );
 
+
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_WAName_VinNWineType]
+    ON [dbo].[WAName]([VinN] ASC, [WineType] ASC);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_WAName_VinNVariety]
+    ON [dbo].[WAName]([VinN] ASC, [Variety] ASC);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_WAName_VinNProducer]
+    ON [dbo].[WAName]([VinN] ASC, [Producer] ASC);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_WAName_VinNDryness]
+    ON [dbo].[WAName]([VinN] ASC, [Dryness] ASC);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_WAName_VinNColorClass]
+    ON [dbo].[WAName]([VinN] ASC, [ColorClass] ASC);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_WAName_VinN]
+    ON [dbo].[WAName]([VinN] ASC)
+    INCLUDE([idN], [Region], [Location], [Variety]);
+

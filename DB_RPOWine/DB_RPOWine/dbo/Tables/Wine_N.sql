@@ -6,6 +6,8 @@
     [oldEntryN]                 INT           NULL,
     [oldFixedId]                INT           NULL,
     [oldWineNameIdN]            INT           NULL,
+    [oldWineN]                  INT           NULL,
+    [oldVinN]                   INT           NULL,
     [created]                   SMALLDATETIME CONSTRAINT [DF_Wine_N_created] DEFAULT (getdate()) NOT NULL,
     [updated]                   SMALLDATETIME NULL,
     [WF_StatusID]               SMALLINT      CONSTRAINT [DF_Wine_N_WF_StatusID] DEFAULT ((0)) NOT NULL,
@@ -25,6 +27,8 @@
     CONSTRAINT [FK_Wine_N_Wine_VinN] FOREIGN KEY ([Wine_VinN_ID]) REFERENCES [dbo].[Wine_VinN] ([ID]),
     CONSTRAINT [FK_Wine_N_WineVintage] FOREIGN KEY ([VintageID]) REFERENCES [dbo].[WineVintage] ([ID])
 );
+
+
 
 
 

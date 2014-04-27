@@ -15,6 +15,7 @@
     [created]       SMALLDATETIME CONSTRAINT [DF_Wine_VinN_created] DEFAULT (getdate()) NOT NULL,
     [updated]       SMALLDATETIME NULL,
     [WF_StatusID]   SMALLINT      CONSTRAINT [DF_Wine_VinN_WF_StatusID] DEFAULT ((0)) NOT NULL,
+    [oldVinN]       INT           NULL,
     CONSTRAINT [PK_Wine_VinN] PRIMARY KEY CLUSTERED ([ID] ASC) ON [Wine],
     CONSTRAINT [FK_Wine_VinN_LocationCountry] FOREIGN KEY ([locCountryID]) REFERENCES [dbo].[LocationCountry] ([ID]),
     CONSTRAINT [FK_Wine_VinN_LocationLocale] FOREIGN KEY ([locLocaleID]) REFERENCES [dbo].[LocationLocale] ([ID]),
@@ -32,6 +33,8 @@
 
 
 
+
+
 GO
 CREATE UNIQUE NONCLUSTERED INDEX [IX_Wine_VinN_Uniq]
     ON [dbo].[Wine_VinN]([ProducerID] ASC, [TypeID] ASC, [LabelID] ASC, [VarietyID] ASC, [DrynessID] ASC, [ColorID] ASC, [locCountryID] ASC, [locRegionID] ASC, [locLocationID] ASC, [locLocaleID] ASC, [locSiteID] ASC)
@@ -42,41 +45,53 @@ CREATE UNIQUE NONCLUSTERED INDEX [IX_Wine_VinN_Uniq]
 GO
 CREATE NONCLUSTERED INDEX [IX_Wine_VinN_locSiteID]
     ON [dbo].[Wine_VinN]([locSiteID] ASC)
-    INCLUDE([ID], [GroupID], [ProducerID], [TypeID], [LabelID], [VarietyID], [DrynessID], [ColorID], [locCountryID], [locRegionID], [locLocationID], [locLocaleID], [WF_StatusID])
+    INCLUDE([ID], [GroupID], [ProducerID], [TypeID], [LabelID], [VarietyID], [DrynessID], [ColorID], [locCountryID], [locRegionID], [locLocationID], [locLocaleID], [WF_StatusID], [oldVinN])
     ON [Wine];
+
+
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_Wine_VinN_locRegionID]
     ON [dbo].[Wine_VinN]([locRegionID] ASC)
-    INCLUDE([ID], [GroupID], [ProducerID], [TypeID], [LabelID], [VarietyID], [DrynessID], [ColorID], [locCountryID], [locLocationID], [locLocaleID], [locSiteID], [WF_StatusID])
+    INCLUDE([ID], [GroupID], [ProducerID], [TypeID], [LabelID], [VarietyID], [DrynessID], [ColorID], [locCountryID], [locLocationID], [locLocaleID], [locSiteID], [WF_StatusID], [oldVinN])
     ON [Wine];
+
+
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_Wine_VinN_locLocationID]
     ON [dbo].[Wine_VinN]([locLocationID] ASC)
-    INCLUDE([ID], [GroupID], [ProducerID], [TypeID], [LabelID], [VarietyID], [DrynessID], [ColorID], [locCountryID], [locRegionID], [locLocaleID], [locSiteID], [WF_StatusID])
+    INCLUDE([ID], [GroupID], [ProducerID], [TypeID], [LabelID], [VarietyID], [DrynessID], [ColorID], [locCountryID], [locRegionID], [locLocaleID], [locSiteID], [WF_StatusID], [oldVinN])
     ON [Wine];
+
+
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_Wine_VinN_locLocaleID]
     ON [dbo].[Wine_VinN]([locLocaleID] ASC)
-    INCLUDE([ID], [GroupID], [ProducerID], [TypeID], [LabelID], [VarietyID], [DrynessID], [ColorID], [locCountryID], [locRegionID], [locLocationID], [locSiteID], [WF_StatusID])
+    INCLUDE([ID], [GroupID], [ProducerID], [TypeID], [LabelID], [VarietyID], [DrynessID], [ColorID], [locCountryID], [locRegionID], [locLocationID], [locSiteID], [WF_StatusID], [oldVinN])
     ON [Wine];
+
+
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_Wine_VinN_locCountryID]
     ON [dbo].[Wine_VinN]([locCountryID] ASC)
-    INCLUDE([ID], [GroupID], [ProducerID], [TypeID], [LabelID], [VarietyID], [DrynessID], [ColorID], [locRegionID], [locLocationID], [locLocaleID], [locSiteID], [WF_StatusID])
+    INCLUDE([ID], [GroupID], [ProducerID], [TypeID], [LabelID], [VarietyID], [DrynessID], [ColorID], [locRegionID], [locLocationID], [locLocaleID], [locSiteID], [WF_StatusID], [oldVinN])
     ON [Wine];
+
+
 
 
 GO
 CREATE NONCLUSTERED INDEX [IX_Wine_VinN_LabelID]
     ON [dbo].[Wine_VinN]([LabelID] ASC)
-    INCLUDE([ID], [GroupID], [ProducerID], [TypeID], [VarietyID], [DrynessID], [ColorID], [locCountryID], [locRegionID], [locLocationID], [locLocaleID], [locSiteID], [WF_StatusID])
+    INCLUDE([ID], [GroupID], [ProducerID], [TypeID], [VarietyID], [DrynessID], [ColorID], [locCountryID], [locRegionID], [locLocationID], [locLocaleID], [locSiteID], [WF_StatusID], [oldVinN])
     ON [PRIMARY];
+
+
 

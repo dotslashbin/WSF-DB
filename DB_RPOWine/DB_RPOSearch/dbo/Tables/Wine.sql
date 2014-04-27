@@ -110,8 +110,11 @@
     [isActiveWineN_old]         BIT             NULL,
     [joinx]                     NVARCHAR (1000) NULL,
     [wineNameN]                 INT             NULL,
+    [oldWineN]                  INT             NULL,
     CONSTRAINT [PK_Wine] PRIMARY KEY CLUSTERED ([IdN] ASC)
 );
+
+
 
 
 GO

@@ -37,6 +37,8 @@ DBCC CHECKIDENT (TastingEvent, RESEED, 1)
 GO
 print '--------- delete Publication: TasteNote data --------'
 GO
+truncate table Article_TasteNote
+truncate table Issue_TasteNote
 delete Publication_TasteNote
 delete TasteNote
 DBCC CHECKIDENT (TasteNote, RESEED, 1)
@@ -53,8 +55,10 @@ DBCC CHECKIDENT (Cuisine, RESEED, 0)
 GO
 print '--------- delete Publication: Publication data --------'
 GO
+delete Issue
 delete Publication
 delete Publisher
+DBCC CHECKIDENT (Issue, RESEED, 1)
 DBCC CHECKIDENT (Publication, RESEED, 1)
 DBCC CHECKIDENT (Publisher, RESEED, 0)
 GO

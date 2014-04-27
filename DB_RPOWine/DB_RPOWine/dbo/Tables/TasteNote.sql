@@ -1,4 +1,4 @@
-CREATE TABLE [dbo].[TasteNote] (
+﻿CREATE TABLE [dbo].[TasteNote] (
     [ID]                 INT            IDENTITY (1, 1) NOT NULL,
     [UserId]             INT            NOT NULL,
     [Wine_N_ID]          INT            NOT NULL,
@@ -31,12 +31,15 @@ CREATE TABLE [dbo].[TasteNote] (
     [oldArticleId]       INT            NULL,
     [oldArticleIdNKey]   INT            NULL,
     [ArticleID]          INT            NULL,
+    [IsActiveWineN]      BIT            NULL,
     CONSTRAINT [PK_TasteNote] PRIMARY KEY CLUSTERED ([ID] ASC) ON [TasteNotes],
     CONSTRAINT [FK_TasteNote_Issue] FOREIGN KEY ([IssueID]) REFERENCES [dbo].[Issue] ([ID]),
     CONSTRAINT [FK_TasteNote_Users] FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users] ([UserId]),
     CONSTRAINT [FK_TasteNote_Wine_N] FOREIGN KEY ([Wine_N_ID]) REFERENCES [dbo].[Wine_N] ([ID]),
     CONSTRAINT [FK_TasteNote_WineMaturity] FOREIGN KEY ([MaturityID]) REFERENCES [dbo].[WineMaturity] ([ID])
 ) TEXTIMAGE_ON [TasteNotes];
+
+
 
 
 

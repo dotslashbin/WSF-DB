@@ -30,3 +30,28 @@
     CONSTRAINT [PK_ForSaleDetail] PRIMARY KEY CLUSTERED ([IdN] ASC)
 );
 
+
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_ForSaleDetail_Price]
+    ON [dbo].[ForSaleDetail]([Price] ASC)
+    INCLUDE([IdN], [Errors]);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_ForSaleDetail_DollarsPer750Bottle]
+    ON [dbo].[ForSaleDetail]([DollarsPer750Bottle] ASC)
+    INCLUDE([IdN], [Errors]);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_ForSaleDetail_Currency]
+    ON [dbo].[ForSaleDetail]([Currency] ASC)
+    INCLUDE([IdN], [BottleSize], [Price]);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_ForSaleDetail_BottleSize]
+    ON [dbo].[ForSaleDetail]([BottleSize] ASC);
+

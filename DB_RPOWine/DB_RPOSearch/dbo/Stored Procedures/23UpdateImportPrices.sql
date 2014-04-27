@@ -4,12 +4,25 @@
 -- Description:	Adoptation of the script 23UpdateImportPrices.sql,
 --				originally developed by Julian.
 -- NOTE: USES & UPDATES RPOWine database objects.
--- NOTE: following tables must be loaded first: Retailers, ForSaleDetail
+-- NOTE: following tables must be loaded first: 
+--	CurrencyConversion, Retailers, ForSaleDetail, StdBottleSize, WAName
+--	CurrencyConversion must be cleared - records with USDollars = NULL will prevent correct processing.
 -- =============================================
 CREATE PROCEDURE [dbo].[23UpdateImportPrices] 
-
+	@IsUseOldWineN bit = 1
+	
 AS
 set nocount on;
+
+/* Alex B.
+truncate table CurrencyConversion
+truncate table Retailers
+truncate table ForSaleDetail
+truncate table StdBottleSize
+truncate table WAName
+-- copy
+delete CurrencyConversion where USDollars is NULL
+*/
 
 /*
 DETECT VINN MAPPING CONFLICTS, SINCE WE DON'T APPEAR TO BE DOING THIS NOW, DETERMINE WHY WE'RE NOT ALREADY MAKING BAD MAPPING
@@ -24,23 +37,26 @@ begin catch
 end catch
 
 NOTE: USES & UPDATES RPOWine database objects.
+
+-- Checking errors:
+select Errors, count(*) from ForSaleDetail group by Errors
+
 */
 
 --Should be run whenever we rerun this script
---truncate table dbo.ForSale - never filled in...
+truncate table dbo.ForSale
 truncate table dbo.Wine
 truncate table dbo.WineName
 
 update dbo.ForSaleDetail set errors = null, warnings = null where warnings is not null or errors is not null;
 --it's just been truncated - ???
-update dbo.ForSale set errors = null, warnings = null where warnings is not null or errors is not null;
-update dbo.ForSale set wineN = null where wineN < 0 or isTempWineN = 1
+--update dbo.ForSale set errors = null, warnings = null where warnings is not null or errors is not null;
+--update dbo.ForSale set wineN = null where wineN < 0 or isTempWineN = 1
 
 update dbo.WAName set errors = null, warnings = null where warnings is not null or errors is not null;
 update dbo.Retailers set errors = null, warnings = null where warnings is not null or errors is not null;
 update dbo.ForSaleDetail set wineN2 = null
 update dbo.ForSaleDetail set wineN = null where wineN < 0 or isTempWineN = 1
-update dbo.WAName set vinn = null where vinn< 0 or isTempVinn = 1
 
 /*
 ------------------------------
@@ -251,9 +267,14 @@ with a as (
 update b set errors = case when errors is null then '' else errors + ',   ' end + 'E1.Duplicate WineAlert Id';
 
 with a as (
-	select distinct vinn from RPOWine.dbo.Wine
+	select distinct 
+		vinn = case when @IsUseOldWineN = 1 then oldVinN else ID end
+	from RPOWine.dbo.Wine_VinN
 ), b as (
-	select w.* from dbo.WAName w left join a on w.vinn = a.vinn where w.vinn is not null and a.vinn is null 
+	select w.* 
+	from dbo.WAName w 
+		left join a on w.vinn = a.vinn 
+	where w.vinn is not null and a.vinn is null 
 )
 update b set errors = case when errors is null then 'E2.BadVinn' else (errors + ',   E2.BadVinn') end;
 
@@ -295,8 +316,11 @@ with a as (
 	select wid, wineN from dbo.ForSaleDetail where wineN > 0 
 	group by wid, wineN
 ), b as (
-	select a.wid, z.vinn from RPOWine.dbo.Wine z join a on z.wineN = a.wineN 
-	group by wid, vinn
+	select a.wid, 
+		vinn = case when @IsUseOldWineN = 1 then z.oldVinN else z.Wine_VinN_ID end
+	from RPOWine.dbo.Wine_N z 
+		join a on a.wineN = case when @IsUseOldWineN = 1 then z.oldWineN else z.ID end
+	group by wid, case when @IsUseOldWineN = 1 then z.oldVinN else z.Wine_VinN_ID end
 ), c as (
 	select wid, vinn from dbo.WAName where vinn > 0 
 	group by wid, vinn
@@ -326,10 +350,11 @@ update dbo.ForSale set wineN = null where wineN < 0 or isTempWineN = 1;
 
 --June20'07
 with a as (
-	select z.* 
+	select 
+		z.* 
 	from dbo.ForSaleDetail z 
 		left join dbo.CurrencyConversion y on z.currency = y.alertcurrency 
-	where y.alertCurrency is null or y.pending = 1
+	where y.alertCurrency is null or isnull(y.pending, 0) = 1
 )
 update a set errors = case when errors is null then '' else errors + ', ' end 
 	+  'E70. NoConversionForCurrency';
@@ -350,16 +375,29 @@ with a as (
 update a set errors = case when errors  is null then '' else errors + ',   ' end 
 	+ 'E9. BadRetailerCode';
 
-with
-a as (
-	select distinct wineN from RPOWine.dbo.Wine
-), b as (
-	select f.* 
-	from dbo.ForSaleDetail f 
-		left join a on f.wineN = a.wineN 
-	where f.wineN is not null and a.wineN is null
-)
-update b set errors = case when errors is null then 'E10. BadWineN' else (errors + ',   E10. BadWineN') end;
+if @IsUseOldWineN = 1 begin
+	with
+	a as (
+		select distinct WineN = oldWineN from RPOWine.dbo.Wine_N
+	), b as (
+		select f.* 
+		from dbo.ForSaleDetail f 
+			left join a on f.wineN = a.wineN 
+		where f.wineN is not null and a.wineN is null
+	)
+	update b set errors = case when errors is null then 'E10. BadWineN' else (errors + ',   E10. BadWineN') end;
+end else begin
+	with
+	a as (
+		select WineN = ID from RPOWine.dbo.Wine_N
+	), b as (
+		select f.* 
+		from dbo.ForSaleDetail f 
+			left join a on f.wineN = a.wineN 
+		where f.wineN is not null and a.wineN is null
+	)
+	update b set errors = case when errors is null then 'E10. BadWineN' else (errors + ',   E10. BadWineN') end;
+end
 
 --update dbo.ForSaleDetail set errors = case when errors is null then 'No Price' else (errors + ',  No Price') end where price is null;
 --update dbo.ForSaleDetail set errors = case when errors  is null then 'No Bottle Size' else (errors + ',  No Bottle Size') end where BottleSize is null;
@@ -633,7 +671,10 @@ with a as (
 ), b as (
 	select f.* from dbo.ForSale f join a on f.wid = a.wid where wineN is not null
 ), c as (
-	select wineN, min(vinn) vinn from RPOWine.dbo.Wine group by wineN
+	select WineN = case when @IsUseOldWineN = 1 then oldWineN else ID end, 
+		vinn = min(case when @IsUseOldWineN = 1 then oldVinN else Wine_VinN_ID end)  
+	from RPOWine.dbo.Wine_N 
+	group by case when @IsUseOldWineN = 1 then oldWineN else ID end
 ), d as (
 	select b.*, c.vinn from  b join c on b.wineN = c.wineN
 ), e as (
@@ -651,7 +692,10 @@ with a as (
 ), b as (
 	select f.* from dbo.ForSale f join a on f.wid = a.wid where wineN is not null
 ), c as (
-	select wineN, min(vinn) vinn from RPOWine.dbo.Wine group by wineN
+	select WineN = case when @IsUseOldWineN = 1 then oldWineN else ID end, 
+		vinn = min(case when @IsUseOldWineN = 1 then oldVinN else Wine_VinN_ID end)
+	from RPOWine.dbo.Wine_N 
+	group by case when @IsUseOldWineN = 1 then oldWineN else ID end
 ), d as (
 	select b.*, c.vinn from b join c on b.wineN = c.wineN
 ), e as (
@@ -669,7 +713,11 @@ print 'Import Stage 10';
 update dbo.WAName set isVinnProducerAmbiguous = 0, isErpProducerOK = 0, isProducerTranslated = 0, erpProducer = null;
 
 with a as (
-	select vinn, producer from RPOWine.dbo.Wine group by vinn, producer
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		producer = wp.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.WineProducer wp on vn.ProducerID = wp.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wp.Name
 ), b as (
 	select vinn, count(*) cnt from a group by vinn having count(*) > 1
 ), c as (
@@ -680,7 +728,10 @@ update c set
     isVinnProducerAmbiguous = 1;
 
 with a as (
-	select * from RPOWine.dbo.Wine
+	select VinN = case when @IsUseOldWineN = 1 then oldVinN else VinN end,
+		fixedId, sourceDate,
+		Producer, ProducerShow
+	from RPOWine.dbo.Wine
 ), aa as (
 	select * from a
 ), b as (
@@ -719,9 +770,11 @@ update d set
 
 --When JLabelName is one of the eRp entries
 with a as (
-	select vinn, Producer 
-	from RPOWine.dbo.Wine 
-	group by vinn, Producer
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		Producer = wp.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.WineProducer wp on vn.ProducerID = wp.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wp.Name
 ), b as (
 	select z.* 
 	from dbo.WAName z 
@@ -750,9 +803,11 @@ update dbo.WAName set
 	erpLabelName = null;
 
 with a as (
-	select vinn, LabelName 
-	from RPOWine.dbo.Wine 
-	group by vinn, LabelName
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		LabelName = wl.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.WineLabel wl on vn.LabelID = wl.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wl.Name
 ), b as (
 	select vinn, count(*) cnt 
 	from a 
@@ -769,9 +824,11 @@ update c set
 
 --When there is no ambiguity on erpSide
 with a as (
-	select vinn, LabelName 
-	from RPOWine.dbo.Wine 
-	group by vinn, LabelName
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		LabelName = wl.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.WineLabel wl on vn.LabelID = wl.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wl.Name
 ), aa as (
 	select vinn, max(LabelName) LabelName2 
 	from a 
@@ -788,9 +845,11 @@ update b set
 
 --When JLabelName is one of the eRp entries
 with a as (
-	select vinn, labelName 
-	from RPOWine.dbo.Wine
-	group by vinn, labelName
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		LabelName = wl.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.WineLabel wl on vn.LabelID = wl.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wl.Name
 ), b as (
 	select z.* 
 	from dbo.WAName z 
@@ -811,8 +870,11 @@ update dbo.WAName set
 	erpCountry = null;
 
 with a as (
-	select vinn, Country 
-	from RPOWine.dbo.Wine group by vinn, Country
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		Country = lc.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.LocationCountry lc on vn.locCountryID = lc.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, lc.Name
 ), b as (
 	select vinn, count(*) cnt 
 	from a 
@@ -828,9 +890,11 @@ update c set
 
 --When there is no ambiguity on erpSide
 with a as (
-	select vinn, Country 
-	from RPOWine.dbo.Wine 
-	group by vinn, Country
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		Country = lc.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.LocationCountry lc on vn.locCountryID = lc.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, lc.Name
 ), aa as (
 	select vinn, max(Country) Country2 
 	from a 
@@ -847,9 +911,11 @@ update b set
 
 --When JCountry is one of the eRp entries
 with a as (
-	select vinn, Country 
-	from RPOWine.dbo.Wine
-	group by vinn, Country
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		Country = lc.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.LocationCountry lc on vn.locCountryID = lc.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, lc.Name
 ), b as (
 	select z.* 
 	from dbo.WAName z 
@@ -865,9 +931,11 @@ where Country is null and eRPCountry is not null;
 update dbo.WAName set isVinnRegionAmbiguous = 0, isErpRegionOK = 0, isRegionTranslated = 0, erpRegion = null;
 
 with a as (
-	select vinn, Region 
-	from RPOWine.dbo.Wine 
-	group by vinn, Region
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		Region = lr.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.LocationRegion lr on vn.locRegionID = lr.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, lr.Name
 ), b as (
 	select vinn, count(*) cnt 
 	from a 
@@ -883,9 +951,11 @@ update c set
 
 --When there is no ambiguity on erpSide
 with a as (
-	select vinn, Region 
-	from RPOWine.dbo.Wine
-	group by vinn, Region
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		Region = lr.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.LocationRegion lr on vn.locRegionID = lr.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, lr.Name
 ), aa as (
 	select vinn, max(Region) Region2 
 	from a 
@@ -902,9 +972,11 @@ update b set
 
 --When JRegion is one of the eRp entries
 with a as (
-	select vinn, Region 
-	from RPOWine.dbo.Wine
-	group by vinn, Region
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		Region = lr.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.LocationRegion lr on vn.locRegionID = lr.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, lr.Name
 ), b as (
 	select z.* 
 	from dbo.WAName z 
@@ -920,9 +992,11 @@ where Region is null and eRPRegion is not null;
 update dbo.WAName set isVinnLocationAmbiguous = 0, isErpLocationOK = 0, isLocationTranslated = 0, erpLocation = null;
 
 with a as (
-	select vinn, Location 
-	from RPOWine.dbo.Wine
-	group by vinn, Location
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		Location = ll.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.LocationLocation ll on vn.locLocationID = ll.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, ll.Name
 ), b as (
 	select vinn, count(*) cnt 
 	from a 
@@ -938,9 +1012,11 @@ update c set
 
 --When there is no ambiguity on erpSide
 with a as (
-	select vinn, Location 
-	from RPOWine.dbo.Wine 
-	group by vinn, Location
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		Location = ll.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.LocationLocation ll on vn.locLocationID = ll.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, ll.Name
 ), aa as (
 	select vinn, max(Location) Location2 
 	from a 
@@ -957,9 +1033,11 @@ update b set
 
 --When JLocation is one of the eRp entries
 with a as (
-	select vinn, Location 
-	from RPOWine.dbo.Wine 
-	group by vinn, Location
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		Location = ll.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.LocationLocation ll on vn.locLocationID = ll.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, ll.Name
 ), b as (
 	select z.* 
 	from dbo.WAName z 
@@ -975,9 +1053,11 @@ where Location is null and eRPLocation is not null;
 update dbo.WAName set isVinnVarietyAmbiguous = 0, isErpVarietyOK = 0, isVarietyTranslated = 0, erpVariety = null;
 
 with a as (
-	select vinn, Variety 
-	from RPOWine.dbo.Wine
-	group by vinn, Variety
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		Variety = wv.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.WineVariety wv on vn.VarietyID = wv.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wv.Name
 ), b as (
 	select vinn, count(*) cnt 
 	from a 
@@ -993,9 +1073,11 @@ update c set
 
 --When there is no ambiguity on erpSide
 with a as (
-	select vinn, Variety 
-	from RPOWine.dbo.Wine
-	group by vinn, Variety
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		Variety = wv.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.WineVariety wv on vn.VarietyID = wv.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wv.Name
 ), aa as (
 	select vinn, max(Variety) Variety2 
 	from a 
@@ -1012,9 +1094,11 @@ update b set
 
 --When JVariety is one of the eRp entries
 with a as (
-	select vinn, Variety 
-	from RPOWine.dbo.Wine
-	group by vinn, Variety
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		Variety = wv.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.WineVariety wv on vn.VarietyID = wv.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wv.Name
 ), b as (
 	select z.* 
 	from dbo.WAName z 
@@ -1030,9 +1114,11 @@ where Variety is null and eRPVariety is not null;
 update dbo.WAName set isVinnColorClassAmbiguous = 0, isErpColorClassOK = 0, isColorClassTranslated = 0, erpColorClass = null;
 
 with a as (
-	select vinn, ColorClass 
-	from RPOWine.dbo.Wine 
-	group by vinn, ColorClass
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		ColorClass = wc.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.WineColor wc on vn.ColorID = wc.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wc.Name
 ), b as (
 	select vinn, count(*) cnt 
 	from a 
@@ -1048,9 +1134,11 @@ update c set
 
 --When there is no ambiguity on erpSide
 with a as (
-	select vinn, ColorClass 
-	from RPOWine.dbo.Wine
-	group by vinn, ColorClass
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		ColorClass = wc.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.WineColor wc on vn.ColorID = wc.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wc.Name
 ), aa as (
 	select vinn, max(ColorClass) ColorClass2 
 	from a 
@@ -1067,9 +1155,11 @@ update b set
 
 --When JColorClass is one of the eRp entries
 with a as (
-	select vinn, ColorClass 
-	from RPOWine.dbo.Wine
-	group by vinn, ColorClass
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		ColorClass = wc.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.WineColor wc on vn.ColorID = wc.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wc.Name
 ), b as (
 	select z.* 
 	from dbo.WAName z 
@@ -1085,9 +1175,11 @@ where ColorClass is null and eRPColorClass is not null;
 update dbo.WAName set isVinnDrynessAmbiguous = 0, isErpDrynessOK = 0, isDrynessTranslated = 0, erpDryness = null;
 
 with a as (
-	select vinn, Dryness 
-	from RPOWine.dbo.Wine
-	group by vinn, Dryness
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		Dryness = wd.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.WineDryness wd on vn.DrynessID = wd.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wd.Name
 ), b as (
 	select vinn, count(*) cnt 
 	from a 
@@ -1103,9 +1195,11 @@ update c set
 
 --When there is no ambiguity on erpSide
 with a as (
-	select vinn, Dryness 
-	from RPOWine.dbo.Wine
-	group by vinn, Dryness
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		Dryness = wd.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.WineDryness wd on vn.DrynessID = wd.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wd.Name
 ), aa as (
 	select vinn, max(Dryness) Dryness2 
 	from a 
@@ -1122,9 +1216,11 @@ update b set
 
 --When JDryness is one of the eRp entries
 with a as (
-	select vinn, Dryness 
-	from RPOWine.dbo.Wine
-	group by vinn, Dryness
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		Dryness = wd.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.WineDryness wd on vn.DrynessID = wd.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wd.Name
 ), b as (
 	select z.* 
 	from dbo.WAName z 
@@ -1140,9 +1236,11 @@ where Dryness is null and eRPDryness is not null;
 update dbo.WAName set isVinnWineTypeAmbiguous = 0, isErpWineTypeOK = 0, isWineTypeTranslated = 0, erpWineType = null;
 
 with a as (
-	select vinn, WineType 
-	from RPOWine.dbo.Wine
-	group by vinn, WineType
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		Dryness = wt.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.WineType wt on vn.TypeID = wt.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wt.Name
 ), b as (
 	select vinn, count(*) cnt 
 	from a 
@@ -1158,9 +1256,11 @@ update c set
 
 --When there is no ambiguity on erpSide
 with a as (
-	select vinn, WineType 
-	from RPOWine.dbo.Wine
-	group by vinn, WineType
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		WineType = wt.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.WineType wt on vn.TypeID = wt.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wt.Name
 ), aa as (
 	select vinn, max(WineType) WineType2 
 	from a 
@@ -1177,9 +1277,11 @@ update b set
 
 --When JWineType is one of the eRp entries
 with a as (
-	select vinn, WineType 
-	from RPOWine.dbo.Wine
-	group by vinn, WineType
+	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
+		WineType = wt.Name
+	from RPOWine.dbo.Wine_VinN vn 
+		join RPOWine.dbo.WineType wt on vn.TypeID = wt.ID
+	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wt.Name
 ), b as (
 	select z.* 
 	from dbo.WAName z 
@@ -1193,7 +1295,9 @@ where WineType is null and eRPWineType is not null;
 
 --9j Unresovable Vinns ----------------------------------
 with a as (
-	select distinct vinn from RPOWine.dbo.Wine
+	select distinct 
+		vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end 
+	from RPOWine.dbo.Wine_VinN vn
 ), b as (
 	select z.* 
 	from dbo.WAName z 
@@ -1204,7 +1308,9 @@ update b set
 where isErpProducerOK = 0;
 
 with a as (
-	select distinct vinn from RPOWine.dbo.Wine
+	select distinct 
+		vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end 
+	from RPOWine.dbo.Wine_VinN vn
 ), b as (
 	select z.* 
 	from dbo.WAName z 
@@ -1215,7 +1321,9 @@ update b set
 where isErpLabelNameOK = 0;
 
 with a as (
-	select distinct vinn from RPOWine.dbo.Wine
+	select distinct 
+		vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end 
+	from RPOWine.dbo.Wine_VinN vn
 ), b as (
 	select z.* 
 	from dbo.WAName z 
@@ -1236,10 +1344,16 @@ update dbo.WAName set vinn = -idN, isTempVinn = 1 where vinn is null or vinn < 0
 
 --Deduce WineN
 with a as (
-	select vinn, vintage, wineN 
+	select 
+		vinn = case when @IsUseOldWineN = 1 then oldVinN else VinN end, 
+		vintage, 
+		wineN = case when @IsUseOldWineN = 1 then oldWineN else WineN end
 	from RPOWine.dbo.Wine 
 	where vinn is not null and vintage is not null and wineN is not null 
-	group by vinn, vintage, wineN
+	group by 
+		case when @IsUseOldWineN = 1 then oldVinN else VinN end, 
+		vintage, 
+		case when @IsUseOldWineN = 1 then oldWineN else WineN end
 ), b as (
 	select vinn, vintage, min(wineN) wineN 
 	from a 
@@ -1253,10 +1367,16 @@ update c set
 	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E17.Ambiguous eRP WineN For Some Vintages';
 
 with a as (
-	select vinn, vintage, wineN 
+	select 
+		vinn = case when @IsUseOldWineN = 1 then oldVinN else VinN end, 
+		vintage, 
+		wineN = case when @IsUseOldWineN = 1 then oldWineN else WineN end
 	from RPOWine.dbo.Wine
 	where vinn is not null and vintage is not null and wineN is not null 
-	group by vinn, vintage, wineN
+	group by 
+		case when @IsUseOldWineN = 1 then oldVinN else VinN end, 
+		vintage, 
+		case when @IsUseOldWineN = 1 then oldWineN else WineN end
 ), b as (
 	select vinn, vintage, min(wineN) wineN 
 	from a 
@@ -1274,10 +1394,16 @@ update d set
 	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E18.Ambiguous eRP WineN Given WineAlertId=>Vinn';
 
 with a as (
-	select vinn, vintage, wineN 
+	select 
+		vinn = case when @IsUseOldWineN = 1 then oldVinN else VinN end, 
+		vintage, 
+		wineN = case when @IsUseOldWineN = 1 then oldWineN else WineN end
 	from RPOWine.dbo.Wine
 	where vinn is not null and vintage is not null and wineN is not null 
-	group by vinn, vintage, wineN
+	group by 
+		case when @IsUseOldWineN = 1 then oldVinN else VinN end, 
+		vintage, 
+		case when @IsUseOldWineN = 1 then oldWineN else WineN end
 ), b as (
 	select vinn, vintage, min(wineN) wineN 
 	from a 
@@ -1401,7 +1527,7 @@ insert into dbo.Wine(
 	ProducerURL, Publication, Rating, 
 	--Rating_Hi, RatingQ, shortLabelName, SomeYearHasPrices,TastingCount,ThisYearHasPrices,WhoUpdated,
 	Region,ReviewerIdN,shortTitle,Site,
-	Source,SourceDate,Variety,VinN,Vintage,WineN,WineType) 
+	Source,SourceDate,Variety,VinN,Vintage,WineN,WineType, oldWineN) 
 select --ArticleId,ArticleIdNKey,ArticleOrder,BottleSize,BottlesPerCosting,
 	ClumpName, ColorClass,
 	--combinedLocation, DateUpdated, erpTastingCount, EstimatedCost_Hi,
@@ -1417,7 +1543,7 @@ select --ArticleId,ArticleIdNKey,ArticleOrder,BottleSize,BottlesPerCosting,
 	ProducerURL,Publication,Rating,
 	--Rating_Hi,RatingQ, shortLabelName, SomeYearHasPrices, TastingCount,ThisYearHasPrices, WhoUpdated,
 	Region,ReviewerIdN,shortTitle,Site, 
-	Source,SourceDate,Variety,VinN,Vintage,WineN,WineType
+	Source,SourceDate,Variety,VinN,Vintage,WineN,WineType, oldWineN
 from RPOWine.dbo.Wine
 where isActiveWineN = 1;
 
@@ -1456,7 +1582,7 @@ insert into dbo.Wine(
 	ProducerURL, Publication, Rating, 
 	--Rating_Hi, RatingQ, shortLabelName, SomeYearHasPrices,TastingCount,ThisYearHasPrices,WhoUpdated,
 	Region,ReviewerIdN,shortTitle,Site,
-	Source,SourceDate,Variety,VinN,Vintage,WineN,WineType)
+	Source,SourceDate,Variety,VinN,Vintage,WineN,WineType, oldWineN)
 select 	
 	ClumpName, ColorClass,
 	--combinedLocation, DateUpdated, erpTastingCount, EstimatedCost_Hi,
@@ -1472,8 +1598,8 @@ select
 	ProducerURL,Publication,Rating,
 	--Rating_Hi,RatingQ, shortLabelName, SomeYearHasPrices, TastingCount,ThisYearHasPrices, WhoUpdated,
 	Region,ReviewerIdN,shortTitle,Site, 
-	Source,SourceDate,Variety,VinN,Vintage,WineN,WineType
-from RPOWine.dbo.Wine (noexpand)
+	Source,SourceDate,Variety,VinN,Vintage,WineN,WineType, oldWineN
+from RPOWine.dbo.Wine --(noexpand)
 where fixedId in (select fixedId from d) and WineN not in (select wineN from e);
 
 -----------------------------------------------------------------------------------------------
@@ -1509,10 +1635,12 @@ insert into dbo.Wine(ColorClass,Country,Dryness,isErpLocationOK,isERPProducerOK,
 */
 
 --add the ones where there is Vinn so we can map to the eRP names (which we fill in if there is no ambiguity or one of the ambiguous ones matches Julian's
+-- TODO: vinN!!! and no oldWineN in the WineName!
 with a as (
 	select * 
 	from dbo.ForSale z 
-	where errors is null and not exists (select wineN from dbo.Wine y where z.wineN = y.wineN)
+	where errors is null and not exists (select wineN from dbo.Wine y 
+		where z.wineN = case when @IsUseOldWineN = 1 then y.oldWineN else y.WineN end)
 ), b as (
 	select * 
 	from dbo.WAName z 
@@ -1525,13 +1653,15 @@ with a as (
 --select * from c
 insert into dbo.Wine(ColorClass,Country,Dryness,isErpLocationOK,isERPProducerOK, isProducerTranslated, isErpRegionOK,isErpVarietyOK,IsVinnDeduced,isWineNDeduced,LabelName,Location,Producer,ProducerShow,Region,Variety,VinN,Vintage,Wid,WineN,WineType)
 select erpColorClass,erpCountry,erpDryness,isErpLocationOK,isERPProducerOK, isProducerTranslated, isErpRegionOK,isErpVarietyOK,IsVinnDeduced,isWineNDeduced,erpLabelName,erpLocation,eRpProducer,erpProducerShow,erpRegion,erpVariety,VinN,Vintage,Wid,WineN,WineType
-     from c;
+from c;
 
+-- TODO: vinN!!! and no oldWineN in the WineName!
 --add the ones where there is no eRP Vinn, so we have to use Julian's names (except for Producer)
 with a as (
 	select * 
 	from dbo.ForSale z 
-	where errors is null and not exists (select wineN from dbo.Wine y where z.wineN = y.wineN)
+	where errors is null and not exists (select wineN from dbo.Wine y 
+		where z.wineN = case when @IsUseOldWineN = 1 then y.oldWineN else y.WineN end)
 ), b as (
 	select * 
 	from dbo.WAName z 
@@ -1565,7 +1695,7 @@ update dbo.Wine set isCurrentlyForSale = 0, isCurrentlyOnAuction = 0;
 with a as (
 	select w.*, price, priceHi, priceCnt 
 	from dbo.Wine w 
-		left join dbo.ForSale f on w.wineN = f.wineN 
+		left join dbo.ForSale f on f.wineN = case when @IsUseOldWineN = 1 then w.oldWineN else w.WineN end
 	where f.isActiveForSaleWineN = 1
 )
 update a set 
@@ -1578,7 +1708,7 @@ where priceCnt is not null;
 with a as (
 	select w.*, AuctionPrice, AuctionPriceHi, AuctionCnt 
 	from dbo.Wine w 
-		left join dbo.ForSale f on w.wineN = f.wineN 
+		left join dbo.ForSale f on f.wineN = case when @IsUseOldWineN = 1 then w.oldWineN else w.WineN end
 	where f.isActiveForSaleWineN = 1
 )
 update a set 
@@ -1599,7 +1729,7 @@ with a as (
 ), b as (
 	select * 
 	from dbo.Wine w 
-		join a on w.wineN = a.fWineN
+		join a on a.fWineN = case when @IsUseOldWineN = 1 then w.oldWineN else w.WineN end
 )
 update b set 
      isCurrentlyForSale = 1
@@ -1615,7 +1745,7 @@ with a as (
 ), b as (
 	select *
 	from dbo.Wine w 
-		left join a on w.wineN = a.fWineN 
+		left join a on a.fWineN = case when @IsUseOldWineN = 1 then w.oldWineN else w.WineN end
 	where fWineN is null
 )
 update b set isCurrentlyForSale = 0;
@@ -2027,7 +2157,6 @@ a as (select
 update c set wineNameIdN = idNx;
 */
 
------------- HERE IS STOPPED ------------
 --------- RPOWine UPDATES START HERE ---------
 
 update RPOWine.dbo.Wine_N set oldWineNameIdN = null;
@@ -2341,6 +2470,9 @@ exec RPOWine.srv.UpdateArticles
 --exec RpoWineData.dbo.updateIssueToc		-- IssueTop is not in use
 --exec RpoWineData.dbo.ReComputePrices		-- table prices is not in use
 --exec RpoWineData.dbo.UpdateTopBarginMap	-- table tocbargainmap is not in use
+
+-- Alex B. - reload Wine table
+exec RPOWine.srv.Wine_Reload
 
 exec LogMsg 'Update of all files finished';
 print 'Update of all files finished';

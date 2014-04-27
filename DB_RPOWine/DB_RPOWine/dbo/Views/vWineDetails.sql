@@ -3,7 +3,7 @@
 
 
 CREATE VIEW [dbo].[vWineDetails]
-WITH SCHEMABINDING
+ 
 
 AS
 
@@ -89,17 +89,10 @@ GO
 --GO
 --SET NUMERIC_ROUNDABORT OFF
 --GO
-CREATE UNIQUE CLUSTERED INDEX [PK_vWineDetails] ON [dbo].[vWineDetails] 
-(
-	[Wine_N_ID] ASC
-)WITH (STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) 
-ON [WineIndx]
+
 GO
 
-CREATE FULLTEXT INDEX ON [dbo].[vWineDetails]
-    ([Keywords] LANGUAGE 1033)
-    KEY INDEX [PK_vWineDetails]
-    ON ([RPOWine_FTSearchWine], FILEGROUP [WineIndx]);
+
 
 
 GO

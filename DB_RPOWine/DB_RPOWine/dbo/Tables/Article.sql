@@ -8,7 +8,7 @@
     [Date]             DATE           NULL,
     [Notes]            NVARCHAR (MAX) NULL,
     [MetaTags]         NVARCHAR (MAX) NULL,
-    [Event]            NVARCHAR (100) NULL,
+    [Event]            NVARCHAR (120) NULL,
     [CuisineID]        INT            CONSTRAINT [DF_Article_CuisineID] DEFAULT ((0)) NOT NULL,
     [locCountryID]     INT            CONSTRAINT [DF_Article_locCountryID] DEFAULT ((0)) NOT NULL,
     [locRegionID]      INT            CONSTRAINT [DF_Article_locRegionID] DEFAULT ((0)) NOT NULL,
@@ -35,6 +35,8 @@
     CONSTRAINT [PK_Article] PRIMARY KEY CLUSTERED ([ID] ASC) ON [Articles],
     CONSTRAINT [FK_Article_Publication] FOREIGN KEY ([PublicationID]) REFERENCES [dbo].[Publication] ([ID])
 ) TEXTIMAGE_ON [Articles];
+
+
 
 
 

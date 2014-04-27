@@ -25,20 +25,22 @@ select
 	oldEntryN = max(wn.EntryN),
 	oldFixedId = max(wn.FixedId),
 	oldWineNameIdN = max(wn.WineNameIdN),
+	oldWineN = max(wn.WineN),
+	oldVinN = max(wn.VinN),
 	DateUpdated = max(case when isnull(IsActiveWineN, 1) = 1 then wn.DateUpdated else '1/1/2000' end),
 
-	EstimatedCost = max(EstimatedCost), 
-	MostRecentPrice = max(MostRecentPrice), 
-	MostRecentPriceHi = max(MostRecentPriceHi), 
-	MostRecentPriceCnt = max(MostRecentPriceCnt),
-	MostRecentAuctionPrice = max(MostRecentAuctionPrice), 
-	MostRecentAuctionPriceHi = max(MostRecentAuctionPriceHi), 
-	MostRecentAuctionPriceCnt = max(MostRecentAuctionPriceCnt), 
+	EstimatedCost = max(case when isnull(IsActiveWineN, 1) = 1 then EstimatedCost else 0 end), 
+	MostRecentPrice = max(case when isnull(IsActiveWineN, 1) = 1 then MostRecentPrice else 0 end), 
+	MostRecentPriceHi = max(case when isnull(IsActiveWineN, 1) = 1 then MostRecentPriceHi else 0 end), 
+	MostRecentPriceCnt = max(case when isnull(IsActiveWineN, 1) = 1 then MostRecentPriceCnt else 0 end),
+	MostRecentAuctionPrice = max(case when isnull(IsActiveWineN, 1) = 1 then MostRecentAuctionPrice else 0 end), 
+	MostRecentAuctionPriceHi = max(case when isnull(IsActiveWineN, 1) = 1 then MostRecentAuctionPriceHi else 0 end), 
+	MostRecentAuctionPriceCnt = max(case when isnull(IsActiveWineN, 1) = 1 then MostRecentAuctionPriceCnt else 0 end), 
 	hasWJTasting = max(cast(hasWJTasting as smallint)), 
 	hasERPTasting = max(cast(hasERPTasting as smallint)), 
 	IsActiveWineN = max(cast(IsActiveWineN as smallint)), 
-	IsCurrentlyForSale = max(cast(IsCurrentlyForSale as smallint)),
-	IsCurrentlyOnAuction = max(cast(IsCurrentlyOnAuction as smallint))
+	IsCurrentlyForSale = max(cast((case when isnull(IsActiveWineN, 1) = 1 then IsCurrentlyForSale else 0 end) as smallint)),
+	IsCurrentlyOnAuction = max(cast((case when isnull(IsActiveWineN, 1) = 1 then IsCurrentlyOnAuction else 0 end) as smallint))
 into #t
 from RPOWineData.dbo.Wine wn
 	left join WineProducer wp on isnull(wn.Producer, '') = wp.Name
@@ -67,20 +69,22 @@ begin tran
 		GroupID,
 		ProducerID, TypeID, LabelID, VarietyID, DrynessID, ColorID, 
 		locCountryID, locRegionID, locLocationID, locLocaleID, locSiteID,
-		WF_StatusID)
-	select distinct 
+		WF_StatusID, oldVinN)
+	select --distinct 
 		GroupID = 0,
 		ProducerID, TypeID, LabelID, VarietyID, DrynessID, ColorID, 
 		locCountryID, locRegionID, locLocationID, locLocaleID, locSiteID,
-		WF_StatusID = 100
+		WF_StatusID = 100, oldVinN = max(oldVinN)
 	from #t
+	group by ProducerID, TypeID, LabelID, VarietyID, DrynessID, ColorID, 
+		locCountryID, locRegionID, locLocationID, locLocaleID, locSiteID
 	--set identity_insert Wine_VinN off
 	--rollback tran
 commit tran
 
 -------- WineN
 begin tran
-	insert into Wine_N (Wine_VinN_ID,VintageID, oldIdn,oldEntryN,oldFixedId,oldWineNameIdN, WF_StatusID,
+	insert into Wine_N (Wine_VinN_ID,VintageID, oldIdn,oldEntryN,oldFixedId,oldWineNameIdN, oldWineN, oldVinN, WF_StatusID,
 		EstimatedCost, MostRecentPrice, MostRecentPriceHi, MostRecentPriceCnt, MostRecentAuctionPrice, MostRecentAuctionPriceHi, 
 		MostRecentAuctionPriceCnt, hasWJTasting, hasERPTasting, IsActiveWineN, IsCurrentlyForSale, IsCurrentlyOnAuction)
 	select 
@@ -90,6 +94,8 @@ begin tran
 		oldEntryN = max(oldEntryN),
 		oldFixedId = max(oldFixedId),
 		oldWineNameIdN = max(oldWineNameIdN), 
+		oldWineN = max(oldWineN),
+		oldVinN = max(oldVinN),
 		WF_StatusID = 100,
 		#t.EstimatedCost, #t.MostRecentPrice, #t.MostRecentPriceHi, #t.MostRecentPriceCnt, #t.MostRecentAuctionPrice, #t.MostRecentAuctionPriceHi, 
 		#t.MostRecentAuctionPriceCnt, #t.hasWJTasting, #t.hasERPTasting, #t.IsActiveWineN, #t.IsCurrentlyForSale, #t.IsCurrentlyOnAuction

@@ -68,17 +68,44 @@ AUTHORIZATION [dbo];
 	CREATE FULLTEXT CATALOG [RPOWine_WineOld]WITH ACCENT_SENSITIVITY = ON
 	AUTHORIZATION [dbo];
 
-	IF not EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[Wine]') AND name = N'PK_Wine') BEGIN
-		CREATE UNIQUE CLUSTERED INDEX [PK_Wine] ON [dbo].[Wine] 
-		(
-			[TasteNote_ID] ASC
-		)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [WineIndx]
-	end
+	-- View version
+	--IF not EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[Wine]') AND name = N'PK_Wine') BEGIN
+	--	CREATE UNIQUE CLUSTERED INDEX [PK_Wine] ON [dbo].[Wine] 
+	--	(
+	--		[TasteNote_ID] ASC
+	--	)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [WineIndx]
+	--end
 
+	--CREATE FULLTEXT INDEX ON [dbo].[Wine](
+	----[BottleSize] LANGUAGE [English], 
+	--[ColorClass] LANGUAGE [English], 
+	----[CombinedLocation] LANGUAGE [English], 
+	--[Country] LANGUAGE [English], 
+	--[Dryness] LANGUAGE [English], 
+	--[encodedKeyWords] LANGUAGE [English], 
+	--[Issue] LANGUAGE [English], 
+	--[LabelName] LANGUAGE [English], 
+	--[Locale] LANGUAGE [English], 
+	--[Location] LANGUAGE [English], 
+	--[Notes] LANGUAGE [English], 
+	--[Places] LANGUAGE [English], 
+	--[Producer] LANGUAGE [English], 
+	--[ProducerShow] LANGUAGE [English], 
+	--[Publication] LANGUAGE [English], 
+	--[RatingShow] LANGUAGE [English], 
+	--[Region] LANGUAGE [English], 
+	----[ShortLabelName] LANGUAGE [English], 
+	--[Site] LANGUAGE [English], 
+	--[Source] LANGUAGE [English], 
+	--[Variety] LANGUAGE [English], 
+	--[Vintage] LANGUAGE [English], 
+	--[WineType] LANGUAGE [English])
+	--KEY INDEX [PK_Wine]ON ([RPOWine_WineOld], FILEGROUP [WineIndx])
+	--WITH (CHANGE_TRACKING = AUTO, STOPLIST = OFF);
+
+	-- Table version
 	CREATE FULLTEXT INDEX ON [dbo].[Wine](
-	--[BottleSize] LANGUAGE [English], 
 	[ColorClass] LANGUAGE [English], 
-	--[CombinedLocation] LANGUAGE [English], 
 	[Country] LANGUAGE [English], 
 	[Dryness] LANGUAGE [English], 
 	[encodedKeyWords] LANGUAGE [English], 
@@ -93,16 +120,14 @@ AUTHORIZATION [dbo];
 	[Publication] LANGUAGE [English], 
 	[RatingShow] LANGUAGE [English], 
 	[Region] LANGUAGE [English], 
-	--[ShortLabelName] LANGUAGE [English], 
 	[Site] LANGUAGE [English], 
-	[Source] LANGUAGE [English], 
+	[source] LANGUAGE [English], 
 	[Variety] LANGUAGE [English], 
 	[Vintage] LANGUAGE [English], 
 	[WineType] LANGUAGE [English])
 	KEY INDEX [PK_Wine]ON ([RPOWine_WineOld], FILEGROUP [WineIndx])
 	WITH (CHANGE_TRACKING = AUTO, STOPLIST = OFF);
-
-
+	
 ---------------------------------
 
 RETURN 1

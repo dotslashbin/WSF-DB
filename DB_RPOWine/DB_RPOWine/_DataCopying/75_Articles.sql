@@ -108,6 +108,7 @@ from #t
 		when #t.Author in ('Robert Parker', 'Robert Parker / Pierre Rovani') then 'Robert M. Parker, Jr.' 
 		when #t.Author = 'Jay Miller' then 'Jay S Miller' 
 		when #t.Author = 'Lisa Perrotti-Brown & Neal Martin' then 'Lisa Perrotti-Brown'
+		when #t.Author = 'Martin, Neal' then 'NEAL MARTIN'
 		else #t.Author 
 	end
 	left join Cuisine cus on isnull(#t.Cuisine, '') = cus.Name
