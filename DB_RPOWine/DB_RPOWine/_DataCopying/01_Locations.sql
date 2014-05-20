@@ -94,7 +94,7 @@ set identity_insert LocationState off
 go
 insert into LocationState (Name, WF_StatusID)
 select a.State, WF_StatusID = 100
-from ArticlesParser.dbo.Articles a
+from ArticleParser.dbo.Articles a
 	left join LocationState c on a.State = c.Name
 where a.State is not null and LEN(a.State) > 0 and c.ID is NULL
 	and a.State != 'xxxx' and a.State not like 'Maryland>%'
@@ -108,7 +108,7 @@ set identity_insert LocationCity off
 go
 insert into LocationCity (Name, WF_StatusID)
 select rtrim(ltrim(a.City)), WF_StatusID = 100
-from ArticlesParser.dbo.Articles a
+from ArticleParser.dbo.Articles a
 	left join LocationCity c on a.City = c.Name
 where a.City is not null and LEN(a.City) > 0 and c.ID is NULL
 	and a.City != 'xxxx' 

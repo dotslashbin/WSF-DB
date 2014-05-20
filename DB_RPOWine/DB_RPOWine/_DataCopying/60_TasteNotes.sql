@@ -109,7 +109,7 @@ end else begin
 	insert into TasteNote (UserId, Wine_N_ID, IssueID, TastingEventID, locPlacesID, TasteDate, MaturityID,
 		Rating_Lo, Rating_Hi, RatingQ, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, Notes, 
 		oldIdn, oldFixedId, oldClumpName, oldEncodedKeyWords, oldReviewerIdN, oldIsErpTasting, oldIsWjTasting,
-		oldShowForERP, oldShowForWJ, oldSourceDate, IsActiveWineN,
+		oldShowForERP, oldShowForWJ, oldSourceDate, oldArticleId, oldArticleIdNKey, IsActiveWineN,
 		WF_StatusID)
 	select distinct
 		UserId = isnull(u.UserId, isnull(u2.UserId, 0)), 
@@ -136,6 +136,8 @@ end else begin
 		oldShowForERP = w.showForERP, 
 		oldShowForWJ = w.showForWJ, 
 		oldSourceDate = w.SourceDate,
+		oldArticleId = #t.ArticleId, 
+		oldArticleIdNKey = #t.ArticleIdNKey,
 		IsActiveWineN = w.IsActiveWineN,
 		WF_StatusID = 100
 		--oldPublicationDate = w.SourceDate

@@ -90,12 +90,12 @@ begin tran
 	select 
 		VinNID = v.ID,
 		VintageID = #t.VintageID, 
-		oldIdn = max(oldIdn),
-		oldEntryN = max(oldEntryN),
-		oldFixedId = max(oldFixedId),
-		oldWineNameIdN = max(oldWineNameIdN), 
-		oldWineN = max(oldWineN),
-		oldVinN = max(oldVinN),
+		oldIdn = max(#t.oldIdn),
+		oldEntryN = max(#t.oldEntryN),
+		oldFixedId = max(#t.oldFixedId),
+		oldWineNameIdN = max(#t.oldWineNameIdN), 
+		oldWineN = max(#t.oldWineN),
+		oldVinN = max(#t.oldVinN),
 		WF_StatusID = 100,
 		#t.EstimatedCost, #t.MostRecentPrice, #t.MostRecentPriceHi, #t.MostRecentPriceCnt, #t.MostRecentAuctionPrice, #t.MostRecentAuctionPriceHi, 
 		#t.MostRecentAuctionPriceCnt, #t.hasWJTasting, #t.hasERPTasting, #t.IsActiveWineN, #t.IsCurrentlyForSale, #t.IsCurrentlyOnAuction

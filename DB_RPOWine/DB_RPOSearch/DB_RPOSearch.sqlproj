@@ -92,5 +92,9 @@
     <Build Include="dbo\Stored Procedures\LogMsg.sql" />
     <Build Include="Security\utils.sql" />
     <Build Include="Storage\RPOWineSearchStopList.sql" />
+    <Build Include="dbo\Stored Procedures\__23UpdateImportPrices_01.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SqlSchemaCompare_DBvsProject.scmp" />
   </ItemGroup>
 </Project>

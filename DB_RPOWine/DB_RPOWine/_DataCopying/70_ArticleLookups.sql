@@ -14,7 +14,7 @@ set identity_insert Cuisine off
 go
 insert into Cuisine (Name, WF_StatusID)
 select a.Cuisine, WF_StatusID = 100
-from ArticlesParser.dbo.Articles a
+from ArticleParser.dbo.Articles a
 	left join Cuisine c on a.Cuisine = c.Name
 where a.Cuisine is not null and LEN(a.Cuisine) > 0 and c.ID is NULL
 	and a.Cuisine != 'xxxx'

@@ -19,7 +19,8 @@ GO
 --select * from Publication
 insert into Publication (PublisherID, Name)
 values	(1, 'Wine Buyer''s Guide, 5th Edition, 1999'),
-		(2, 'Articles Of Merit'), (2, 'Uncensored and Live')
+		(2, 'Articles Of Merit'), (2, 'Uncensored and Live'),
+		(2, 'Hedonist''s Gazette')
 GO
 print '--------- Preparing Data -----------'
 GO
@@ -29,8 +30,11 @@ GO
 			when Filename is NOT NULL and Filename like 'ag[0-9]%.asp' then 'In the Cellar'
 			when Filename is NOT NULL and Filename like 'article[0-9]%.asp' then 'Wine Advocate'
 			when Filename is NOT NULL and Filename like 'articleofmerit[0-9]%.asp' then 'Articles Of Merit'
-			when Filename is NOT NULL and Filename like 'nm[0-9]%.asp' then 'Wine Journal'
+			when Filename is NOT NULL and Filename like 'nm%.asp' then 'Wine Journal'
 			when Filename is NOT NULL and Filename like 'rp[0-9]%.asp' then 'Uncensored and Live'
+			when Filename is NOT NULL and Filename like 'ews%.asp' then 'Executive Wine Seminar'
+			when Filename is NOT NULL and Filename like 'hg%.asp' then 'Hedonist''s Gazette'
+			when Filename is NOT NULL and Filename like 'ia[0-9]%.asp' then 'In Asia'
 			else 'Wine Journal'
 		end,
 		Issue = NULL, Author = a.Author, Title = a.Title,
@@ -39,7 +43,7 @@ GO
 		Locale = NUll, Site = NULL, State = isnull(a.State,''), City = isnull(a.City,''),
 		Cuisine = isnull(a.Cuisine, ''), Date = a.Date, ShortTitle = a.Short_title, IssueDate = null,
 		FileName = Filename
-	from ArticlesParser.dbo.Articles a
+	from ArticleParser.dbo.Articles a
 )
 select * into #t from (
 	select 
@@ -133,6 +137,12 @@ group by PubID
 print '---------- Articles ------------'
 GO
 --select isnull(Author, ''), count(*) from #t where UserId is NULL and isnull(Author, '') != '' group by isnull(Author, '')
+--select max(len(Author)) from #t
+--alter table Article alter column
+--	Author nvarchar(100) not null
+--GO
+--select * from #t where PubID is NULL
+
 insert into Article (PublicationID, AuthorId, Author, Title, ShortTitle, Date, Notes, MetaTags, 
 	Event, CuisineID, 
 	locCountryID, locRegionID, locLocationID, locLocaleID, locSiteID, locStateID, locCityID,
@@ -146,7 +156,7 @@ select #t.PubID, isnull(#t.UserId, 0), isnull(#t.Author, ''), #t.Title, isnull(#
 	#t.ArticleIdN, #t.ArticleId, #t.ArticleIdNKey, #t.FileName,
 	pa.Producer, pa.Source, pa.Topic, pa.Type, pa.Wine_numbers, pa.Wines, pa.Vintage, pa.Appellation
 from #t
-	left join ArticlesParser.dbo.Articles pa on #t.FileName = pa.Filename
+	left join ArticleParser.dbo.Articles pa on #t.FileName = pa.Filename
 
 print '---------- Article Links ------------'
 GO
