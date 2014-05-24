@@ -50,7 +50,9 @@ select distinct
 	ArticleIdNKey = wn.ArticleIdNKey,
 	FixedId = wn.FixedId,
 	ArticleClumpName = wn.clumpName,
-	ArticlePages = wn.Pages
+	ArticlePages = wn.Pages,
+	EstimatedCost = wn.EstimatedCost,
+	EstimatedCost_Hi = wn.EstimatedCost_Hi
 into #t
 from RPOWineData.dbo.Wine wn
 	left join WineProducer wp on isnull(wn.Producer, '') = wp.Name
@@ -109,7 +111,7 @@ end else begin
 	insert into TasteNote (UserId, Wine_N_ID, IssueID, TastingEventID, locPlacesID, TasteDate, MaturityID,
 		Rating_Lo, Rating_Hi, RatingQ, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, Notes, 
 		oldIdn, oldFixedId, oldClumpName, oldEncodedKeyWords, oldReviewerIdN, oldIsErpTasting, oldIsWjTasting,
-		oldShowForERP, oldShowForWJ, oldSourceDate, oldArticleId, oldArticleIdNKey, IsActiveWineN,
+		oldShowForERP, oldShowForWJ, oldSourceDate, oldArticleId, oldArticleIdNKey, IsActiveWineN, EstimatedCost, EstimatedCost_Hi,
 		WF_StatusID)
 	select distinct
 		UserId = isnull(u.UserId, isnull(u2.UserId, 0)), 
@@ -139,6 +141,8 @@ end else begin
 		oldArticleId = #t.ArticleId, 
 		oldArticleIdNKey = #t.ArticleIdNKey,
 		IsActiveWineN = w.IsActiveWineN,
+		EstimatedCost = w.EstimatedCost, 
+		EstimatedCost_Hi = w.EstimatedCost_Hi,
 		WF_StatusID = 100
 		--oldPublicationDate = w.SourceDate
 	from RPOWineData.dbo.Wine w (nolock)

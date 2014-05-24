@@ -1,7 +1,4 @@
-﻿
-
-
-CREATE VIEW [dbo].[vWine]
+﻿CREATE VIEW [dbo].[vWine]
   
 
 AS
@@ -19,7 +16,7 @@ select
 	Dryness = wd.Name,
 	DrinkDate = tn.DrinkDate_Lo,
 	DrinkDate_hi = tn.DrinkDate_Hi,
-	EstimatedCost = wn.EstimatedCost,
+	EstimatedCost = tn.EstimatedCost,
 	encodedKeyWords = tn.oldEncodedKeyWords,
 	fixedId = tn.oldFixedId,
 	HasWJTasting = wn.HasWJTasting,

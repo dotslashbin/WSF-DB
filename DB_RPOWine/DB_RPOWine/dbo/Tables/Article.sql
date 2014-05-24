@@ -2,7 +2,7 @@
     [ID]               INT            IDENTITY (1, 1) NOT NULL,
     [PublicationID]    INT            NOT NULL,
     [AuthorId]         INT            NOT NULL,
-    [Author]           NVARCHAR (50)  CONSTRAINT [DF_Article_Author] DEFAULT ('') NOT NULL,
+    [Author]           NVARCHAR (100) CONSTRAINT [DF_Article_Author] DEFAULT ('') NOT NULL,
     [Title]            NVARCHAR (255) NOT NULL,
     [ShortTitle]       NVARCHAR (150) NULL,
     [Date]             DATE           NULL,
@@ -35,6 +35,8 @@
     CONSTRAINT [PK_Article] PRIMARY KEY CLUSTERED ([ID] ASC) ON [Articles],
     CONSTRAINT [FK_Article_Publication] FOREIGN KEY ([PublicationID]) REFERENCES [dbo].[Publication] ([ID])
 ) TEXTIMAGE_ON [Articles];
+
+
 
 
 

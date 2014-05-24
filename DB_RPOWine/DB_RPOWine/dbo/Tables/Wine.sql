@@ -56,3 +56,11 @@
     CONSTRAINT [PK_Wine] PRIMARY KEY CLUSTERED ([TasteNote_ID] ASC)
 );
 
+
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Wine_WineNID]
+    ON [dbo].[Wine]([Wine_N_ID] ASC)
+    INCLUDE([TasteNote_ID], [Wine_VinN_ID]);
+

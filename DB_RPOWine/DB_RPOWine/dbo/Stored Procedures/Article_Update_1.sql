@@ -5,7 +5,7 @@
 -- =============================================
 CREATE PROCEDURE [dbo].[Article_Update]
 	@ID int,
-	@PublicationID int = NULL, @AuthorId int = NULL, @Author nvarchar(50) = NULL,
+	@PublicationID int = NULL, @AuthorId int = NULL, @Author nvarchar(100) = NULL,
     @Title nvarchar(255) = NULL, 
     
     @ShortTitle nvarchar(150) = NULL, @Date date = NULL,

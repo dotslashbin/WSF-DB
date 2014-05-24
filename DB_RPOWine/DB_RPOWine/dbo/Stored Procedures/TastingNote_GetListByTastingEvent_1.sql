@@ -2,6 +2,7 @@
 
 
 
+
 -- =============================================
 -- Author:		Sergiy Savchenko
 -- Create date: 2/23/2014
@@ -56,8 +57,10 @@ set nocount on
 		created = tn.created, 
 		updated = tn.updated, 
         Wine_N_WF_StatusID = w.Wine_N_WF_StatusID,
-		Vin_N_WF_StatusID = w.Vin_N_WF_StatusID
-				
+		Vin_N_WF_StatusID = w.Vin_N_WF_StatusID,
+		EstimatedCost,
+		EstimatedCost_Hi 
+						
 	from TasteNote tn (nolock)
 		join Users u (nolock) on tn.UserId = u.UserId
 		join vWineDetails w on tn.Wine_N_ID = w.Wine_N_ID

@@ -11,7 +11,6 @@
     [created]                   SMALLDATETIME CONSTRAINT [DF_Wine_N_created] DEFAULT (getdate()) NOT NULL,
     [updated]                   SMALLDATETIME NULL,
     [WF_StatusID]               SMALLINT      CONSTRAINT [DF_Wine_N_WF_StatusID] DEFAULT ((0)) NOT NULL,
-    [EstimatedCost]             MONEY         NULL,
     [MostRecentPrice]           MONEY         NULL,
     [MostRecentPriceHi]         MONEY         NULL,
     [MostRecentPriceCnt]        INT           NULL,
@@ -23,10 +22,13 @@
     [IsActiveWineN]             BIT           NULL,
     [IsCurrentlyForSale]        BIT           NULL,
     [IsCurrentlyOnAuction]      BIT           NULL,
+    [EstimatedCost]             MONEY         NULL,
     CONSTRAINT [PK_Wine_N] PRIMARY KEY CLUSTERED ([ID] ASC) ON [Wine],
     CONSTRAINT [FK_Wine_N_Wine_VinN] FOREIGN KEY ([Wine_VinN_ID]) REFERENCES [dbo].[Wine_VinN] ([ID]),
     CONSTRAINT [FK_Wine_N_WineVintage] FOREIGN KEY ([VintageID]) REFERENCES [dbo].[WineVintage] ([ID])
 );
+
+
 
 
 
@@ -40,4 +42,10 @@ CREATE UNIQUE NONCLUSTERED INDEX [IX_Wine_N_Uniq]
     ON [dbo].[Wine_N]([Wine_VinN_ID] ASC, [VintageID] ASC)
     INCLUDE([ID], [WF_StatusID])
     ON [Wine];
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Wine_N]
+    ON [dbo].[Wine_N]([VintageID] ASC)
+    ON [PRIMARY];
 

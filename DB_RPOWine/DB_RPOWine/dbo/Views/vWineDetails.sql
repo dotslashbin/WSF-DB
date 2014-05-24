@@ -1,9 +1,7 @@
 ﻿
 
-
-
 CREATE VIEW [dbo].[vWineDetails]
- 
+--WITH SCHEMABINDING 
 
 AS
 
@@ -49,7 +47,8 @@ AS
 		oldFixedId = wn.oldFixedId, oldWineNameIdN = wn.oldWineNameIdN,
 
 		Wine_N_WF_StatusID = wn.WF_StatusID,
-		Vin_N_WF_StatusID = vn.WF_StatusID
+		Vin_N_WF_StatusID = vn.WF_StatusID,
+		created = wn.created
 		
 	from dbo.Wine_N wn	-- (nolock)
 		join dbo.Wine_VinN vn on wn.Wine_VinN_ID = vn.ID
@@ -89,16 +88,5 @@ GO
 --GO
 --SET NUMERIC_ROUNDABORT OFF
 --GO
-
-GO
-
-
-
-
-GO
-
-
-GO
-
 
 GO

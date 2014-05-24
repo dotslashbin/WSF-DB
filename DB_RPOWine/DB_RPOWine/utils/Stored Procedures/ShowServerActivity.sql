@@ -1,6 +1,6 @@
 ﻿CREATE PROCEDURE [utils].[ShowServerActivity] 
 	@TraceDuration int = 15,  --trace duration in seconds
-	@FName nvarchar(100) = N'C:\MSSQL\TRACE\ShowServerActivity',
+	@FName nvarchar(100) = N'C:\',
 	@maxfilesize bigint = 5 ,--maximum size in megabytes 
 	@FilterDBName nvarchar(50)= null,--optional db name to restrict trace to specific db
 	@IsDebug smallint = 0

@@ -19,7 +19,7 @@ CREATE PROCEDURE [dbo].[WineVin_GetID]
 	
 /*
 declare @r int
-exec @r = WineVin_GetID @Producer = 'Gerard Depardieu', @WineType = 'Table', @Label = 'Domaine de St. Augustin',
+exec @r = WineVin_GetID @Producer = 'Gerard Depardieu', @WineType = 'Table', @Label = '',
 	@Variety = 'Proprietary Blend', @Dryness = 'Dry', @Color = 'Red',
 	@locCountry = 'Algeria', @locRegion = 'Coteaux de Tlemcen', 
 	@locLocation = 'a', @locLocale = NULL, @locSite = NULL,
@@ -36,7 +36,7 @@ declare @Result int,
 
 ------------ Checks
 if @IsAutoCreate = 1 and 
-	(len(isnull(@Producer, '')) < 1 or len(isnull(@WineType, '')) < 1 or len(isnull(@Label, '')) < 1 
+	(len(isnull(@Producer, '')) < 1 or len(isnull(@WineType, '')) < 1 --or len(isnull(@Label, '')) < 1 
 	or len(isnull(@Variety, '')) < 1 or len(isnull(@Dryness, '')) < 1 or len(isnull(@Color, '')) < 1)
 begin
 	select @Result = -1
@@ -73,7 +73,7 @@ BEGIN TRY
 	------------ Lookup IDs
 
 	------------ Checks
-	if @ProducerID < 1 or @TypeID < 1 or @LabelID < 1 begin
+	if @ProducerID < 1 or @TypeID < 1 or @LabelID < 0 begin
 		select @Result = -1
 		raiserror('WineVin_GetID:: Cannot find or register a new WineVin: producer, wine type and label are required.', 16, 1)
 	end

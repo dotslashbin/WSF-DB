@@ -1,6 +1,7 @@
 ﻿
 
 
+
 -- =============================================
 -- Author:		Alex B.
 -- Create date: 2/4/2014
@@ -47,6 +48,20 @@ st_a as (
 		join Article a (nolock) on i.ArticleID = a.ID
 	group by i.IssueID
 ),
+
+st_tn as (
+select IssueID = a.IssueID,
+		Cnt = count(*),
+		Cnt_Published = sum(case when tn.WF_StatusID > 99 then 1 else 0 end)
+	from TastingEvent_TasteNote tr (nolock)
+		join TasteNote tn (nolock) on tr.TasteNoteID = tn.ID
+		join Assignment_TastingEvent at (nolock) on at.TastingEventID = tr.TastingEventID
+		join Assignment a (nolock) on a.ID = at.AssignmentID 
+	group by a.IssueID
+),
+
+-- commented by Sergey, new assigment reference is added only to TastingEvent_TasteNote
+/*
 st_tn as (
 	select IssueID = i.IssueID,
 		Cnt = count(*),
@@ -55,7 +70,7 @@ st_tn as (
 		join TasteNote tn (nolock) on i.TasteNoteID = tn.ID
 	group by i.IssueID
 ),
-
+*/
 -- commented by sergiy, not sure if I did proper changes
 --st_te as (
 --	select IssueID = i.IssueID,

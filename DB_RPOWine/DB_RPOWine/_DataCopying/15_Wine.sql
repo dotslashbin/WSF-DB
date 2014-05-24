@@ -29,7 +29,7 @@ select
 	oldVinN = max(wn.VinN),
 	DateUpdated = max(case when isnull(IsActiveWineN, 1) = 1 then wn.DateUpdated else '1/1/2000' end),
 
-	EstimatedCost = max(case when isnull(IsActiveWineN, 1) = 1 then EstimatedCost else 0 end), 
+	--EstimatedCost = max(case when isnull(IsActiveWineN, 1) = 1 then EstimatedCost else 0 end), 
 	MostRecentPrice = max(case when isnull(IsActiveWineN, 1) = 1 then MostRecentPrice else 0 end), 
 	MostRecentPriceHi = max(case when isnull(IsActiveWineN, 1) = 1 then MostRecentPriceHi else 0 end), 
 	MostRecentPriceCnt = max(case when isnull(IsActiveWineN, 1) = 1 then MostRecentPriceCnt else 0 end),
@@ -85,7 +85,7 @@ commit tran
 -------- WineN
 begin tran
 	insert into Wine_N (Wine_VinN_ID,VintageID, oldIdn,oldEntryN,oldFixedId,oldWineNameIdN, oldWineN, oldVinN, WF_StatusID,
-		EstimatedCost, MostRecentPrice, MostRecentPriceHi, MostRecentPriceCnt, MostRecentAuctionPrice, MostRecentAuctionPriceHi, 
+		MostRecentPrice, MostRecentPriceHi, MostRecentPriceCnt, MostRecentAuctionPrice, MostRecentAuctionPriceHi, 
 		MostRecentAuctionPriceCnt, hasWJTasting, hasERPTasting, IsActiveWineN, IsCurrentlyForSale, IsCurrentlyOnAuction)
 	select 
 		VinNID = v.ID,
@@ -97,7 +97,7 @@ begin tran
 		oldWineN = max(#t.oldWineN),
 		oldVinN = max(#t.oldVinN),
 		WF_StatusID = 100,
-		#t.EstimatedCost, #t.MostRecentPrice, #t.MostRecentPriceHi, #t.MostRecentPriceCnt, #t.MostRecentAuctionPrice, #t.MostRecentAuctionPriceHi, 
+		#t.MostRecentPrice, #t.MostRecentPriceHi, #t.MostRecentPriceCnt, #t.MostRecentAuctionPrice, #t.MostRecentAuctionPriceHi, 
 		#t.MostRecentAuctionPriceCnt, #t.hasWJTasting, #t.hasERPTasting, #t.IsActiveWineN, #t.IsCurrentlyForSale, #t.IsCurrentlyOnAuction
 	from #t
 		join Wine_VinN v on #t.ProducerID = v.ProducerID and #t.TypeID = v.TypeID 
@@ -107,7 +107,7 @@ begin tran
 			and #t.locLocationID = v.locLocationID and #t.locLocaleID = v.locLocaleID
 			and #t.locSiteID = v.locSiteID
 	group by v.ID, #t.VintageID,
-		#t.EstimatedCost, #t.MostRecentPrice, #t.MostRecentPriceHi, #t.MostRecentPriceCnt, #t.MostRecentAuctionPrice, #t.MostRecentAuctionPriceHi, 
+		#t.MostRecentPrice, #t.MostRecentPriceHi, #t.MostRecentPriceCnt, #t.MostRecentAuctionPrice, #t.MostRecentAuctionPriceHi, 
 		#t.MostRecentAuctionPriceCnt, #t.hasWJTasting, #t.hasERPTasting, #t.IsActiveWineN, #t.IsCurrentlyForSale, #t.IsCurrentlyOnAuction
 	--rollback tran
 commit tran

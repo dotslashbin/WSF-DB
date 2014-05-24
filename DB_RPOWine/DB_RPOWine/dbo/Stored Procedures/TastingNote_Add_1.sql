@@ -1,5 +1,6 @@
 ﻿
 
+
 -- =============================================
 -- Author:		Alex B.
 -- Create date: 1/28/2014
@@ -15,6 +16,8 @@ CREATE PROCEDURE [dbo].[TastingNote_Add]
 	@MaturityID smallint, 
 	@Rating_Lo smallint, @Rating_Hi smallint = NULL,
 	@DrinkDate_Lo date = NULL, @DrinkDate_Hi date = NULL,
+	@EstimatedCost money = NULL, @EstimatedCost_Hi money = NULL,
+
 	@IsBarrelTasting bit = 0,
 
 	@Places nvarchar(150) = null,
@@ -88,11 +91,13 @@ BEGIN TRY
 	BEGIN TRANSACTION
 
 	insert into TasteNote (OriginID, UserId, IssueID, Wine_N_ID, TasteDate, MaturityID, 
-		Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, 
+		Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting,
+		EstimatedCost,EstimatedCost_Hi, 
 		locPlacesID, Notes,
 		created, updated, WF_StatusID)
 	values (@OriginID, @UserId, @IssueID, @Wine_N_ID, @TasteDate, @MaturityID, 
 		@Rating_Lo, @Rating_Hi, @DrinkDate_Lo, @DrinkDate_Hi, @IsBarrelTasting, 
+	    @EstimatedCost, @EstimatedCost_Hi,
 		@locPlacesID, @Notes,
 		getdate(), null, isnull(@WF_StatusID, 0))
 	if @@error <> 0 begin

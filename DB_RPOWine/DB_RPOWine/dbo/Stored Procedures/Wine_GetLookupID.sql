@@ -46,7 +46,7 @@ end
 
 if (lower(@ObjectName) = 'winelabel') begin
 	select @Result = ID from WineLabel where lower(Name) = lower(@ObjectValue)
-	if isnull(@Result, 0) < 1 and @IsAutoCreate = 1 and len(@ObjectValue) > 0 begin
+	if isnull(@Result, -1) < 0 and @IsAutoCreate = 1 and len(@ObjectValue) > 0 begin
 		insert into WineLabel (Name) values (left(@ObjectValue, 120))
 		select @Result = scope_identity()
 	end
@@ -87,9 +87,11 @@ if (lower(@ObjectName) = 'wineproducer') begin
 	end
 end
 
-if isnull(@Result, 0) < 1
+if ((lower(@ObjectName) = 'winelabel' and isnull(@Result, -1) < 0) 
+	or (lower(@ObjectName) != 'winelabel' and isnull(@Result, 0) < 1)) begin
 	raiserror('Cannot find or create an entry in the [%s] with value "%s".', 16, 1, @ObjectName, @ObjectValue)
-	
+end
+
 RETURN isnull(@Result, 0)
 GO
 GRANT EXECUTE ON [dbo].[Wine_GetLookupID] TO [RP_Customer] AS [dbo]

@@ -1,5 +1,6 @@
 ﻿
 
+
 -- =============================================
 -- Author:		Alex B.
 -- Create date: 1/28/2014
@@ -15,6 +16,7 @@ CREATE PROCEDURE [dbo].[TastingNote_Update]
 	@MaturityID smallint = NULL, 
 	@Rating_Lo smallint = NULL, @Rating_Hi smallint = NULL,
 	@DrinkDate_Lo date = NULL, @DrinkDate_Hi date = NULL,
+	@EstimatedCost money = NULL, @EstimatedCost_Hi money = NULL,
 	@IsBarrelTasting bit = NULL,
 
 	@Places nvarchar(150) = null,
@@ -106,10 +108,12 @@ BEGIN TRY
 		set @WF_StatusID = isnull(@WF_StatusID, 0)
 		insert into TasteNote (OriginID, UserId, IssueID, Wine_N_ID, TasteDate, MaturityID, 
 			Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, 
+		    EstimatedCost,EstimatedCost_Hi, 
 			locPlacesID, Notes,
 			created, updated, WF_StatusID)
 		select OriginID=@ID, UserId, IssueID, Wine_N_ID, TasteDate, MaturityID, 
 			Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, 
+		    EstimatedCost,EstimatedCost_Hi, 
 			locPlacesID, Notes,
 			created, getdate(), @WF_StatusID
 		from TasteNote 
@@ -134,6 +138,10 @@ BEGIN TRY
 		Rating_Hi = isnull(@Rating_Hi, Rating_Hi), 
 		DrinkDate_Lo = isnull(@DrinkDate_Lo, DrinkDate_Lo), 
 		DrinkDate_Hi = isnull(@DrinkDate_Hi, DrinkDate_Hi), 
+		
+		EstimatedCost = isnull(@EstimatedCost, EstimatedCost),
+		EstimatedCost_Hi = isnull(@EstimatedCost_Hi, EstimatedCost_Hi),
+		
 		IsBarrelTasting = isnull(@IsBarrelTasting, IsBarrelTasting), 
 		locPlacesID = isnull(@locPlacesID, locPlacesID),
 		Notes = isnull(@Notes, Notes), 

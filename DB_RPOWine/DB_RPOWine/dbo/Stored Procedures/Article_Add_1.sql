@@ -1,6 +1,6 @@
 ﻿CREATE PROCEDURE [dbo].[Article_Add]
 	--@ID int,
-	@PublicationID int, @AuthorId int, @Author nvarchar(50),
+	@PublicationID int, @AuthorId int, @Author nvarchar(100),
     @Title nvarchar(255), 
     
     @ShortTitle nvarchar(150) = NULL, @Date date = NULL,

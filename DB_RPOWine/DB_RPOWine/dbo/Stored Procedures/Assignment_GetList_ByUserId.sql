@@ -1,8 +1,7 @@
 ﻿
 
-
-CREATE PROCEDURE [dbo].[Assignment_GetList_ByIssueId]
-	@IssueID int = NULL
+CREATE PROCEDURE [dbo].[Assignment_GetList_ByUserId]
+	@UserID int = NULL
 		
 	
 AS
@@ -12,7 +11,8 @@ set nocount on
 
 
 
-	select 
+
+	select distinct
 		ID = a.ID,
 		Title = a.Title,
 		Deadline = a.Deadline,
@@ -45,25 +45,25 @@ set nocount on
 		  from Assignment as aa   
 		  left join Assignment_TastingEvent as ate on ate.AssignmentID = aa.ID
 		  left join TastingEvent_TasteNote  as ten on ten.TastingEventID = ate.TastingEventID
-		  where aa.IssueID=@IssueID
 		  group by ate.AssignmentID 
 		)  nc on  nc.AssignmentID = a.ID
 
 		join Publication p (nolock) on i.PublicationID = p.ID
 		join WF_Statuses wfs (nolock) on a.WF_StatusID = wfs.ID
+		join Assignment_Resource  r (nolock) on r.AssignmentID = a.ID
 
-	where a.IssueID = @IssueID
+	where r.UserId  = @UserID
 	
--------------	
+	
 select AssignmentID,r.UserId,UserRoleID,uu.FullName from Assignment_Resource as r
 join Assignment as a on a.ID = r.AssignmentID 	
 join Users uu (nolock) on r.UserId = uu.UserId
-where a.IssueID = @IssueID
+where r.UserId  = @UserID
 
--------------	
-select AssignmentID,TypeID, r.Deadline from Assignment_ResourceD as r
+	
+select distinct r.AssignmentID,TypeID, r.Deadline from Assignment_ResourceD as r
 join Assignment as a on a.ID = r.AssignmentID 	
-where a.IssueID = @IssueID
-
+join Assignment_Resource as ru on a.ID = ru.AssignmentID
+where ru.UserId  = @UserID
 	
 RETURN 1
