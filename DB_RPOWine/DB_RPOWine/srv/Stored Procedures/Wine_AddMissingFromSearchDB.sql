@@ -11,6 +11,12 @@ AS
 set nocount on;
 set xact_abort on;
 
+print '------------------ WARNING! ------------------'
+print '-- Data Loaded from eRPSearchD database!    --'
+print '-- Make sure that you updated prices first! --'
+print '--          srv.Wine_UpdatePrices!          --'
+print '----------------------------------------------'
+
 -------- WineTypes
 --select WineType, erpWineType, count(*) from eRPSearchD.dbo.WAName group by WineType, erpWineType
 insert into WineType (Name, WF_StatusID)

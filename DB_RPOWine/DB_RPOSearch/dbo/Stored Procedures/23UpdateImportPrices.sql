@@ -1,4 +1,5 @@
-﻿-- =============================================
+﻿
+-- =============================================
 -- Author:		Alex B.
 -- Create date: 4/13/14
 -- Description:	Adoptation of the script 23UpdateImportPrices.sql,
@@ -9,7 +10,7 @@
 --	CurrencyConversion must be cleared - records with USDollars = NULL will prevent correct processing.
 -- =============================================
 CREATE PROCEDURE [dbo].[23UpdateImportPrices] 
-	@IsUseOldWineN bit = 1
+	@IsUseOldWineN bit = 1, @IsUpdateWineDB bit = 0
 	
 AS
 set nocount on;
@@ -24,17 +25,12 @@ truncate table WAName
 delete CurrencyConversion where USDollars is NULL
 */
 
+if col_length('Wine','oldWineN') is null begin
+	alter table Wine add oldWineN int null; 
+end
+
 /*
 DETECT VINN MAPPING CONFLICTS, SINCE WE DON'T APPEAR TO BE DOING THIS NOW, DETERMINE WHY WE'RE NOT ALREADY MAKING BAD MAPPING
-
-begin try
-	alter fullText Index on dbo.ForSaleDetail disable;
-	alter fullText Index on dbo.Wine disable;
-	alter fullText Index on dbo.WineName disable;
-	alter fullText Index on RpoWineData.dbo.wine disable;
-end try
-begin catch
-end catch
 
 NOTE: USES & UPDATES RPOWine database objects.
 
@@ -70,7 +66,7 @@ delete from dbo.Retailers
 
 --3 Disable Indexes --------------------------
 exec LogMsg 'Import Stage 1'
-print 'Import Stage 1'
+print 'Import Stage 1: ' + cast(getdate() as varchar(30))
 
 begin try
 	alter fullText Index on dbo.ForSaleDetail disable;
@@ -111,7 +107,7 @@ if exists (select 1 from dbo.ForSaleDetail where errorsOnReadin is not null)
 else
      update dbo.ForSaleDetail set errorsOnReadIn = errors
 
---FillInStd
+print '-- FillInStd -- ' + cast(getdate() as varchar(30))
 Insert Into dbo.StdLocation(Location, Scale, Cnt, IsOK, IsERP) 
 Select Country, 'Country', count(*) Cnt, 1, 1 
 From RPOWine.dbo.Wine 
@@ -172,7 +168,7 @@ From RPOWine.dbo.Wine
 where WineType is not null and WineType not in (select WineType from dbo.StdWineType) 
 Group By  WineType;
 
---2 AddJulianToStd -------------------
+print '-- 2. AddJulianToStd -- ' + cast(getdate() as varchar(30))
 exec LogMsg 'Import Stage 2';
 
 Insert Into dbo.StdLocation(Location, Scale, Cnt, IsOK, IsERP) 
@@ -223,12 +219,17 @@ From dbo.WAName
 where WineType not in (select WineType from dbo.StdWineType)  
 Group By WineType;
 
+print '-- 3. CurrencyConversion -- ' + cast(getdate() as varchar(30))
 --Jun20'07
+/*
 Insert into dbo.CurrencyConversion (AlertCurrency, Pending) 
 Select Currency, 1 
 From dbo.ForSaleDetail 
 where Currency not in (select alertCurrency from dbo.CurrencyConversion) 
 Group By Currency;
+*/
+-- new: Alex B.
+delete CurrencyConversion where USDollars is NULL
 
 Insert into dbo.StdBottleSize(WAlertBottleSize,Pending) 
 select BottleSize, 1 
@@ -253,13 +254,13 @@ update dbo.StdColorClass set isOK = 1;
 update dbo.StdDryness set isOK = 1;
 update dbo.StdWineType set isOK = 1;
 
---4 WineNameErrors -------------------
+print '-- 4. WineNameErrors -- ' + cast(getdate() as varchar(30))
 --Put Errors Into dbo.WAName
 --update dbo.WAName set errors = null, warnings = null
 --select * from dbo.WAName where errors is not null
 --erpSearchD.dbo.logmsg 'Import Stage 3';
 
-with a as (
+; with a as (
 	select wid from dbo.WAName group by wid having count(*) > 1
 ), b as (
 	select n.* from dbo.WAName n join a on n.wid = a.wid
@@ -312,35 +313,65 @@ with a as (
 update a set errors = case when errors is null then 'E7.BadWineType' else (errors + ',   E7.BadWineType') end 
 where vinn is null;
 
-with a as (
-	select wid, wineN from dbo.ForSaleDetail where wineN > 0 
-	group by wid, wineN
-), b as (
-	select a.wid, 
-		vinn = case when @IsUseOldWineN = 1 then z.oldVinN else z.Wine_VinN_ID end
-	from RPOWine.dbo.Wine_N z 
-		join a on a.wineN = case when @IsUseOldWineN = 1 then z.oldWineN else z.ID end
-	group by wid, case when @IsUseOldWineN = 1 then z.oldVinN else z.Wine_VinN_ID end
-), c as (
-	select wid, vinn from dbo.WAName where vinn > 0 
-	group by wid, vinn
-), d as (
-	select wid, vinn from b 
-	union 
-	select wid, vinn from c
-), e as (
-	select wid from d 
-	group by wid having count(*) > 1
-), f as (
-	select z.* 
-	from dbo.WAName z 
-	where exists (select * from e where e.wid = z.wid)
-)
---select * from e
-update f set warnings = case when warnings is null then '' else warnings + ',   ' end 
-	+ 'E37. Multiple Vinns associated with this Wid';
+if @IsUseOldWineN = 1 begin
+	with a as (
+		select wid, wineN from dbo.ForSaleDetail where wineN > 0 
+		group by wid, wineN
+	), b as (
+		select a.wid, 
+			vinn = z.oldVinN
+		from RPOWine.dbo.Wine_N z 
+			join a on a.wineN = z.oldWineN
+		group by wid, z.oldVinN
+	), c as (
+		select wid, vinn from dbo.WAName where vinn > 0 
+		group by wid, vinn
+	), d as (
+		select wid, vinn from b 
+		union 
+		select wid, vinn from c
+	), e as (
+		select wid from d 
+		group by wid having count(*) > 1
+	), f as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select * from e where e.wid = z.wid)
+	)
+	--select * from e
+	update f set warnings = case when warnings is null then '' else warnings + ',   ' end 
+		+ 'E37. Multiple Vinns associated with this Wid';
+end else begin
+	with a as (
+		select wid, wineN from dbo.ForSaleDetail where wineN > 0 
+		group by wid, wineN
+	), b as (
+		select a.wid, 
+			vinn = z.Wine_VinN_ID
+		from RPOWine.dbo.Wine_N z 
+			join a on a.wineN = z.ID
+		group by wid, z.Wine_VinN_ID
+	), c as (
+		select wid, vinn from dbo.WAName where vinn > 0 
+		group by wid, vinn
+	), d as (
+		select wid, vinn from b 
+		union 
+		select wid, vinn from c
+	), e as (
+		select wid from d 
+		group by wid having count(*) > 1
+	), f as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select * from e where e.wid = z.wid)
+	)
+	--select * from e
+	update f set warnings = case when warnings is null then '' else warnings + ',   ' end 
+		+ 'E37. Multiple Vinns associated with this Wid';
+end
 
---5  ForSaleErrors ----------------------
+print '-- 5. ForSaleErrors -- ' + cast(getdate() as varchar(30))
 --update dbo.ForSaleDetail set errors = null
 --select * from dbo.ForSaleDetail where errors is not null
 --exec LogMsg 'Import Stage 4';
@@ -351,13 +382,14 @@ update dbo.ForSale set wineN = null where wineN < 0 or isTempWineN = 1;
 --June20'07
 with a as (
 	select 
-		z.* 
+		z.IdN 
 	from dbo.ForSaleDetail z 
 		left join dbo.CurrencyConversion y on z.currency = y.alertcurrency 
 	where y.alertCurrency is null or isnull(y.pending, 0) = 1
 )
-update a set errors = case when errors is null then '' else errors + ', ' end 
-	+  'E70. NoConversionForCurrency';
+update ForSaleDetail set errors = case when errors is null then '' else errors + ', ' end 
+	+  'E70. NoConversionForCurrency'
+where IdN in (select IdN from a);
 
 with a as (
 	select f.* 
@@ -428,19 +460,15 @@ update d set errors = case when errors is null then '' else errors + ',   ' end
 	+ 'E11.Multiple WineN per Wid/Vintage';
 --case when errors  is null then 'Multiple WineN per Wid/Vintage' else (errors + ',  Multiple WineN per Wid/Vintage') end
 
---5a Fill In Retailer Information ---------------
+print '-- 5a. Fill In Retailer Information -- ' + cast(getdate() as varchar(30))
 exec LogMsg 'Import Stage 6';
-print 'Import Stage 6';
+print 'Import Stage 6 ' + cast(getdate() as varchar(30));
 
-with a as (
-	select f.*, r.retailerName rretailerName, r.city rCity, r.Country rCountry, r.State rState, 
-		r.URL rretailerURL, r.RetailerIdN rRetailerIdN 
-     from dbo.ForSaleDetail f 
-		join dbo.Retailers r on f.retailercode = r.retailercode
-)
-update a set
-     retailerName = rRetailerName, city = rCity, Country = rCountry, State = rState, retailerIdN = rretailerIdN,
-     URL = case when URL is null then rRetailerURL else URL end
+update ForSaleDetail set
+     retailerName = r.RetailerName, city = r.City, Country = r.Country, State = r.State, retailerIdN = r.retailerIdN,
+     URL = case when f.URL is null then r.URL else f.URL end
+from dbo.ForSaleDetail f 
+	join dbo.Retailers r on f.retailercode = r.retailercode
 
 --ComputeDetailDollars
 update dbo.ForSaleDetail set dollarsPer750Bottle = null, isTrue750Bottle = 0;
@@ -474,7 +502,7 @@ select f.*, milliLitres, BottlesPerStockItem
 update a set dollarsPer750Bottle = round(price * 750 / MilliLitres / BottlesPerStockItem, 2);
 */
 
---7  Build ForSale -----------------
+print '-- 7. Build ForSale -- ' + cast(getdate() as varchar(30))
 exec LogMsg 'Import Stage 7';
 
 delete from dbo.ForSale;
@@ -662,7 +690,7 @@ with a1 as (
 )
 update b1 set auctionPrice = a1price, auctionPriceHi = a1PriceHi, auctionCnt = a1PriceCnt;
 
---8 BackFillVinns ------------------------
+print '-- 8. BackFillVinns -- ' + cast(getdate() as varchar(30))
 -- limit to dbo.ForSale where corresponding dbo.WAName doesn't have a Vinn
 exec LogMsg 'Import Stage 9';
 
@@ -706,9 +734,9 @@ with a as (
 update f set 
      warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E12.ForSale Leads To Conflicting Vinns'
 
---9 Deduce Producer,LabelName,Variety, etc through Vinn --------------------------------
+print '-- 9. Deduce Producer, LabelName, Variety, etc through Vinn -- ' + cast(getdate() as varchar(30))
 exec LogMsg 'Import Stage 10';
-print 'Import Stage 10';
+print 'Import Stage 10 ' + cast(getdate() as varchar(30));
 --9a Producer ----------------------------
 update dbo.WAName set isVinnProducerAmbiguous = 0, isErpProducerOK = 0, isProducerTranslated = 0, erpProducer = null;
 
@@ -733,7 +761,7 @@ with a as (
 		Producer, ProducerShow
 	from RPOWine.dbo.Wine
 ), aa as (
-	select * from a
+	select * from a where vinn is NOT NULL
 ), b as (
 	select * from a where a.fixedId = 
 		(select top(1) fixedId from aa where aa.vinn = a.vinn order by sourceDate desc)
@@ -743,7 +771,6 @@ with a as (
 		join b on n.vinn = b.vinn 
 	where isVinnProducerAmbiguous = 0
 )
---select * from c
 update c set erpProducer = producer, erpProducerShow = producerShow, isErpProducerOK = 1;
 
 --translate all producers where there is no ambiguity
@@ -795,7 +822,7 @@ update dbo.WAName set
 		+ 'E15. Producer Filled In From eRP'
 where Producer is null and eRPProducer is not null;
 
---9b LabelName -----------------
+print '-- 9b. LabelName -- ' + cast(getdate() as varchar(30))
 update dbo.WAName set 
 	isVinnLabelNameAmbiguous = 0, 
 	isErpLabelNameOK = 0, 
@@ -862,7 +889,7 @@ update dbo.WAName set
 		+ 'E38. LabelName Filled In From eRP'
 where LabelName is null and eRPLabelName is not null;
 
---9c Country -----------------------------
+print '-- 9c. Country -- ' + cast(getdate() as varchar(30))
 update dbo.WAName set 
 	isVinnCountryAmbiguous = 0, 
 	isErpCountryOK = 0, 
@@ -927,7 +954,8 @@ update dbo.WAName set
      warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E13. Country Filled In From eRP'
 where Country is null and eRPCountry is not null;
 
---9d Region----------------------------------------------------------------------------------------------------------------------------------------------------------------
+print '-- 9d. Region -- ' + cast(getdate() as varchar(30))
+
 update dbo.WAName set isVinnRegionAmbiguous = 0, isErpRegionOK = 0, isRegionTranslated = 0, erpRegion = null;
 
 with a as (
@@ -988,7 +1016,7 @@ update dbo.WAName set
 	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E39. Region Filled In From eRP'
 where Region is null and eRPRegion is not null;
 
---9e Location ---------------------
+print '-- 9e. Location -- ' + cast(getdate() as varchar(30))
 update dbo.WAName set isVinnLocationAmbiguous = 0, isErpLocationOK = 0, isLocationTranslated = 0, erpLocation = null;
 
 with a as (
@@ -1049,7 +1077,7 @@ update dbo.WAName set
 	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E14.Location Filled In From eRP'
 where Location is null and eRPLocation is not null;
 
---9f Variety --------------------------
+print '-- 9f. Variety -- ' + cast(getdate() as varchar(30))
 update dbo.WAName set isVinnVarietyAmbiguous = 0, isErpVarietyOK = 0, isVarietyTranslated = 0, erpVariety = null;
 
 with a as (
@@ -1110,7 +1138,7 @@ update dbo.WAName set
 	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E40. Variety Filled In From eRP'
 where Variety is null and eRPVariety is not null;
 
---9g ColorClass ------------------------------
+print '-- 9g. ColorClass -- ' + cast(getdate() as varchar(30))
 update dbo.WAName set isVinnColorClassAmbiguous = 0, isErpColorClassOK = 0, isColorClassTranslated = 0, erpColorClass = null;
 
 with a as (
@@ -1171,7 +1199,7 @@ update dbo.WAName set
 	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E41. ColorClass Filled In From eRP'
 where ColorClass is null and eRPColorClass is not null;
 
---9h Dryness -------------------------------------------
+print '-- 9h. Dryness -- ' + cast(getdate() as varchar(30))
 update dbo.WAName set isVinnDrynessAmbiguous = 0, isErpDrynessOK = 0, isDrynessTranslated = 0, erpDryness = null;
 
 with a as (
@@ -1232,7 +1260,7 @@ update dbo.WAName set
 	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E28.Dryness Filled In From eRP'
 where Dryness is null and eRPDryness is not null;
 
---9i WineType -------------------------------------
+print '-- 9i. WineType -- ' + cast(getdate() as varchar(30))
 update dbo.WAName set isVinnWineTypeAmbiguous = 0, isErpWineTypeOK = 0, isWineTypeTranslated = 0, erpWineType = null;
 
 with a as (
@@ -1293,8 +1321,8 @@ update dbo.WAName set
 	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E26.WineType Filled In From eRP'
 where WineType is null and eRPWineType is not null;
 
---9j Unresovable Vinns ----------------------------------
-with a as (
+print '-- 9j. Unresovable Vinns -- ' + cast(getdate() as varchar(30))
+; with a as (
 	select distinct 
 		vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end 
 	from RPOWine.dbo.Wine_VinN vn
@@ -1333,9 +1361,7 @@ update b set
 	errors = case when errors is null then '' else errors + '   ' end + 'E44.  Vinn ColorClass Unresolvable'  
 where isErpColorClassOK = 0
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
---10 AssignVinnAndWineToForSale ------------------------------------------------
+print '-- 10 AssignVinnAndWineToForSale -- ' + cast(getdate() as varchar(30))
 exec LogMsg 'Import Stage 11';
 
 --create new Vinn
@@ -1423,7 +1449,7 @@ update d set wineN = bWineN, isWineNDeduced = 1;
 update dbo.ForSale set isTempWineN = 0;
 update dbo.ForSale set wineN = - idN, isTempWineN = 1 where wineN is null;
 
---10a Set isActiveForSaleWineN -------------------------------------------------------------------------------
+print '-- 10a. Set isActiveForSaleWineN -- ' + cast(getdate() as varchar(30))
 --This is tricky to set correctly.  We need this to choose when Julian has multiple Wid that lead to the same WineN
 
 update dbo.ForSale set isActiveForSaleWineN = 0;
@@ -1502,10 +1528,9 @@ with a as (
 )
 update e set isActiveForSaleWineN = 1;
 
---11a Recreate dbo.Wine from RPOWineData-------------------------------------------------------------------------------------------------------------------------
+print '-- 11a. Recreate dbo.Wine from RPOWineData -- ' + cast(getdate() as varchar(30))
 --CopyToSearchWine
 --exec LogMsg 'Import Stage 12';
-
 exec LogMsg 'Import Stage 13';
 
 delete from dbo.Wine;
@@ -1614,7 +1639,7 @@ update dbo.Wine set
 
 exec LogMsg 'Import Stage 14';
 
---11 Insert Julian Into ERPSearchD Wine -------------------------------------------------------------------------------------------------------
+print '-- 11. Insert Julian Into ERPSearchD Wine -- ' + cast(getdate() as varchar(30))
 --insert new wines based on Julian (note use of the erpProducer field from Julian
 /*OLD
 with
@@ -1635,45 +1660,84 @@ insert into dbo.Wine(ColorClass,Country,Dryness,isErpLocationOK,isERPProducerOK,
 */
 
 --add the ones where there is Vinn so we can map to the eRP names (which we fill in if there is no ambiguity or one of the ambiguous ones matches Julian's
--- TODO: vinN!!! and no oldWineN in the WineName!
-with a as (
-	select * 
-	from dbo.ForSale z 
-	where errors is null and not exists (select wineN from dbo.Wine y 
-		where z.wineN = case when @IsUseOldWineN = 1 then y.oldWineN else y.WineN end)
-), b as (
-	select * 
-	from dbo.WAName z 
-	where errors is null and  exists (select vinn from dbo.Wine y where z.vinN = y.vinN)
-), c as (
-	select b.*, wineN, isWineNDeduced, Vintage,Price,PriceHi,PriceCnt 
-	from a 
-		join b on a.wid = b.wid
-)
---select * from c
-insert into dbo.Wine(ColorClass,Country,Dryness,isErpLocationOK,isERPProducerOK, isProducerTranslated, isErpRegionOK,isErpVarietyOK,IsVinnDeduced,isWineNDeduced,LabelName,Location,Producer,ProducerShow,Region,Variety,VinN,Vintage,Wid,WineN,WineType)
-select erpColorClass,erpCountry,erpDryness,isErpLocationOK,isERPProducerOK, isProducerTranslated, isErpRegionOK,isErpVarietyOK,IsVinnDeduced,isWineNDeduced,erpLabelName,erpLocation,eRpProducer,erpProducerShow,erpRegion,erpVariety,VinN,Vintage,Wid,WineN,WineType
-from c;
+if @IsUseOldWineN = 1 begin
+	; with a as (
+		select * 
+		from dbo.ForSale z 
+		where errors is null and not exists (select wineN from dbo.Wine y 
+			where z.wineN = y.oldWineN)
+	), b as (
+		select * 
+		from dbo.WAName z 
+		where errors is null and  exists (select vinn from dbo.Wine y where z.vinN = y.vinN)
+	), c as (
+		select b.*, wineN, isWineNDeduced, Vintage,Price,PriceHi,PriceCnt 
+		from a 
+			join b on a.wid = b.wid
+	)
+	--select * from c
+	insert into dbo.Wine(ColorClass,Country,Dryness,isErpLocationOK,isERPProducerOK, isProducerTranslated, isErpRegionOK,isErpVarietyOK,IsVinnDeduced,isWineNDeduced,LabelName,Location,Producer,ProducerShow,Region,Variety,VinN,Vintage,Wid,WineN,WineType)
+	select erpColorClass,erpCountry,erpDryness,isErpLocationOK,isERPProducerOK, isProducerTranslated, isErpRegionOK,isErpVarietyOK,IsVinnDeduced,isWineNDeduced,erpLabelName,erpLocation,eRpProducer,erpProducerShow,erpRegion,erpVariety,VinN,Vintage,Wid,WineN,WineType
+	from c;
+end else begin
+	; with a as (
+		select * 
+		from dbo.ForSale z 
+		where errors is null and not exists (select wineN from dbo.Wine y 
+			where z.wineN = y.WineN)
+	), b as (
+		select * 
+		from dbo.WAName z 
+		where errors is null and  exists (select vinn from dbo.Wine y where z.vinN = y.vinN)
+	), c as (
+		select b.*, wineN, isWineNDeduced, Vintage,Price,PriceHi,PriceCnt 
+		from a 
+			join b on a.wid = b.wid
+	)
+	--select * from c
+	insert into dbo.Wine(ColorClass,Country,Dryness,isErpLocationOK,isERPProducerOK, isProducerTranslated, isErpRegionOK,isErpVarietyOK,IsVinnDeduced,isWineNDeduced,LabelName,Location,Producer,ProducerShow,Region,Variety,VinN,Vintage,Wid,WineN,WineType)
+	select erpColorClass,erpCountry,erpDryness,isErpLocationOK,isERPProducerOK, isProducerTranslated, isErpRegionOK,isErpVarietyOK,IsVinnDeduced,isWineNDeduced,erpLabelName,erpLocation,eRpProducer,erpProducerShow,erpRegion,erpVariety,VinN,Vintage,Wid,WineN,WineType
+	from c;
+end
 
--- TODO: vinN!!! and no oldWineN in the WineName!
 --add the ones where there is no eRP Vinn, so we have to use Julian's names (except for Producer)
-with a as (
-	select * 
-	from dbo.ForSale z 
-	where errors is null and not exists (select wineN from dbo.Wine y 
-		where z.wineN = case when @IsUseOldWineN = 1 then y.oldWineN else y.WineN end)
-), b as (
-	select * 
-	from dbo.WAName z 
-	where errors is null and not exists (select vinn from dbo.Wine y where z.vinN = y.vinN)
-), c as (
-	select b.*, wineN, isWineNDeduced, Vintage,Price,PriceHi,PriceCnt 
-	from a 
-		join b on a.wid = b.wid
-)
-insert into dbo.Wine(ColorClass,Country,Dryness,isErpLocationOK,isERPProducerOK, isProducerTranslated, isErpRegionOK,isErpVarietyOK,IsVinnDeduced,isWineNDeduced,LabelName,Location,Producer,ProducerShow,Region,Variety,VinN,Vintage,Wid,WineN,WineType)
-select ColorClass,Country,Dryness,isErpLocationOK,isERPProducerOK, isProducerTranslated, isErpRegionOK,isErpVarietyOK,IsVinnDeduced,isWineNDeduced,LabelName,Location,eRpProducer,erpProducerShow,Region,Variety,VinN,Vintage,Wid,WineN,WineType
-from c;
+if @IsUseOldWineN = 1 begin
+	with a as (
+		select * 
+		from dbo.ForSale z 
+		where errors is null and not exists (select wineN from dbo.Wine y 
+			where z.wineN = y.oldWineN)
+	), b as (
+		select * 
+		from dbo.WAName z 
+		where errors is null and not exists (select vinn from dbo.Wine y where z.vinN = y.vinN)
+	), c as (
+		select b.*, wineN, isWineNDeduced, Vintage,Price,PriceHi,PriceCnt 
+		from a 
+			join b on a.wid = b.wid
+	)
+	insert into dbo.Wine(ColorClass,Country,Dryness,isErpLocationOK,isERPProducerOK, isProducerTranslated, isErpRegionOK,isErpVarietyOK,IsVinnDeduced,isWineNDeduced,LabelName,Location,Producer,ProducerShow,Region,Variety,VinN,Vintage,Wid,WineN,WineType)
+	select ColorClass,Country,Dryness,isErpLocationOK,isERPProducerOK, isProducerTranslated, isErpRegionOK,isErpVarietyOK,IsVinnDeduced,isWineNDeduced,LabelName,Location,eRpProducer,erpProducerShow,Region,Variety,VinN,Vintage,Wid,WineN,WineType
+	from c;
+end else begin
+	with a as (
+		select * 
+		from dbo.ForSale z 
+		where errors is null and not exists (select wineN from dbo.Wine y 
+			where z.wineN = y.WineN)
+	), b as (
+		select * 
+		from dbo.WAName z 
+		where errors is null and not exists (select vinn from dbo.Wine y where z.vinN = y.vinN)
+	), c as (
+		select b.*, wineN, isWineNDeduced, Vintage,Price,PriceHi,PriceCnt 
+		from a 
+			join b on a.wid = b.wid
+	)
+	insert into dbo.Wine(ColorClass,Country,Dryness,isErpLocationOK,isERPProducerOK, isProducerTranslated, isErpRegionOK,isErpVarietyOK,IsVinnDeduced,isWineNDeduced,LabelName,Location,Producer,ProducerShow,Region,Variety,VinN,Vintage,Wid,WineN,WineType)
+	select ColorClass,Country,Dryness,isErpLocationOK,isERPProducerOK, isProducerTranslated, isErpRegionOK,isErpVarietyOK,IsVinnDeduced,isWineNDeduced,LabelName,Location,eRpProducer,erpProducerShow,Region,Variety,VinN,Vintage,Wid,WineN,WineType
+	from c;
+end
 
 update dbo.Wine set encodedKeywords = 
      case when vintage is null then '' else vintage + ' ' end
@@ -1692,63 +1756,121 @@ update dbo.Wine set encodedKeywords =
 --set prices currently for sale
 update dbo.Wine set isCurrentlyForSale = 0, isCurrentlyOnAuction = 0;
 
-with a as (
-	select w.*, price, priceHi, priceCnt 
-	from dbo.Wine w 
-		left join dbo.ForSale f on f.wineN = case when @IsUseOldWineN = 1 then w.oldWineN else w.WineN end
-	where f.isActiveForSaleWineN = 1
-)
-update a set 
-     isCurrentlyForSale = 1
-     ,mostRecentPriceCnt = priceCnt 
-     ,mostRecentPrice = price
-     ,mostRecentPriceHi = priceHi
-where priceCnt is not null;
+if @IsUseOldWineN = 1 begin
+	with a as (
+		select w.*, price, priceHi, priceCnt 
+		from dbo.Wine w 
+			left join dbo.ForSale f on f.wineN = w.oldWineN
+		where f.isActiveForSaleWineN = 1
+	)
+	update a set 
+		 isCurrentlyForSale = 1
+		 ,mostRecentPriceCnt = priceCnt 
+		 ,mostRecentPrice = price
+		 ,mostRecentPriceHi = priceHi
+	where priceCnt is not null;
 
-with a as (
-	select w.*, AuctionPrice, AuctionPriceHi, AuctionCnt 
-	from dbo.Wine w 
-		left join dbo.ForSale f on f.wineN = case when @IsUseOldWineN = 1 then w.oldWineN else w.WineN end
-	where f.isActiveForSaleWineN = 1
-)
-update a set 
-     isCurrentlyOnAuction = 1
-     ,mostRecentAuctionPriceCnt = AuctionCnt 
-     ,mostRecentAuctionPrice = AuctionPrice
-     ,mostRecentAuctionPriceHi = AuctionPriceHi
-where AuctionCnt is not null;
+	with a as (
+		select w.*, AuctionPrice, AuctionPriceHi, AuctionCnt 
+		from dbo.Wine w 
+			left join dbo.ForSale f on f.wineN = w.oldWineN
+		where f.isActiveForSaleWineN = 1
+	)
+	update a set 
+		 isCurrentlyOnAuction = 1
+		 ,mostRecentAuctionPriceCnt = AuctionCnt 
+		 ,mostRecentAuctionPrice = AuctionPrice
+		 ,mostRecentAuctionPriceHi = AuctionPriceHi
+	where AuctionCnt is not null;
+end else begin
+	with a as (
+		select w.*, price, priceHi, priceCnt 
+		from dbo.Wine w 
+			left join dbo.ForSale f on f.wineN = w.WineN
+		where f.isActiveForSaleWineN = 1
+	)
+	update a set 
+		 isCurrentlyForSale = 1
+		 ,mostRecentPriceCnt = priceCnt 
+		 ,mostRecentPrice = price
+		 ,mostRecentPriceHi = priceHi
+	where priceCnt is not null;
+
+	with a as (
+		select w.*, AuctionPrice, AuctionPriceHi, AuctionCnt 
+		from dbo.Wine w 
+			left join dbo.ForSale f on f.wineN = w.WineN
+		where f.isActiveForSaleWineN = 1
+	)
+	update a set 
+		 isCurrentlyOnAuction = 1
+		 ,mostRecentAuctionPriceCnt = AuctionCnt 
+		 ,mostRecentAuctionPrice = AuctionPrice
+		 ,mostRecentAuctionPriceHi = AuctionPriceHi
+	where AuctionCnt is not null;
+end
 
 exec LogMsg 'Import Stage 15';
-print 'Import Stage 15';
+print '-- 15. Import Stage 15 -- ' + cast(getdate() as varchar(30));
 
 --11a Update mostRecentPrice in erpSearch-----------------------------------------------
-with a as (
-	select WineN fWineN, Price, PriceHi 
-	from dbo.ForSale 
-	where isActiveForSaleWineN = 1
-), b as (
-	select * 
-	from dbo.Wine w 
-		join a on a.fWineN = case when @IsUseOldWineN = 1 then w.oldWineN else w.WineN end
-)
-update b set 
-     isCurrentlyForSale = 1
-     , mostRecentPrice = Price
-     , mostRecentPriceHi = PriceHi;
+if @IsUseOldWineN = 1 begin
+	with a as (
+		select WineN fWineN, Price, PriceHi 
+		from dbo.ForSale 
+		where isActiveForSaleWineN = 1
+	), b as (
+		select * 
+		from dbo.Wine w 
+			join a on a.fWineN = w.oldWineN
+	)
+	update b set 
+		 isCurrentlyForSale = 1
+		 , mostRecentPrice = Price
+		 , mostRecentPriceHi = PriceHi;
 
-exec LogMsg 'Import Stage 15a';
+	exec LogMsg 'Import Stage 15a';
 
-with a as (
-	select WineN fWineN, Price, PriceHi 
-	from dbo.ForSale 
-	where isActiveForSaleWineN = 1
-), b as (
-	select *
-	from dbo.Wine w 
-		left join a on a.fWineN = case when @IsUseOldWineN = 1 then w.oldWineN else w.WineN end
-	where fWineN is null
-)
-update b set isCurrentlyForSale = 0;
+	with a as (
+		select WineN fWineN, Price, PriceHi 
+		from dbo.ForSale 
+		where isActiveForSaleWineN = 1
+	), b as (
+		select *
+		from dbo.Wine w 
+			left join a on a.fWineN = w.oldWineN
+		where fWineN is null
+	)
+	update b set isCurrentlyForSale = 0;
+end else begin
+	with a as (
+		select WineN fWineN, Price, PriceHi 
+		from dbo.ForSale 
+		where isActiveForSaleWineN = 1
+	), b as (
+		select * 
+		from dbo.Wine w 
+			join a on a.fWineN = w.WineN
+	)
+	update b set 
+		 isCurrentlyForSale = 1
+		 , mostRecentPrice = Price
+		 , mostRecentPriceHi = PriceHi;
+
+	exec LogMsg 'Import Stage 15a';
+
+	with a as (
+		select WineN fWineN, Price, PriceHi 
+		from dbo.ForSale 
+		where isActiveForSaleWineN = 1
+	), b as (
+		select *
+		from dbo.Wine w 
+			left join a on a.fWineN = w.WineN
+		where fWineN is null
+	)
+	update b set isCurrentlyForSale = 0;
+end
 
 --erpSearchD.dbo.logmsg 'Import Stage 15b';
 
@@ -1870,7 +1992,7 @@ update b set hasProducerProfile = case when erp is null then 0 else 1 end;
 
 --exec LogMsg 'Import Stage 16';
 
---12 BuildWineName----------------------------------------------------------------------------------------------------------------------------------
+print '-- 12. BuildWineName -- ' + cast(getdate() as varchar(30))
 delete from dbo.WineName;
 
 Insert into dbo.WineName(ColorClass,Country,Dryness,LabelName,Locale,Location,ProducerShow,Region,Site,Variety,WineType 
@@ -1925,7 +2047,6 @@ with a as (select wineNameIdN, count(distinct vintage) cnt from dbo.Wine where (
      ,b as (select * from dbo.WineName n left join a on n.idN = a.wineNameIdN)
      update b set cntVintageForSaleAndHasTasting = case when cnt is null then 0 else cnt end;
 
-
 --Calculate the WJ Count Fields
 with a as (select wineNameIdN, count(*) cnt from dbo.Wine where showForWJ = 1 group by wineNameIdN)
      ,b as (select * from dbo.WineName n left join a on n.idN = a.wineNameIdN)
@@ -1955,8 +2076,8 @@ with a as (select wineNameIdN, count(distinct vintage) cnt from dbo.Wine where (
 
 --erpSearchD.dbo.logmsg 'Import Stage 17';
 
---12a Fill in Variety alternatives------------------------------------------------------------------
-with
+print '-- 12a. Fill in Variety alternatives -- ' + cast(getdate() as varchar(30))
+; with
 a as (select w.variety wVariety, n.* from dbo.WineName n join dbo.Wine w on n.idN = w.wineNameIdN)
 ,b as (select * from a where (' ' + variety + ' ') not like ('% ' + wVariety + ' %'))
 update b set variety = variety + ' ' + wVariety, isMultiVariety = 1;
@@ -1974,8 +2095,8 @@ a as (select w.variety wVariety, n.* from dbo.WineName n join dbo.Wine w on n.id
 update b set variety = variety + ' ' + wVariety, isMultiVariety = 1;
 
 
---12b Fill in Dryness alternatives-------------------------------------------------------------------------------
-with
+print '-- 12b. Fill in Dryness alternatives -- ' + cast(getdate() as varchar(30))
+; with
 a as (select w.Dryness wDryness, n.* from dbo.WineName n join dbo.Wine w on n.idN = w.wineNameIdN)
 ,b as (select * from a where (' ' + Dryness + ' ') not like ('% ' + wDryness + ' %'))
 update b set Dryness = Dryness + ' ' + wDryness, isMultiDryness = 1;
@@ -1992,9 +2113,8 @@ a as (select w.Dryness wDryness, n.* from dbo.WineName n join dbo.Wine w on n.id
 ,b as (select * from a where (' ' + Dryness + ' ') not like ('% ' + wDryness + ' %'))
 update b set Dryness = Dryness + ' ' + wDryness, isMultiDryness = 1;
 
-
---12c Fill in WineType alternatives---------------------------------------------------------------------------------------
-with
+print '-- 12c. Fill in WineType alternatives -- ' + cast(getdate() as varchar(30))
+; with
 a as (select w.WineType wWineType, n.* from dbo.WineName n join dbo.Wine w on n.idN = w.wineNameIdN)
 ,b as (select * from a where (' ' + WineType + ' ') not like ('% ' + wWineType + ' %'))
 update b set WineType = WineType + ' ' + wWineType, isMultiWineType = 1;
@@ -2011,9 +2131,8 @@ a as (select w.WineType wWineType, n.* from dbo.WineName n join dbo.Wine w on n.
 ,b as (select * from a where (' ' + WineType + ' ') not like ('% ' + wWineType + ' %'))
 update b set WineType = WineType + ' ' + wWineType, isMultiWineType = 1;
 
-
---12d Fill in Country alternatives---------------------------------------------------------------------------------------
-with
+print '-- 12d. Fill in Country alternatives -- ' + cast(getdate() as varchar(30))
+; with
 a as (select w.Country wCountry, n.* from dbo.WineName n join dbo.Wine w on n.idN = w.wineNameIdN)
 ,b as (select * from a where (' ' + Country + ' ') not like ('% ' + wCountry + ' %'))
 update b set Country = Country + ' ' + wCountry, isMultiCountry = 1;
@@ -2030,9 +2149,8 @@ a as (select w.Country wCountry, n.* from dbo.WineName n join dbo.Wine w on n.id
 ,b as (select * from a where (' ' + Country + ' ') not like ('% ' + wCountry + ' %'))
 update b set Country = Country + ' ' + wCountry, isMultiCountry = 1;
 
-
---12e Fill in Region alternatives---------------------------------------------------------------------------------------
-with
+print '-- 12e. Fill in Region alternatives -- ' + cast(getdate() as varchar(30))
+; with
 a as (select w.Region wRegion, n.* from dbo.WineName n join dbo.Wine w on n.idN = w.wineNameIdN)
 ,b as (select * from a where (' ' + Region + ' ') not like ('% ' + wRegion + ' %'))
 update b set Region = Region + ' ' + wRegion, isMultiRegion = 1;
@@ -2049,9 +2167,8 @@ a as (select w.Region wRegion, n.* from dbo.WineName n join dbo.Wine w on n.idN 
 ,b as (select * from a where (' ' + Region + ' ') not like ('% ' + wRegion + ' %'))
 update b set Region = Region + ' ' + wRegion, isMultiRegion = 1;
 
-
---12f Fill in Location alternatives---------------------------------------------------------------------------------------
-with
+print '-- 12f. Fill in Location alternatives -- ' + cast(getdate() as varchar(30))
+; with
 a as (select w.Location wLocation, n.* from dbo.WineName n join dbo.Wine w on n.idN = w.wineNameIdN)
 ,b as (select * from a where (' ' + Location + ' ') not like ('% ' + wLocation + ' %'))
 update b set Location = Location + ' ' + wLocation, isMultiLocation = 1;
@@ -2072,9 +2189,8 @@ a as (select w.Location wLocation, n.* from dbo.WineName n join dbo.Wine w on n.
 ,b as (select * from a where (' ' + Location + ' ') not like ('% ' + wLocation + ' %'))
 update b set Location = Location + ' ' + wLocation, isMultiLocation = 1;
 
-
---12g Fill in Locale alternatives---------------------------------------------------------------------------------------
-with
+print '-- 12g. Fill in Locale alternatives -- ' + cast(getdate() as varchar(30))
+; with
 a as (select w.Locale wLocale, n.* from dbo.WineName n join dbo.Wine w on n.idN = w.wineNameIdN)
 ,b as (select * from a where (' ' + Locale + ' ') not like ('% ' + wLocale + ' %'))
 update b set Locale = Locale + ' ' + wLocale, isMultiLocale = 1;
@@ -2091,9 +2207,8 @@ a as (select w.Locale wLocale, n.* from dbo.WineName n join dbo.Wine w on n.idN 
 ,b as (select * from a where (' ' + Locale + ' ') not like ('% ' + wLocale + ' %'))
 update b set Locale = Locale + ' ' + wLocale, isMultiLocale = 1;
 
-
---12f Fill in Site alternatives---------------------------------------------------------------------------------------
-with
+print '-- 12f. Fill in Site alternatives -- ' + cast(getdate() as varchar(30))
+; with
 a as (select w.Site wSite, n.* from dbo.WineName n join dbo.Wine w on n.idN = w.wineNameIdN)
 ,b as (select * from a where (' ' + Site + ' ') not like ('% ' + wSite + ' %'))
 update b set Site = Site + ' ' + wSite, isMultiSite = 1;
@@ -2125,16 +2240,15 @@ update dbo.WineName set encodedKeywords =
 
 --erpSearchD.dbo.logmsg 'Import Stage 18';
 
---13 UpdateDetailWineN-----------------------------------------------------------------------------------------------------
+print '-- 13. UpdateDetailWineN -- ' + cast(getdate() as varchar(30))
 --transfer wineN from dbo.WAName
-with
+;with
 d as (select * from dbo.ForSaleDetail where errors is null and wid is not null and vintage is not null and wineN is null)
 ,f as (select * from dbo.ForSale where errors is null and wid is not null and vintage is not null and wineN is not null)
 ,a as (select d.*, f.wineN fWineN, f.isWineNDeduced fIsWineNDeduced, f.isTempWineN fIsTempWineN from d left join f on d.wid = f.wid and d.vintage = f.vintage)
 update a set wineN = fWineN, wineN2 = fWineN, isWineNDeduced = fIsWineNDeduced, isTempWineN = fIsTempWineN;
 
-
---14 Update RpoWineData.-----------------------------------------------------------------------------------------------
+print '-- 14. Update RpoWineData -- ' + cast(getdate() as varchar(30))
 --update RpoWineData.wine.wineNameIdN
 /* --- prev version ---
 update RpoWineData.dbo.wine set wineNameIdN = null;
@@ -2159,198 +2273,203 @@ update c set wineNameIdN = idNx;
 
 --------- RPOWine UPDATES START HERE ---------
 
-update RPOWine.dbo.Wine_N set oldWineNameIdN = null;
+if @IsUpdateWineDB = 0 begin
+	print '      ... skipped.'
+end else begin
 
-with 
-a as (select
-     case when ProducerShow is Null then '[<NULL>]' else ProducerShow end xProducerShow
-     , case when LabelName is Null then '[<NULL>]' else LabelName end xLabelName
-     , case when ColorClass is Null then '[<NULL>]' else ColorClass end xColorClass
-     , idNx = idN 
-     from dbo.WineName)
-,b as (
-	select
-		oldWineNameIdN,
-		xProducerShow = case when nullif(wp.NameToShow, '') is Null then '[<NULL>]' else wp.NameToShow end,
-		xLabelName = case when nullif(wl.Name, '') is Null then '[<NULL>]' else wl.Name end,
-		xColorClass = case when nullif(wc.Name, '') is Null then '[<NULL>]' else wc.Name end
-	from RPOWine.dbo.Wine_N wn
-		join RPOWine.dbo.Wine_VinN vn on wn.Wine_VinN_ID = vn.ID
-		join RPOWine.dbo.WineProducer wp on vn.ProducerID = wp.ID
-		join RPOWine.dbo.WineLabel wl on vn.LabelID = wl.ID
-		join RPOWine.dbo.WineColor wc on vn.ColorID = wc.ID
-)
-,c as (
-	select b.oldWineNameIdN, a.* 
-		from a 
-			join b on a.xProducerShow = b.xProducerShow and a.xLabelName = b.xLabelName and a.xColorClass = b.xColorClass
-)
-update c set oldWineNameIdN = idNx;
+	update RPOWine.dbo.Wine_N set oldWineNameIdN = null;
 
-exec LogMsg 'Import Stage 19';
+	; with 
+	a as (select
+		 case when ProducerShow is Null then '[<NULL>]' else ProducerShow end xProducerShow
+		 , case when LabelName is Null then '[<NULL>]' else LabelName end xLabelName
+		 , case when ColorClass is Null then '[<NULL>]' else ColorClass end xColorClass
+		 , idNx = idN 
+		 from dbo.WineName)
+	,b as (
+		select
+			oldWineNameIdN,
+			xProducerShow = case when nullif(wp.NameToShow, '') is Null then '[<NULL>]' else wp.NameToShow end,
+			xLabelName = case when nullif(wl.Name, '') is Null then '[<NULL>]' else wl.Name end,
+			xColorClass = case when nullif(wc.Name, '') is Null then '[<NULL>]' else wc.Name end
+		from RPOWine.dbo.Wine_N wn
+			join RPOWine.dbo.Wine_VinN vn on wn.Wine_VinN_ID = vn.ID
+			join RPOWine.dbo.WineProducer wp on vn.ProducerID = wp.ID
+			join RPOWine.dbo.WineLabel wl on vn.LabelID = wl.ID
+			join RPOWine.dbo.WineColor wc on vn.ColorID = wc.ID
+	)
+	,c as (
+		select b.oldWineNameIdN, a.* 
+			from a 
+				join b on a.xProducerShow = b.xProducerShow and a.xLabelName = b.xLabelName and a.xColorClass = b.xColorClass
+	)
+	update c set oldWineNameIdN = idNx;
 
---14a Update RPOWineData from eRPWineData---------------------------------------------------------------------------------------
-/* ---- SKIPPED - isERPName is not in use in the new version -------
-update RpoWineData.dbo.wine set isERPName = 1;
-*/
+	exec LogMsg 'Import Stage 19';
+
+	--14a Update RPOWineData from eRPWineData---------------------------------------------------------------------------------------
+	/* ---- SKIPPED - isERPName is not in use in the new version -------
+	update RpoWineData.dbo.wine set isERPName = 1;
+	*/
+
+	/* --- prev version ---
+	with
+	a as (select min(idN) idN from dbo.Wine where fixedId is not null group by FixedId)
+	,c as (select b.* from dbo.Wine b  join a on b.idn = a.idN)
+	,e as (select d.*, c.showForERP showForERP2, c.showForWJ showForWJ2 from RpoWineData.dbo.wine d join c on d.fixedId = c.fixedId)
+	update e set showForERP = showForERP2, showForWJ = showForWJ2;
+
+	with
+	a as (select min(idN) idN from dbo.Wine where wineN is not null and WineN > 0 group by WineN)
+	,c as (select b.* from dbo.Wine b  join a on b.idn = a.idN)
+	,e as (select d.*, c.mostRecentPriceCnt mostRecentPriceCnt2 from RpoWineData.dbo.wine d join c on d.wineN = c.wineN)
+	--select * from e
+	update e set mostRecentPriceCnt = mostRecentPriceCnt2;
+	------------  ^^^^^^^^^^^^^^^^^ it is strange, because next update will set it's value to 0
+
+	--update RpoWineData.dbo.wine set mostRecentPrice = estimatedCost, mostRecentPriceHi = estimatedCost_Hi, isCurrentlyForSale = 0 ;
+	update RpoWineData.dbo.wine set mostRecentPrice = estimatedCost, mostRecentPriceHi = estimatedCost_Hi, isCurrentlyForSale = 0, mostRecentPriceCnt = 0;
+	*/
+
+	with a as (
+		select idN = min(idN) from dbo.Wine where fixedId is not null group by FixedId
+	), c as (
+		select b.* from dbo.Wine b join a on b.idn = a.idN
+	), e as (
+		select d.oldFixedId, d.oldShowForERP, d.oldShowForWJ,
+			showForERP2 = c.showForERP, showForWJ2 = c.showForWJ
+		from RPOWine.dbo.TasteNote d 
+			join c on d.oldFixedId = c.fixedId
+	)
+	update e set oldShowForERP = showForERP2, oldShowForWJ = showForWJ2;
+
+	--update RPOWine.dbo.Wine_N set 
+	--	MostRecentPrice = estimatedCost, 
+	--	MostRecentPriceHi = estimatedCost, 
+	--	IsCurrentlyForSale = 0, 
+	--	MostRecentPriceCnt = 0;
 
 /* --- prev version ---
-with
-a as (select min(idN) idN from dbo.Wine where fixedId is not null group by FixedId)
-,c as (select b.* from dbo.Wine b  join a on b.idn = a.idN)
-,e as (select d.*, c.showForERP showForERP2, c.showForWJ showForWJ2 from RpoWineData.dbo.wine d join c on d.fixedId = c.fixedId)
-update e set showForERP = showForERP2, showForWJ = showForWJ2;
+	with
+	a as (select wineN eWineN, min(mostRecentPrice) eMostRecentPrice, min(mostRecentPriceHi) eMostRecentPriceHi, min(mostRecentPriceCnt) eMostRecentPriceCnt
+		 from dbo.Wine  where isCurrentlyForSale = 1 group by wineN)
+	,b as (select wineN, isCurrentlyForSale, mostRecentPrice, mostRecentPriceHi, mostRecentPriceCnt
+		 from RpoWineData.dbo.wine)
+	,c as (select * from b join a on b.wineN = a.ewineN)
+	update c set isCurrentlyForSale = 1, mostRecentPrice = eMostRecentPrice, mostRecentPriceHi = eMostRecentPriceHi, mostRecentPriceCnt = eMostRecentPriceCnt;
 
-with
-a as (select min(idN) idN from dbo.Wine where wineN is not null and WineN > 0 group by WineN)
-,c as (select b.* from dbo.Wine b  join a on b.idn = a.idN)
-,e as (select d.*, c.mostRecentPriceCnt mostRecentPriceCnt2 from RpoWineData.dbo.wine d join c on d.wineN = c.wineN)
---select * from e
-update e set mostRecentPriceCnt = mostRecentPriceCnt2;
-------------  ^^^^^^^^^^^^^^^^^ it is strange, because next update will set it's value to 0
-
---update RpoWineData.dbo.wine set mostRecentPrice = estimatedCost, mostRecentPriceHi = estimatedCost_Hi, isCurrentlyForSale = 0 ;
-update RpoWineData.dbo.wine set mostRecentPrice = estimatedCost, mostRecentPriceHi = estimatedCost_Hi, isCurrentlyForSale = 0, mostRecentPriceCnt = 0;
+	with
+	a1 as (select wineN eWineN, min(mostRecentAuctionPrice) eMostRecentAuctionPrice, min(mostRecentAuctionPriceHi) eMostRecentAuctionPriceHi, min(mostRecentAuctionPriceCnt) eMostRecentAuctionPriceCnt
+		 from dbo.Wine  where isCurrentlyOnAuction = 1 group by wineN)
+	,b2 as (select wineN, isCurrentlyOnAuction, mostRecentAuctionPrice, mostRecentAuctionPriceHi, mostRecentAuctionPriceCnt
+		 from RpoWineData.dbo.wine)
+	,c12 as (select * from b2 join a1 on b2.wineN = a1.ewineN)
+	update c12 set isCurrentlyOnAuction = 1, mostRecentAuctionPrice = eMostRecentAuctionPrice, mostRecentAuctionPriceHi = eMostRecentAuctionPriceHi, mostRecentAuctionPriceCnt = eMostRecentAuctionPriceCnt;
 */
 
-with a as (
-	select idN = min(idN) from dbo.Wine where fixedId is not null group by FixedId
-), c as (
-	select b.* from dbo.Wine b join a on b.idn = a.idN
-), e as (
-	select d.oldFixedId, d.oldShowForERP, d.oldShowForWJ,
-		showForERP2 = c.showForERP, showForWJ2 = c.showForWJ
-	from RPOWine.dbo.TasteNote d 
-		join c on d.oldFixedId = c.fixedId
-)
-update e set oldShowForERP = showForERP2, oldShowForWJ = showForWJ2;
+	with a as (
+		select eWineN = wineN, eMostRecentPrice = min(mostRecentPrice), 
+			eMostRecentPriceHi = min(mostRecentPriceHi), eMostRecentPriceCnt = min(mostRecentPriceCnt)
+		from dbo.Wine
+		where isCurrentlyForSale = 1 
+		group by wineN
+	), b as (
+		select wineN = ID, IsCurrentlyForSale, MostRecentPrice, MostRecentPriceHi, MostRecentPriceCnt
+		from RPOWine.dbo.Wine_N
+	), c as (
+		select * 
+		from b join a on b.wineN = a.ewineN
+	)
+	update c set 
+		IsCurrentlyForSale = 1, 
+		MostRecentPrice = eMostRecentPrice, 
+		MostRecentPriceHi = eMostRecentPriceHi, 
+		MostRecentPriceCnt = eMostRecentPriceCnt;
 
-update RPOWine.dbo.Wine_N set 
-	MostRecentPrice = estimatedCost, 
-	MostRecentPriceHi = estimatedCost, 
-	IsCurrentlyForSale = 0, 
-	MostRecentPriceCnt = 0;
-
-/* --- prev version ---
-with
-a as (select wineN eWineN, min(mostRecentPrice) eMostRecentPrice, min(mostRecentPriceHi) eMostRecentPriceHi, min(mostRecentPriceCnt) eMostRecentPriceCnt
-     from dbo.Wine  where isCurrentlyForSale = 1 group by wineN)
-,b as (select wineN, isCurrentlyForSale, mostRecentPrice, mostRecentPriceHi, mostRecentPriceCnt
-     from RpoWineData.dbo.wine)
-,c as (select * from b join a on b.wineN = a.ewineN)
-update c set isCurrentlyForSale = 1, mostRecentPrice = eMostRecentPrice, mostRecentPriceHi = eMostRecentPriceHi, mostRecentPriceCnt = eMostRecentPriceCnt;
-
-with
-a1 as (select wineN eWineN, min(mostRecentAuctionPrice) eMostRecentAuctionPrice, min(mostRecentAuctionPriceHi) eMostRecentAuctionPriceHi, min(mostRecentAuctionPriceCnt) eMostRecentAuctionPriceCnt
-     from dbo.Wine  where isCurrentlyOnAuction = 1 group by wineN)
-,b2 as (select wineN, isCurrentlyOnAuction, mostRecentAuctionPrice, mostRecentAuctionPriceHi, mostRecentAuctionPriceCnt
-     from RpoWineData.dbo.wine)
-,c12 as (select * from b2 join a1 on b2.wineN = a1.ewineN)
-update c12 set isCurrentlyOnAuction = 1, mostRecentAuctionPrice = eMostRecentAuctionPrice, mostRecentAuctionPriceHi = eMostRecentAuctionPriceHi, mostRecentAuctionPriceCnt = eMostRecentAuctionPriceCnt;
-*/
-
-with a as (
-	select eWineN = wineN, eMostRecentPrice = min(mostRecentPrice), 
-		eMostRecentPriceHi = min(mostRecentPriceHi), eMostRecentPriceCnt = min(mostRecentPriceCnt)
-    from dbo.Wine
-	where isCurrentlyForSale = 1 
-	group by wineN
-), b as (
-	select wineN = ID, IsCurrentlyForSale, MostRecentPrice, MostRecentPriceHi, MostRecentPriceCnt
-	from RPOWine.dbo.Wine_N
-), c as (
-	select * 
-	from b join a on b.wineN = a.ewineN
-)
-update c set 
-	IsCurrentlyForSale = 1, 
-	MostRecentPrice = eMostRecentPrice, 
-	MostRecentPriceHi = eMostRecentPriceHi, 
-	MostRecentPriceCnt = eMostRecentPriceCnt;
-
-with a1 as (
-	select eWineN = wineN, eMostRecentAuctionPrice = min(mostRecentAuctionPrice), 
-		eMostRecentAuctionPriceHi = min(mostRecentAuctionPriceHi), eMostRecentAuctionPriceCnt = min(mostRecentAuctionPriceCnt)
-	from dbo.Wine
-	where isCurrentlyOnAuction = 1 
-	group by wineN
-), b2 as (
-	select wineN = ID, IsCurrentlyOnAuction, MostRecentAuctionPrice, MostRecentAuctionPriceHi, MostRecentAuctionPriceCnt
-    from RPOWine.dbo.Wine_N
-), c12 as (
-	select * from b2 join a1 on b2.wineN = a1.ewineN
-)
-update c12 set 
-	IsCurrentlyOnAuction = 1, 
-	MostRecentAuctionPrice = eMostRecentAuctionPrice, 
-	MostRecentAuctionPriceHi = eMostRecentAuctionPriceHi, 
-	MostRecentAuctionPriceCnt = eMostRecentAuctionPriceCnt;
+	with a1 as (
+		select eWineN = wineN, eMostRecentAuctionPrice = min(mostRecentAuctionPrice), 
+			eMostRecentAuctionPriceHi = min(mostRecentAuctionPriceHi), eMostRecentAuctionPriceCnt = min(mostRecentAuctionPriceCnt)
+		from dbo.Wine
+		where isCurrentlyOnAuction = 1 
+		group by wineN
+	), b2 as (
+		select wineN = ID, IsCurrentlyOnAuction, MostRecentAuctionPrice, MostRecentAuctionPriceHi, MostRecentAuctionPriceCnt
+		from RPOWine.dbo.Wine_N
+	), c12 as (
+		select * from b2 join a1 on b2.wineN = a1.ewineN
+	)
+	update c12 set 
+		IsCurrentlyOnAuction = 1, 
+		MostRecentAuctionPrice = eMostRecentAuctionPrice, 
+		MostRecentAuctionPriceHi = eMostRecentAuctionPriceHi, 
+		MostRecentAuctionPriceCnt = eMostRecentAuctionPriceCnt;
 
 /*
---update RpoWineData..wine set isWJTasting = z.isWJTasting, isErpTasting = z.isErpTasting
-update z set z.isWJTasting = y.isWJTasting, z.isErpTasting = y.isErpTasting
-     from RpoWineData.dbo.wine z left join dbo.Wine y on z.wineN = y.wineN;
+	--update RpoWineData..wine set isWJTasting = z.isWJTasting, isErpTasting = z.isErpTasting
+	update z set z.isWJTasting = y.isWJTasting, z.isErpTasting = y.isErpTasting
+		 from RpoWineData.dbo.wine z left join dbo.Wine y on z.wineN = y.wineN;
 */
 
 --mostRecentPrice mostRecentPriceHi mostRecentPriceCnt Currently
 
-with a as (
-	select eWineN = wineN from dbo.Wine where isCurrentlyForSale = 0 group by wineN
-), b as (
-	select wineN = ID, isCurrentlyForSale = IsCurrentlyForSale from RPOWine.dbo.Wine_N
-), c as (
-	select * from b join a on b.wineN = a.ewineN
-)
-update c set isCurrentlyForSale = 0;
+	with a as (
+		select eWineN = wineN from dbo.Wine where isCurrentlyForSale = 0 group by wineN
+	), b as (
+		select wineN = ID, isCurrentlyForSale = IsCurrentlyForSale from RPOWine.dbo.Wine_N
+	), c as (
+		select * from b join a on b.wineN = a.ewineN
+	)
+	update c set isCurrentlyForSale = 0;
 
-with a1 as (
-	select eWineN = wineN from dbo.Wine where isCurrentlyForSale = 0 group by wineN
-), b2 as (
-	select wineN = ID, isCurrentlyOnAuction = IsCurrentlyOnAuction from RPOWine.dbo.Wine_N
-), c12 as (
-	select * from b2 join a1 on b2.wineN = a1.ewineN
-)
-update c12 set isCurrentlyOnAuction = 0;
+	with a1 as (
+		select eWineN = wineN from dbo.Wine where isCurrentlyForSale = 0 group by wineN
+	), b2 as (
+		select wineN = ID, isCurrentlyOnAuction = IsCurrentlyOnAuction from RPOWine.dbo.Wine_N
+	), c12 as (
+		select * from b2 join a1 on b2.wineN = a1.ewineN
+	)
+	update c12 set isCurrentlyOnAuction = 0;
 
-exec LogMsg 'Import Stage 20';
-print 'Import Stage 20';
+	exec LogMsg 'Import Stage 20';
+	print 'Import Stage 20 ' + cast(getdate() as varchar(30));
 
---RatingShow
---should already have been done in the separate SQL query group that creates eRPSearch.wine
-/* --- prev version - incorporated in RPOWine..Wine view ---
-update RpoWineData.dbo.wine set ratingShow = null where rating is null and rating_Hi is null;
-update RpoWineData.dbo.wine set ratingShow = cast(rating as varchar) + isNull(ratingQ, '')where rating is not null and rating_Hi is null and IsBarrelTasting = 0;
-update RpoWineData.dbo.wine set ratingShow = '(' + cast(rating as varchar) + isNull(ratingQ, '') +  ')' where rating is not null and rating_Hi is null and IsBarrelTasting = 1;
-update RpoWineData.dbo.wine set ratingShow = cast(rating as varchar) + '-' + cast(rating_hi as varchar)  + isNull(ratingQ, '') where rating is not null and rating_Hi is not null and IsBarrelTasting = 0;
-update RpoWineData.dbo.wine set ratingShow = '(' + cast(rating as varchar) + '-' + cast(rating_hi as varchar)  + isNull(ratingQ, '') +')' where rating is not null and rating_Hi is not null and IsBarrelTasting = 1;
-update RpoWineData.dbo.wine set ratingShow = '?-' + cast(rating_hi as varchar) + isNull(ratingQ, '')  where rating is null and rating_Hi is not null and IsBarrelTasting = 0;
-update RpoWineData.dbo.wine set ratingShow = '(?-' + cast(rating_hi as varchar)  + isNull(ratingQ, '') +')' where rating is null and rating_Hi is not null and IsBarrelTasting = 1;
-*/
+	--RatingShow
+	--should already have been done in the separate SQL query group that creates eRPSearch.wine
+	/* --- prev version - incorporated in RPOWine..Wine view ---
+	update RpoWineData.dbo.wine set ratingShow = null where rating is null and rating_Hi is null;
+	update RpoWineData.dbo.wine set ratingShow = cast(rating as varchar) + isNull(ratingQ, '')where rating is not null and rating_Hi is null and IsBarrelTasting = 0;
+	update RpoWineData.dbo.wine set ratingShow = '(' + cast(rating as varchar) + isNull(ratingQ, '') +  ')' where rating is not null and rating_Hi is null and IsBarrelTasting = 1;
+	update RpoWineData.dbo.wine set ratingShow = cast(rating as varchar) + '-' + cast(rating_hi as varchar)  + isNull(ratingQ, '') where rating is not null and rating_Hi is not null and IsBarrelTasting = 0;
+	update RpoWineData.dbo.wine set ratingShow = '(' + cast(rating as varchar) + '-' + cast(rating_hi as varchar)  + isNull(ratingQ, '') +')' where rating is not null and rating_Hi is not null and IsBarrelTasting = 1;
+	update RpoWineData.dbo.wine set ratingShow = '?-' + cast(rating_hi as varchar) + isNull(ratingQ, '')  where rating is null and rating_Hi is not null and IsBarrelTasting = 0;
+	update RpoWineData.dbo.wine set ratingShow = '(?-' + cast(rating_hi as varchar)  + isNull(ratingQ, '') +')' where rating is null and rating_Hi is not null and IsBarrelTasting = 1;
+	*/
 
---set hasProducerProfile - TODO: removed, we are using producer profile in a different way now.
-/*
-with
-a as (select hasProducerProfile, p.erp from RpoWineData.dbo.wine w left join erpSearchD.dbo.NealProducerToErp p on w.producer = p.erp)
-update a set hasProducerProfile = case when erp is null then 0 else 1 end;
-*/
+	--set hasProducerProfile - TODO: removed, we are using producer profile in a different way now.
+	/*
+	with
+	a as (select hasProducerProfile, p.erp from RpoWineData.dbo.wine w left join erpSearchD.dbo.NealProducerToErp p on w.producer = p.erp)
+	update a set hasProducerProfile = case when erp is null then 0 else 1 end;
+	*/
 
 --set various bits
-update z set 
-	z.oldShowForERP = y.showForErp, 
-	z.oldShowForWJ = y.showForWj
-from RPOWine.dbo.TasteNote z 
-	join dbo.Wine y on z.oldFixedId = y.fixedId;
+	update z set 
+		z.oldShowForERP = y.showForErp, 
+		z.oldShowForWJ = y.showForWj
+	from RPOWine.dbo.TasteNote z 
+		join dbo.Wine y on z.oldFixedId = y.fixedId;
 
+	--15 Restore ArticleHandle -------------------------------------------------------------------------------------------------------------------------------------------------------------
+	/* - NOT IN USE --
+	with
+	a as (select z.articleHandle, y.articleHandle yArticleHandle from RpoWineData.dbo.wine z join erpSearchD.dbo.keep y on z.fixedId = y.fixedId)
+	update a set articleHandle = yArticleHandle where isNull(articleHandle,-1) <> isNull(yArticleHandle, -1)
+	*/
 
---15 Restore ArticleHandle -------------------------------------------------------------------------------------------------------------------------------------------------------------
-/* - NOT IN USE --
-with
-a as (select z.articleHandle, y.articleHandle yArticleHandle from RpoWineData.dbo.wine z join erpSearchD.dbo.keep y on z.fixedId = y.fixedId)
-update a set articleHandle = yArticleHandle where isNull(articleHandle,-1) <> isNull(yArticleHandle, -1)
-*/
+end
 
 exec LogMsg 'Import Stage 21';
-print 'Import Stage 21';
+print 'Import Stage 21 ' + cast(getdate() as varchar(30));
 
 --16 Get Update Statistics-------------------------------------------------------------------------------------------------------------------------------------------------------------
 insert into DatabaseStats 
@@ -2372,7 +2491,7 @@ select 'newPrices',
      (select count(*) from dbo.WineName)
 
 exec LogMsg 'Import Stage 22';
-print 'Import Stage 22';
+print 'Import Stage 22 ' + cast(getdate() as varchar(30));
 
 --17 Enable Indexes-------------------------------------------------------------------------------------------------------------------------------------------------------------
 --alter Index all on dbo.ForSaleDetail rebuild
@@ -2442,7 +2561,7 @@ select @s = (select top(1)
 exec LogMsg @s
 
 exec LogMsg 'Import Stage 25';
-print 'Import Stage 25';
+print 'Import Stage 25 ' + cast(getdate() as varchar(30));
 
 --alter fullText Index on dbo.ForSaleDetail start full population;
 --alter fullText Index on dbo.Wine start full population;
@@ -2471,11 +2590,15 @@ exec RPOWine.srv.UpdateArticles
 --exec RpoWineData.dbo.ReComputePrices		-- table prices is not in use
 --exec RpoWineData.dbo.UpdateTopBarginMap	-- table tocbargainmap is not in use
 
--- Alex B. - reload Wine table
-exec RPOWine.srv.Wine_Reload
+if @IsUpdateWineDB = 1 begin
+	print '-- N. RPOWine.srv calls -- ' + cast(getdate() as varchar(30))
+	-- Alex B. - reload Wine table
+	exec RPOWine.srv.Wine_UpdatePrices
+	exec RPOWine.srv.Wine_Reload
+end
 
 exec LogMsg 'Update of all files finished';
-print 'Update of all files finished';
+print 'Update of all files finished ' + cast(getdate() as varchar(30));
 
 /*
 

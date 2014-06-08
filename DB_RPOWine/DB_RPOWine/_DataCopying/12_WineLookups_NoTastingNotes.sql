@@ -3,6 +3,11 @@
 -- Data Source: eRPSearchD.dbo.WAName
 --
 --
+use eRPSearchD
+GO
+alter table WAName add
+	Wine_VinN_ID int null
+GO
 USE [RPOWine]
 GO
 print '--------- copy data --------'

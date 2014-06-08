@@ -54,8 +54,11 @@
     [Errors]                    NVARCHAR (MAX) CONSTRAINT [DF_WAName_Errors] DEFAULT (NULL) NULL,
     [Warnings]                  NVARCHAR (MAX) NULL,
     [ErrorsOnReadin]            NVARCHAR (MAX) NULL,
+    [Wine_VinN_ID]              INT            NULL,
     CONSTRAINT [PK_WAName] PRIMARY KEY CLUSTERED ([idN] ASC)
 );
+
+
 
 
 
@@ -89,4 +92,10 @@ GO
 CREATE NONCLUSTERED INDEX [IX_WAName_VinN]
     ON [dbo].[WAName]([VinN] ASC)
     INCLUDE([idN], [Region], [Location], [Variety]);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_WAName_Wid]
+    ON [dbo].[WAName]([Wid] ASC)
+    INCLUDE([idN]);
 

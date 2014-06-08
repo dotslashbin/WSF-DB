@@ -11,6 +11,9 @@ AS
 set nocount on;
 set xact_abort on;
 
+--alter table WAName add
+--	Wine_VinN_ID int null
+
 begin tran
 	-- 01. Set VinN in WAName (4 sec)
 	update eRPSearchD.dbo.WAName set Wine_VinN_ID = NULL;

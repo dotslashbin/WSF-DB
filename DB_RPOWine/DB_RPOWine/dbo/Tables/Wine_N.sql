@@ -22,11 +22,13 @@
     [IsActiveWineN]             BIT           NULL,
     [IsCurrentlyForSale]        BIT           NULL,
     [IsCurrentlyOnAuction]      BIT           NULL,
-    [EstimatedCost]             MONEY         NULL,
+    [RV]                        ROWVERSION    NOT NULL,
     CONSTRAINT [PK_Wine_N] PRIMARY KEY CLUSTERED ([ID] ASC) ON [Wine],
     CONSTRAINT [FK_Wine_N_Wine_VinN] FOREIGN KEY ([Wine_VinN_ID]) REFERENCES [dbo].[Wine_VinN] ([ID]),
     CONSTRAINT [FK_Wine_N_WineVintage] FOREIGN KEY ([VintageID]) REFERENCES [dbo].[WineVintage] ([ID])
 );
+
+
 
 
 
@@ -47,5 +49,12 @@ CREATE UNIQUE NONCLUSTERED INDEX [IX_Wine_N_Uniq]
 GO
 CREATE NONCLUSTERED INDEX [IX_Wine_N]
     ON [dbo].[Wine_N]([VintageID] ASC)
+    ON [PRIMARY];
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Wine_N_23Update_oldVinN]
+    ON [dbo].[Wine_N]([oldWineN] ASC)
+    INCLUDE([ID])
     ON [PRIMARY];
 

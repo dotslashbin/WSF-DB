@@ -6,6 +6,12 @@
 
 
 GO
+ALTER FULLTEXT INDEX ON [dbo].[Wine] DISABLE;
+
+
+
+
+GO
 CREATE FULLTEXT INDEX ON [dbo].[WineName]
     ([ProducerShow] LANGUAGE 1033, [LabelName] LANGUAGE 1033, [EncodedKeywords] LANGUAGE 1033)
     KEY INDEX [PK_WineName]
@@ -14,9 +20,21 @@ CREATE FULLTEXT INDEX ON [dbo].[WineName]
 
 
 GO
+ALTER FULLTEXT INDEX ON [dbo].[WineName] DISABLE;
+
+
+
+
+GO
 CREATE FULLTEXT INDEX ON [dbo].[ForSaleDetail]
     ([Vintage] LANGUAGE 1033, [BottleSize] LANGUAGE 1033, [Currency] LANGUAGE 1033, [TaxNotes] LANGUAGE 1033, [URL] LANGUAGE 1033, [RetailerDescriptionOfWine] LANGUAGE 1033, [RetailerIdN] LANGUAGE 1033, [RetailerCode] LANGUAGE 1033, [RetailerName] LANGUAGE 1033, [Country] LANGUAGE 1033, [State] LANGUAGE 1033, [City] LANGUAGE 1033, [Errors] LANGUAGE 1033)
     KEY INDEX [PK_ForSaleDetail]
     ON ([RPOSearch_FTSearch], FILEGROUP [FTSearch])
     WITH STOPLIST OFF;
+
+
+GO
+ALTER FULLTEXT INDEX ON [dbo].[ForSaleDetail] DISABLE;
+
+
 

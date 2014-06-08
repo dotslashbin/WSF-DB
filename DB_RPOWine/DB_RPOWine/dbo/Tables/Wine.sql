@@ -1,4 +1,5 @@
 ﻿CREATE TABLE [dbo].[Wine] (
+    [ID]                      INT            IDENTITY (1, 1) NOT NULL,
     [TasteNote_ID]            INT            NOT NULL,
     [Wine_N_ID]               INT            NOT NULL,
     [Wine_VinN_ID]            INT            NOT NULL,
@@ -15,14 +16,14 @@
     [fixedId]                 INT            NULL,
     [HasWJTasting]            BIT            NULL,
     [IsActiveWineN]           BIT            NULL,
-    [Issue]                   NVARCHAR (255) NOT NULL,
+    [Issue]                   NVARCHAR (255) NULL,
     [IsERPTasting]            BIT            NULL,
     [IsWJTasting]             BIT            NULL,
     [IsCurrentlyForSale]      BIT            NULL,
     [LabelName]               NVARCHAR (120) NOT NULL,
     [Location]                NVARCHAR (50)  NOT NULL,
     [Locale]                  NVARCHAR (50)  NOT NULL,
-    [Maturity]                SMALLINT       NOT NULL,
+    [Maturity]                SMALLINT       NULL,
     [MostRecentPrice]         MONEY          NULL,
     [MostRecentPriceHi]       MONEY          NULL,
     [MostRecentAuctionPrice]  MONEY          NULL,
@@ -32,7 +33,7 @@
     [ProducerURL]             NVARCHAR (255) NULL,
     [ProducerProfileFileName] VARCHAR (50)   NULL,
     [ShortTitle]              INT            NULL,
-    [Publication]             NVARCHAR (50)  NOT NULL,
+    [Publication]             NVARCHAR (50)  NULL,
     [Places]                  NVARCHAR (150) NOT NULL,
     [Region]                  NVARCHAR (50)  NOT NULL,
     [Rating]                  SMALLINT       NULL,
@@ -53,8 +54,12 @@
     [oldVinN]                 INT            NULL,
     [created]                 SMALLDATETIME  CONSTRAINT [DF_tWine_created] DEFAULT (getdate()) NOT NULL,
     [updated]                 SMALLDATETIME  NULL,
-    CONSTRAINT [PK_Wine] PRIMARY KEY CLUSTERED ([TasteNote_ID] ASC)
+    [RV_TasteNote]            BINARY (8)     DEFAULT (0x00) NOT NULL,
+    [RV_Wine_N]               BINARY (8)     DEFAULT (0x00) NOT NULL,
+    CONSTRAINT [PK_Wine] PRIMARY KEY CLUSTERED ([ID] ASC)
 );
+
+
 
 
 
@@ -62,5 +67,7 @@
 GO
 CREATE NONCLUSTERED INDEX [IX_Wine_WineNID]
     ON [dbo].[Wine]([Wine_N_ID] ASC)
-    INCLUDE([TasteNote_ID], [Wine_VinN_ID]);
+    INCLUDE([TasteNote_ID], [Wine_VinN_ID], [ID]);
+
+
 

@@ -33,6 +33,8 @@
 
 
 
+
+
 GO
 CREATE NONCLUSTERED INDEX [IX_ForSaleDetail_Price]
     ON [dbo].[ForSaleDetail]([Price] ASC)
@@ -54,4 +56,10 @@ CREATE NONCLUSTERED INDEX [IX_ForSaleDetail_Currency]
 GO
 CREATE NONCLUSTERED INDEX [IX_ForSaleDetail_BottleSize]
     ON [dbo].[ForSaleDetail]([BottleSize] ASC);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_ForSaleDetail_Wid]
+    ON [dbo].[ForSaleDetail]([Wid] ASC)
+    INCLUDE([IdN]);
 
