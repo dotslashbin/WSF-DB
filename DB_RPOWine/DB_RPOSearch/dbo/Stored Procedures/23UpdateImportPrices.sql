@@ -267,19 +267,33 @@ print '-- 4. WineNameErrors -- ' + cast(getdate() as varchar(30))
 )
 update b set errors = case when errors is null then '' else errors + ',   ' end + 'E1.Duplicate WineAlert Id';
 
-with a as (
-	select distinct 
-		vinn = case when @IsUseOldWineN = 1 then oldVinN else ID end
-	from RPOWine.dbo.Wine_VinN
-), b as (
-	select w.* 
-	from dbo.WAName w 
-		left join a on w.vinn = a.vinn 
-	where w.vinn is not null and a.vinn is null 
-)
-update b set errors = case when errors is null then 'E2.BadVinn' else (errors + ',   E2.BadVinn') end;
+if @IsUseOldWineN = 1 begin
+	with a as (
+		select distinct 
+			vinn = oldVinN
+		from RPOWine.dbo.Wine_VinN
+	), b as (
+		select w.* 
+		from dbo.WAName w 
+			left join a on w.vinn = a.vinn 
+		where w.vinn is not null and a.vinn is null 
+	)
+	update b set errors = case when errors is null then 'E2.BadVinn' else (errors + ',   E2.BadVinn') end;
+end else begin
+	with a as (
+		select distinct 
+			vinn = ID
+		from RPOWine.dbo.Wine_VinN
+	), b as (
+		select w.* 
+		from dbo.WAName w 
+			left join a on w.vinn = a.vinn 
+		where w.vinn is not null and a.vinn is null 
+	)
+	update b set errors = case when errors is null then 'E2.BadVinn' else (errors + ',   E2.BadVinn') end;
+end
 
-with a as (
+; with a as (
 	select w.* from dbo.WAName w left join dbo.StdProducer v on w.Producer = v.Producer and v.IsOK = 1 
 	where w.Producer is not null and v.Producer is null
 )
@@ -694,45 +708,87 @@ print '-- 8. BackFillVinns -- ' + cast(getdate() as varchar(30))
 -- limit to dbo.ForSale where corresponding dbo.WAName doesn't have a Vinn
 exec LogMsg 'Import Stage 9';
 
-with a as (
-	select distinct wid from dbo.WAName where vinn is null
-), b as (
-	select f.* from dbo.ForSale f join a on f.wid = a.wid where wineN is not null
-), c as (
-	select WineN = case when @IsUseOldWineN = 1 then oldWineN else ID end, 
-		vinn = min(case when @IsUseOldWineN = 1 then oldVinN else Wine_VinN_ID end)  
-	from RPOWine.dbo.Wine_N 
-	group by case when @IsUseOldWineN = 1 then oldWineN else ID end
-), d as (
-	select b.*, c.vinn from  b join c on b.wineN = c.wineN
-), e as (
-	select wid, min(vinn) Vinn from d group by wid having count(*) = 1
-), f as (
-	select n.*, e.vinn vinn2 from dbo.WAName n join e on n.wid = e.wid
-)
-update f set 
-     vinn = vinn2, 
-     IsVinnDeduced = 1, 
-     warnings = case when warnings  is null then ''else warnings + ',   ' end + 'Deduced Vinn';
+if @IsUseOldWineN = 1 begin
+	with a as (
+		select distinct wid from dbo.WAName where vinn is null
+	), b as (
+		select f.* from dbo.ForSale f join a on f.wid = a.wid where wineN is not null
+	), c as (
+		select WineN = oldWineN, 
+			vinn = min(oldVinN)  
+		from RPOWine.dbo.Wine_N 
+		group by oldWineN
+	), d as (
+		select b.*, c.vinn from  b join c on b.wineN = c.wineN
+	), e as (
+		select wid, min(vinn) Vinn from d group by wid having count(*) = 1
+	), f as (
+		select n.*, e.vinn vinn2 from dbo.WAName n join e on n.wid = e.wid
+	)
+	update f set 
+		 vinn = vinn2, 
+		 IsVinnDeduced = 1, 
+		 warnings = case when warnings  is null then ''else warnings + ',   ' end + 'Deduced Vinn';
 
-with a as (
-	select distinct wid from dbo.WAName where vinn is null
-), b as (
-	select f.* from dbo.ForSale f join a on f.wid = a.wid where wineN is not null
-), c as (
-	select WineN = case when @IsUseOldWineN = 1 then oldWineN else ID end, 
-		vinn = min(case when @IsUseOldWineN = 1 then oldVinN else Wine_VinN_ID end)
-	from RPOWine.dbo.Wine_N 
-	group by case when @IsUseOldWineN = 1 then oldWineN else ID end
-), d as (
-	select b.*, c.vinn from b join c on b.wineN = c.wineN
-), e as (
-	select wid, min(vinn) Vinn from d group by wid having count(*) > 1
-), f as (
-	select n.*, e.vinn vinn2 from dbo.WAName n join e on n.wid = e.wid
-)
-update f set 
-     warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E12.ForSale Leads To Conflicting Vinns'
+	with a as (
+		select distinct wid from dbo.WAName where vinn is null
+	), b as (
+		select f.* from dbo.ForSale f join a on f.wid = a.wid where wineN is not null
+	), c as (
+		select WineN = oldWineN, 
+			vinn = min(oldVinN)
+		from RPOWine.dbo.Wine_N 
+		group by oldWineN
+	), d as (
+		select b.*, c.vinn from b join c on b.wineN = c.wineN
+	), e as (
+		select wid, min(vinn) Vinn from d group by wid having count(*) > 1
+	), f as (
+		select n.*, e.vinn vinn2 from dbo.WAName n join e on n.wid = e.wid
+	)
+	update f set 
+		 warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E12.ForSale Leads To Conflicting Vinns'
+end else begin
+	with a as (
+		select distinct wid from dbo.WAName where vinn is null
+	), b as (
+		select f.* from dbo.ForSale f join a on f.wid = a.wid where wineN is not null
+	), c as (
+		select WineN = ID, 
+			vinn = min(Wine_VinN_ID)  
+		from RPOWine.dbo.Wine_N 
+		group by ID
+	), d as (
+		select b.*, c.vinn from  b join c on b.wineN = c.wineN
+	), e as (
+		select wid, min(vinn) Vinn from d group by wid having count(*) = 1
+	), f as (
+		select n.*, e.vinn vinn2 from dbo.WAName n join e on n.wid = e.wid
+	)
+	update f set 
+		 vinn = vinn2, 
+		 IsVinnDeduced = 1, 
+		 warnings = case when warnings  is null then ''else warnings + ',   ' end + 'Deduced Vinn';
+
+	with a as (
+		select distinct wid from dbo.WAName where vinn is null
+	), b as (
+		select f.* from dbo.ForSale f join a on f.wid = a.wid where wineN is not null
+	), c as (
+		select WineN = ID, 
+			vinn = min(Wine_VinN_ID)
+		from RPOWine.dbo.Wine_N 
+		group by ID
+	), d as (
+		select b.*, c.vinn from b join c on b.wineN = c.wineN
+	), e as (
+		select wid, min(vinn) Vinn from d group by wid having count(*) > 1
+	), f as (
+		select n.*, e.vinn vinn2 from dbo.WAName n join e on n.wid = e.wid
+	)
+	update f set 
+		 warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E12.ForSale Leads To Conflicting Vinns'
+end
 
 print '-- 9. Deduce Producer, LabelName, Variety, etc through Vinn -- ' + cast(getdate() as varchar(30))
 exec LogMsg 'Import Stage 10';
@@ -740,41 +796,76 @@ print 'Import Stage 10 ' + cast(getdate() as varchar(30));
 --9a Producer ----------------------------
 update dbo.WAName set isVinnProducerAmbiguous = 0, isErpProducerOK = 0, isProducerTranslated = 0, erpProducer = null;
 
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		producer = wp.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.WineProducer wp on vn.ProducerID = wp.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wp.Name
-), b as (
-	select vinn, count(*) cnt from a group by vinn having count(*) > 1
-), c as (
-	select n.* from dbo.WAName n join b on n.vinn = b.vinn
-)
-update c set 
-	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E16.Ambiguous eRP Producer For This Vinn', 
-    isVinnProducerAmbiguous = 1;
+if @IsUseOldWineN = 1 begin
+	with a as (
+		select vinn = oldVinN, 
+			producer = wp.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineProducer wp on vn.ProducerID = wp.ID
+		group by oldVinN, wp.Name
+	), b as (
+		select vinn, count(*) cnt from a group by vinn having count(*) > 1
+	), c as (
+		select n.* from dbo.WAName n join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E16.Ambiguous eRP Producer For This Vinn', 
+		isVinnProducerAmbiguous = 1;
 
-with a as (
-	select VinN = case when @IsUseOldWineN = 1 then oldVinN else VinN end,
-		fixedId, sourceDate,
-		Producer, ProducerShow
-	from RPOWine.dbo.Wine
-), aa as (
-	select * from a where vinn is NOT NULL
-), b as (
-	select * from a where a.fixedId = 
-		(select top(1) fixedId from aa where aa.vinn = a.vinn order by sourceDate desc)
-), c as (
-	select n.erpProducer, n.eRPProducerShow, n.isErpProducerOK, b.* 
-    from dbo.WAName n 
-		join b on n.vinn = b.vinn 
-	where isVinnProducerAmbiguous = 0
-)
-update c set erpProducer = producer, erpProducerShow = producerShow, isErpProducerOK = 1;
+	with a as (
+		select VinN = oldVinN,
+			fixedId, sourceDate,
+			Producer, ProducerShow
+		from RPOWine.dbo.Wine
+	), aa as (
+		select * from a where vinn is NOT NULL
+	), b as (
+		select * from a where a.fixedId = 
+			(select top(1) fixedId from aa where aa.vinn = a.vinn order by sourceDate desc)
+	), c as (
+		select n.erpProducer, n.eRPProducerShow, n.isErpProducerOK, b.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn 
+		where isVinnProducerAmbiguous = 0
+	)
+	update c set erpProducer = producer, erpProducerShow = producerShow, isErpProducerOK = 1;
+end else begin
+	with a as (
+		select vinn = vn.ID, 
+			producer = wp.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineProducer wp on vn.ProducerID = wp.ID
+		group by vn.ID, wp.Name
+	), b as (
+		select vinn, count(*) cnt from a group by vinn having count(*) > 1
+	), c as (
+		select n.* from dbo.WAName n join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E16.Ambiguous eRP Producer For This Vinn', 
+		isVinnProducerAmbiguous = 1;
+
+	with a as (
+		select VinN = VinN,
+			fixedId, sourceDate,
+			Producer, ProducerShow
+		from RPOWine.dbo.Wine
+	), aa as (
+		select * from a where vinn is NOT NULL
+	), b as (
+		select * from a where a.fixedId = 
+			(select top(1) fixedId from aa where aa.vinn = a.vinn order by sourceDate desc)
+	), c as (
+		select n.erpProducer, n.eRPProducerShow, n.isErpProducerOK, b.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn 
+		where isVinnProducerAmbiguous = 0
+	)
+	update c set erpProducer = producer, erpProducerShow = producerShow, isErpProducerOK = 1;
+end
 
 --translate all producers where there is no ambiguity
-with a as (
+; with a as (
 	select producer, erpProducer, max(erpProducerShow) erpProducerShow 
 	from dbo.WAName 
 	where erpProducer is not null and isErpProducerOK = 1 and isVinnProducerAmbiguous = 0 
@@ -796,18 +887,33 @@ update d set
     isProducerTranslated = case when isNull(d.Producer, '') = isNull(erpProducer2, '') then 0 else 1 end;
 
 --When JLabelName is one of the eRp entries
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		Producer = wp.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.WineProducer wp on vn.ProducerID = wp.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wp.Name
-), b as (
-	select z.* 
-	from dbo.WAName z 
-	where exists (select 1 from a where a.vinn = z.vinn and a.Producer = z.Producer)
-)
-update b set erpProducer = Producer, isErpProducerOK = 1
+if @IsUseOldWineN = 1 begin
+	with a as (
+		select vinn = oldVinN, 
+			Producer = wp.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineProducer wp on vn.ProducerID = wp.ID
+		group by oldVinN, wp.Name
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select 1 from a where a.vinn = z.vinn and a.Producer = z.Producer)
+	)
+	update b set erpProducer = Producer, isErpProducerOK = 1
+end else begin
+	with a as (
+		select vinn = vn.ID, 
+			Producer = wp.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineProducer wp on vn.ProducerID = wp.ID
+		group by vn.ID, wp.Name
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select 1 from a where a.vinn = z.vinn and a.Producer = z.Producer)
+	)
+	update b set erpProducer = Producer, isErpProducerOK = 1
+end
 
 --fill in remainder from dbo.WAName itself - producer is the only field we jam into erpProducer so later operations work (they always use erp)
 update dbo.WAName set 
@@ -829,60 +935,117 @@ update dbo.WAName set
 	isLabelNameTranslated = 0, 
 	erpLabelName = null;
 
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		LabelName = wl.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.WineLabel wl on vn.LabelID = wl.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wl.Name
-), b as (
-	select vinn, count(*) cnt 
-	from a 
-	group by vinn having count(*) > 1
-), c as (
-	select n.* 
-	from dbo.WAName n 
-		join b on n.vinn = b.vinn
-)
-update c set 
-	warnings = case when warnings is null then ''else warnings + ',   ' end 
-		+ 'E36.Ambiguous eRP LabelName For This Vinn', 
-	isVinnLabelNameAmbiguous = 1;
+if @IsUseOldWineN = 1 begin
+	with a as (
+		select vinn = oldVinN, 
+			LabelName = wl.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineLabel wl on vn.LabelID = wl.ID
+		group by oldVinN, wl.Name
+	), b as (
+		select vinn, count(*) cnt 
+		from a 
+		group by vinn having count(*) > 1
+	), c as (
+		select n.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings is null then ''else warnings + ',   ' end 
+			+ 'E36.Ambiguous eRP LabelName For This Vinn', 
+		isVinnLabelNameAmbiguous = 1;
 
---When there is no ambiguity on erpSide
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		LabelName = wl.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.WineLabel wl on vn.LabelID = wl.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wl.Name
-), aa as (
-	select vinn, max(LabelName) LabelName2 
-	from a 
-	group by vinn having count(*) = 1
-), b as (
-	select z.*, aa.LabelName2 
-	from dbo.WAName z 
-		join aa on z.vinn = aa.vinn
-)
-update b set 
-	erpLabelName = LabelName2, 
-	isErpLabelNameOK = 1, 
-    isLabelNameTranslated = case when isNull(b.LabelName, '')  = isNull(LabelName2, '') then 0 else 1 end;
+	--When there is no ambiguity on erpSide
+	with a as (
+		select vinn = oldVinN, 
+			LabelName = wl.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineLabel wl on vn.LabelID = wl.ID
+		group by oldVinN, wl.Name
+	), aa as (
+		select vinn, max(LabelName) LabelName2 
+		from a 
+		group by vinn having count(*) = 1
+	), b as (
+		select z.*, aa.LabelName2 
+		from dbo.WAName z 
+			join aa on z.vinn = aa.vinn
+	)
+	update b set 
+		erpLabelName = LabelName2, 
+		isErpLabelNameOK = 1, 
+		isLabelNameTranslated = case when isNull(b.LabelName, '')  = isNull(LabelName2, '') then 0 else 1 end;
 
---When JLabelName is one of the eRp entries
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		LabelName = wl.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.WineLabel wl on vn.LabelID = wl.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wl.Name
-), b as (
-	select z.* 
-	from dbo.WAName z 
-	where exists (select 1 from a where a.vinn = z.vinn and a.labelname = z.labelname)
-)
-update b set erpLabelName = labelName, isErpLabelNameOK = 1;
+	--When JLabelName is one of the eRp entries
+	with a as (
+		select vinn = oldVinN, 
+			LabelName = wl.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineLabel wl on vn.LabelID = wl.ID
+		group by oldVinN, wl.Name
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select 1 from a where a.vinn = z.vinn and a.labelname = z.labelname)
+	)
+	update b set erpLabelName = labelName, isErpLabelNameOK = 1;
+end else begin
+	with a as (
+		select vinn = vn.ID, 
+			LabelName = wl.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineLabel wl on vn.LabelID = wl.ID
+		group by vn.ID, wl.Name
+	), b as (
+		select vinn, count(*) cnt 
+		from a 
+		group by vinn having count(*) > 1
+	), c as (
+		select n.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings is null then ''else warnings + ',   ' end 
+			+ 'E36.Ambiguous eRP LabelName For This Vinn', 
+		isVinnLabelNameAmbiguous = 1;
+
+	--When there is no ambiguity on erpSide
+	with a as (
+		select vinn = vn.ID, 
+			LabelName = wl.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineLabel wl on vn.LabelID = wl.ID
+		group by vn.ID, wl.Name
+	), aa as (
+		select vinn, max(LabelName) LabelName2 
+		from a 
+		group by vinn having count(*) = 1
+	), b as (
+		select z.*, aa.LabelName2 
+		from dbo.WAName z 
+			join aa on z.vinn = aa.vinn
+	)
+	update b set 
+		erpLabelName = LabelName2, 
+		isErpLabelNameOK = 1, 
+		isLabelNameTranslated = case when isNull(b.LabelName, '')  = isNull(LabelName2, '') then 0 else 1 end;
+
+	--When JLabelName is one of the eRp entries
+	with a as (
+		select vinn = vn.ID, 
+			LabelName = wl.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineLabel wl on vn.LabelID = wl.ID
+		group by vn.ID, wl.Name
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select 1 from a where a.vinn = z.vinn and a.labelname = z.labelname)
+	)
+	update b set erpLabelName = labelName, isErpLabelNameOK = 1;
+end
 
 update dbo.WAName set 
 	warnings = case when warnings  is null then ''else warnings + ',   ' end 
@@ -896,59 +1059,115 @@ update dbo.WAName set
 	isCountryTranslated = 0, 
 	erpCountry = null;
 
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		Country = lc.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.LocationCountry lc on vn.locCountryID = lc.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, lc.Name
-), b as (
-	select vinn, count(*) cnt 
-	from a 
-	group by vinn having count(*) > 1
-), c as (
-	select n.* 
-	from dbo.WAName n 
-		join b on n.vinn = b.vinn
-)
-update c set 
-	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E24.Ambiguous eRP Country For This Vinn', 
-    isVinnCountryAmbiguous = 1;
+if @IsUseOldWineN = 1 begin
+	with a as (
+		select vinn = oldVinN, 
+			Country = lc.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.LocationCountry lc on vn.locCountryID = lc.ID
+		group by oldVinN, lc.Name
+	), b as (
+		select vinn, count(*) cnt 
+		from a 
+		group by vinn having count(*) > 1
+	), c as (
+		select n.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E24.Ambiguous eRP Country For This Vinn', 
+		isVinnCountryAmbiguous = 1;
 
---When there is no ambiguity on erpSide
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		Country = lc.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.LocationCountry lc on vn.locCountryID = lc.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, lc.Name
-), aa as (
-	select vinn, max(Country) Country2 
-	from a 
-	group by vinn having count(*) = 1
-), b as (
-	select z.*, aa.Country2 
-	from dbo.WAName z 
-		join aa on z.vinn = aa.vinn
-)
-update b set 
-	erpCountry = Country2, 
-	isErpCountryOK = 1, 
-    isCountryTranslated = case when isNull(b.Country, '')  = isNull(Country2, '') then 0 else 1 end;
+	--When there is no ambiguity on erpSide
+	with a as (
+		select vinn = oldVinN, 
+			Country = lc.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.LocationCountry lc on vn.locCountryID = lc.ID
+		group by oldVinN, lc.Name
+	), aa as (
+		select vinn, max(Country) Country2 
+		from a 
+		group by vinn having count(*) = 1
+	), b as (
+		select z.*, aa.Country2 
+		from dbo.WAName z 
+			join aa on z.vinn = aa.vinn
+	)
+	update b set 
+		erpCountry = Country2, 
+		isErpCountryOK = 1, 
+		isCountryTranslated = case when isNull(b.Country, '')  = isNull(Country2, '') then 0 else 1 end;
 
---When JCountry is one of the eRp entries
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		Country = lc.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.LocationCountry lc on vn.locCountryID = lc.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, lc.Name
-), b as (
-	select z.* 
-	from dbo.WAName z 
-	where exists (select 1 from a where a.vinn = z.vinn and a.Country = z.Country)
-)
-update b set erpCountry = Country, isErpCountryOK = 1
+	--When JCountry is one of the eRp entries
+	with a as (
+		select vinn = oldVinN, 
+			Country = lc.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.LocationCountry lc on vn.locCountryID = lc.ID
+		group by oldVinN, lc.Name
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select 1 from a where a.vinn = z.vinn and a.Country = z.Country)
+	)
+	update b set erpCountry = Country, isErpCountryOK = 1
+end else begin
+	with a as (
+		select vinn = vn.ID, 
+			Country = lc.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.LocationCountry lc on vn.locCountryID = lc.ID
+		group by vn.ID, lc.Name
+	), b as (
+		select vinn, count(*) cnt 
+		from a 
+		group by vinn having count(*) > 1
+	), c as (
+		select n.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E24.Ambiguous eRP Country For This Vinn', 
+		isVinnCountryAmbiguous = 1;
+
+	--When there is no ambiguity on erpSide
+	with a as (
+		select vinn = vn.ID, 
+			Country = lc.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.LocationCountry lc on vn.locCountryID = lc.ID
+		group by vn.ID, lc.Name
+	), aa as (
+		select vinn, max(Country) Country2 
+		from a 
+		group by vinn having count(*) = 1
+	), b as (
+		select z.*, aa.Country2 
+		from dbo.WAName z 
+			join aa on z.vinn = aa.vinn
+	)
+	update b set 
+		erpCountry = Country2, 
+		isErpCountryOK = 1, 
+		isCountryTranslated = case when isNull(b.Country, '')  = isNull(Country2, '') then 0 else 1 end;
+
+	--When JCountry is one of the eRp entries
+	with a as (
+		select vinn = vn.ID, 
+			Country = lc.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.LocationCountry lc on vn.locCountryID = lc.ID
+		group by vn.ID, lc.Name
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select 1 from a where a.vinn = z.vinn and a.Country = z.Country)
+	)
+	update b set erpCountry = Country, isErpCountryOK = 1
+end
 
 update dbo.WAName set
      warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E13. Country Filled In From eRP'
@@ -958,59 +1177,115 @@ print '-- 9d. Region -- ' + cast(getdate() as varchar(30))
 
 update dbo.WAName set isVinnRegionAmbiguous = 0, isErpRegionOK = 0, isRegionTranslated = 0, erpRegion = null;
 
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		Region = lr.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.LocationRegion lr on vn.locRegionID = lr.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, lr.Name
-), b as (
-	select vinn, count(*) cnt 
-	from a 
-	group by vinn having count(*) > 1
-), c as (
-	select n.* 
-	from dbo.WAName n 
-		join b on n.vinn = b.vinn
-)
-update c set 
-	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E23.Ambiguous eRP Region For This Vinn', 
-    isVinnRegionAmbiguous = 1;
+if @IsUseOldWineN = 1 begin
+	with a as (
+		select vinn = oldVinN, 
+			Region = lr.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.LocationRegion lr on vn.locRegionID = lr.ID
+		group by oldVinN, lr.Name
+	), b as (
+		select vinn, count(*) cnt 
+		from a 
+		group by vinn having count(*) > 1
+	), c as (
+		select n.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E23.Ambiguous eRP Region For This Vinn', 
+		isVinnRegionAmbiguous = 1;
 
---When there is no ambiguity on erpSide
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		Region = lr.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.LocationRegion lr on vn.locRegionID = lr.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, lr.Name
-), aa as (
-	select vinn, max(Region) Region2 
-	from a 
-	group by vinn having count(*) = 1
-), b as (
-	select z.*, aa.Region2 
-	from dbo.WAName z 
-		join aa on z.vinn = aa.vinn
-)
-update b set 
-	erpRegion = Region2, 
-	isErpRegionOK = 1, 
-    isRegionTranslated = case when isNull(b.Region, '')  = isNull(Region2, '') then 0 else 1 end;
+	--When there is no ambiguity on erpSide
+	with a as (
+		select vinn = oldVinN, 
+			Region = lr.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.LocationRegion lr on vn.locRegionID = lr.ID
+		group by oldVinN, lr.Name
+	), aa as (
+		select vinn, max(Region) Region2 
+		from a 
+		group by vinn having count(*) = 1
+	), b as (
+		select z.*, aa.Region2 
+		from dbo.WAName z 
+			join aa on z.vinn = aa.vinn
+	)
+	update b set 
+		erpRegion = Region2, 
+		isErpRegionOK = 1, 
+		isRegionTranslated = case when isNull(b.Region, '')  = isNull(Region2, '') then 0 else 1 end;
 
---When JRegion is one of the eRp entries
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		Region = lr.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.LocationRegion lr on vn.locRegionID = lr.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, lr.Name
-), b as (
-	select z.* 
-	from dbo.WAName z 
-	where exists (select 1 from a where a.vinn = z.vinn and a.Region = z.Region)
-)
-update b set erpRegion = Region, isErpRegionOK = 1
+	--When JRegion is one of the eRp entries
+	with a as (
+		select vinn = oldVinN, 
+			Region = lr.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.LocationRegion lr on vn.locRegionID = lr.ID
+		group by oldVinN, lr.Name
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select 1 from a where a.vinn = z.vinn and a.Region = z.Region)
+	)
+	update b set erpRegion = Region, isErpRegionOK = 1
+end else begin
+	with a as (
+		select vinn = vn.ID, 
+			Region = lr.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.LocationRegion lr on vn.locRegionID = lr.ID
+		group by vn.ID, lr.Name
+	), b as (
+		select vinn, count(*) cnt 
+		from a 
+		group by vinn having count(*) > 1
+	), c as (
+		select n.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E23.Ambiguous eRP Region For This Vinn', 
+		isVinnRegionAmbiguous = 1;
+
+	--When there is no ambiguity on erpSide
+	with a as (
+		select vinn = vn.ID, 
+			Region = lr.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.LocationRegion lr on vn.locRegionID = lr.ID
+		group by vn.ID, lr.Name
+	), aa as (
+		select vinn, max(Region) Region2 
+		from a 
+		group by vinn having count(*) = 1
+	), b as (
+		select z.*, aa.Region2 
+		from dbo.WAName z 
+			join aa on z.vinn = aa.vinn
+	)
+	update b set 
+		erpRegion = Region2, 
+		isErpRegionOK = 1, 
+		isRegionTranslated = case when isNull(b.Region, '')  = isNull(Region2, '') then 0 else 1 end;
+
+	--When JRegion is one of the eRp entries
+	with a as (
+		select vinn = vn.ID, 
+			Region = lr.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.LocationRegion lr on vn.locRegionID = lr.ID
+		group by vn.ID, lr.Name
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select 1 from a where a.vinn = z.vinn and a.Region = z.Region)
+	)
+	update b set erpRegion = Region, isErpRegionOK = 1
+end
 
 update dbo.WAName set 
 	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E39. Region Filled In From eRP'
@@ -1019,59 +1294,115 @@ where Region is null and eRPRegion is not null;
 print '-- 9e. Location -- ' + cast(getdate() as varchar(30))
 update dbo.WAName set isVinnLocationAmbiguous = 0, isErpLocationOK = 0, isLocationTranslated = 0, erpLocation = null;
 
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		Location = ll.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.LocationLocation ll on vn.locLocationID = ll.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, ll.Name
-), b as (
-	select vinn, count(*) cnt 
-	from a 
-	group by vinn having count(*) > 1
-), c as (
-	select n.* 
-	from dbo.WAName n 
-		join b on n.vinn = b.vinn
-)
-update c set 
-	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E22.Ambiguous eRP Location For This Vinn', 
-    isVinnLocationAmbiguous = 1;
+if @IsUseOldWineN = 1 begin
+	with a as (
+		select vinn = oldVinN, 
+			Location = ll.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.LocationLocation ll on vn.locLocationID = ll.ID
+		group by oldVinN, ll.Name
+	), b as (
+		select vinn, count(*) cnt 
+		from a 
+		group by vinn having count(*) > 1
+	), c as (
+		select n.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E22.Ambiguous eRP Location For This Vinn', 
+		isVinnLocationAmbiguous = 1;
 
---When there is no ambiguity on erpSide
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		Location = ll.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.LocationLocation ll on vn.locLocationID = ll.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, ll.Name
-), aa as (
-	select vinn, max(Location) Location2 
-	from a 
-	group by vinn having count(*) = 1
-), b as (
-	select z.*, aa.Location2 
-	from dbo.WAName z 
-		join aa on z.vinn = aa.vinn
-)
-update b set 
-	erpLocation = Location2, 
-	isErpLocationOK = 1, 
-    isLocationTranslated = case when isNull(b.Location, '')  = isNull(Location2, '') then 0 else 1 end;
+	--When there is no ambiguity on erpSide
+	with a as (
+		select vinn = oldVinN, 
+			Location = ll.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.LocationLocation ll on vn.locLocationID = ll.ID
+		group by oldVinN, ll.Name
+	), aa as (
+		select vinn, max(Location) Location2 
+		from a 
+		group by vinn having count(*) = 1
+	), b as (
+		select z.*, aa.Location2 
+		from dbo.WAName z 
+			join aa on z.vinn = aa.vinn
+	)
+	update b set 
+		erpLocation = Location2, 
+		isErpLocationOK = 1, 
+		isLocationTranslated = case when isNull(b.Location, '')  = isNull(Location2, '') then 0 else 1 end;
 
---When JLocation is one of the eRp entries
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		Location = ll.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.LocationLocation ll on vn.locLocationID = ll.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, ll.Name
-), b as (
-	select z.* 
-	from dbo.WAName z 
-	where exists (select 1 from a where a.vinn = z.vinn and a.Location = z.Location)
-)
-update b set erpLocation = Location, isErpLocationOK = 1
+	--When JLocation is one of the eRp entries
+	with a as (
+		select vinn = oldVinN, 
+			Location = ll.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.LocationLocation ll on vn.locLocationID = ll.ID
+		group by oldVinN, ll.Name
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select 1 from a where a.vinn = z.vinn and a.Location = z.Location)
+	)
+	update b set erpLocation = Location, isErpLocationOK = 1
+end else begin
+	with a as (
+		select vinn = vn.ID, 
+			Location = ll.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.LocationLocation ll on vn.locLocationID = ll.ID
+		group by vn.ID, ll.Name
+	), b as (
+		select vinn, count(*) cnt 
+		from a 
+		group by vinn having count(*) > 1
+	), c as (
+		select n.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E22.Ambiguous eRP Location For This Vinn', 
+		isVinnLocationAmbiguous = 1;
+
+	--When there is no ambiguity on erpSide
+	with a as (
+		select vinn = vn.ID, 
+			Location = ll.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.LocationLocation ll on vn.locLocationID = ll.ID
+		group by vn.ID, ll.Name
+	), aa as (
+		select vinn, max(Location) Location2 
+		from a 
+		group by vinn having count(*) = 1
+	), b as (
+		select z.*, aa.Location2 
+		from dbo.WAName z 
+			join aa on z.vinn = aa.vinn
+	)
+	update b set 
+		erpLocation = Location2, 
+		isErpLocationOK = 1, 
+		isLocationTranslated = case when isNull(b.Location, '')  = isNull(Location2, '') then 0 else 1 end;
+
+	--When JLocation is one of the eRp entries
+	with a as (
+		select vinn = vn.ID, 
+			Location = ll.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.LocationLocation ll on vn.locLocationID = ll.ID
+		group by vn.ID, ll.Name
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select 1 from a where a.vinn = z.vinn and a.Location = z.Location)
+	)
+	update b set erpLocation = Location, isErpLocationOK = 1
+end
 
 update dbo.WAName set 
 	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E14.Location Filled In From eRP'
@@ -1080,59 +1411,115 @@ where Location is null and eRPLocation is not null;
 print '-- 9f. Variety -- ' + cast(getdate() as varchar(30))
 update dbo.WAName set isVinnVarietyAmbiguous = 0, isErpVarietyOK = 0, isVarietyTranslated = 0, erpVariety = null;
 
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		Variety = wv.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.WineVariety wv on vn.VarietyID = wv.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wv.Name
-), b as (
-	select vinn, count(*) cnt 
-	from a 
-	group by vinn having count(*) > 1
-), c as (
-	select n.* 
-	from dbo.WAName n 
-		join b on n.vinn = b.vinn
-)
-update c set 
-	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E20.Ambiguous eRP Variety For This Vinn', 
-    isVinnVarietyAmbiguous = 1;
+if @IsUseOldWineN = 1 begin
+	with a as (
+		select vinn = oldVinN, 
+			Variety = wv.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineVariety wv on vn.VarietyID = wv.ID
+		group by oldVinN, wv.Name
+	), b as (
+		select vinn, count(*) cnt 
+		from a 
+		group by vinn having count(*) > 1
+	), c as (
+		select n.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E20.Ambiguous eRP Variety For This Vinn', 
+		isVinnVarietyAmbiguous = 1;
 
---When there is no ambiguity on erpSide
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		Variety = wv.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.WineVariety wv on vn.VarietyID = wv.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wv.Name
-), aa as (
-	select vinn, max(Variety) Variety2 
-	from a 
-	group by vinn having count(*) = 1
-), b as (
-	select z.*, aa.Variety2 
-	from dbo.WAName z 
-		join aa on z.vinn = aa.vinn
-)
-update b set 
-	erpVariety = Variety2, 
-	isErpVarietyOK = 1, 
-    isVarietyTranslated = case when isNull(b.Variety, '')  = isNull(Variety2, '') then 0 else 1 end;
+	--When there is no ambiguity on erpSide
+	with a as (
+		select vinn = oldVinN, 
+			Variety = wv.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineVariety wv on vn.VarietyID = wv.ID
+		group by oldVinN, wv.Name
+	), aa as (
+		select vinn, max(Variety) Variety2 
+		from a 
+		group by vinn having count(*) = 1
+	), b as (
+		select z.*, aa.Variety2 
+		from dbo.WAName z 
+			join aa on z.vinn = aa.vinn
+	)
+	update b set 
+		erpVariety = Variety2, 
+		isErpVarietyOK = 1, 
+		isVarietyTranslated = case when isNull(b.Variety, '')  = isNull(Variety2, '') then 0 else 1 end;
 
---When JVariety is one of the eRp entries
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		Variety = wv.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.WineVariety wv on vn.VarietyID = wv.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wv.Name
-), b as (
-	select z.* 
-	from dbo.WAName z 
-	where exists (select 1 from a where a.vinn = z.vinn and a.Variety = z.Variety)
-)
-update b set erpVariety = Variety, isErpVarietyOK = 1;
+	--When JVariety is one of the eRp entries
+	with a as (
+		select vinn = oldVinN, 
+			Variety = wv.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineVariety wv on vn.VarietyID = wv.ID
+		group by oldVinN, wv.Name
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select 1 from a where a.vinn = z.vinn and a.Variety = z.Variety)
+	)
+	update b set erpVariety = Variety, isErpVarietyOK = 1;
+end else begin
+	with a as (
+		select vinn = vn.ID, 
+			Variety = wv.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineVariety wv on vn.VarietyID = wv.ID
+		group by vn.ID, wv.Name
+	), b as (
+		select vinn, count(*) cnt 
+		from a 
+		group by vinn having count(*) > 1
+	), c as (
+		select n.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E20.Ambiguous eRP Variety For This Vinn', 
+		isVinnVarietyAmbiguous = 1;
+
+	--When there is no ambiguity on erpSide
+	with a as (
+		select vinn = vn.ID, 
+			Variety = wv.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineVariety wv on vn.VarietyID = wv.ID
+		group by vn.ID, wv.Name
+	), aa as (
+		select vinn, max(Variety) Variety2 
+		from a 
+		group by vinn having count(*) = 1
+	), b as (
+		select z.*, aa.Variety2 
+		from dbo.WAName z 
+			join aa on z.vinn = aa.vinn
+	)
+	update b set 
+		erpVariety = Variety2, 
+		isErpVarietyOK = 1, 
+		isVarietyTranslated = case when isNull(b.Variety, '')  = isNull(Variety2, '') then 0 else 1 end;
+
+	--When JVariety is one of the eRp entries
+	with a as (
+		select vinn = vn.ID, 
+			Variety = wv.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineVariety wv on vn.VarietyID = wv.ID
+		group by vn.ID, wv.Name
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select 1 from a where a.vinn = z.vinn and a.Variety = z.Variety)
+	)
+	update b set erpVariety = Variety, isErpVarietyOK = 1;
+end
 
 update dbo.WAName set 
 	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E40. Variety Filled In From eRP'
@@ -1141,59 +1528,115 @@ where Variety is null and eRPVariety is not null;
 print '-- 9g. ColorClass -- ' + cast(getdate() as varchar(30))
 update dbo.WAName set isVinnColorClassAmbiguous = 0, isErpColorClassOK = 0, isColorClassTranslated = 0, erpColorClass = null;
 
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		ColorClass = wc.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.WineColor wc on vn.ColorID = wc.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wc.Name
-), b as (
-	select vinn, count(*) cnt 
-	from a 
-	group by vinn having count(*) > 1
-), c as (
-	select n.* 
-	from dbo.WAName n 
-		join b on n.vinn = b.vinn
-)
-update c set 
-	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E20.Ambiguous eRP ColorClass For This Vinn', 
-    isVinnColorClassAmbiguous = 1;
+if @IsUseOldWineN = 1 begin
+	with a as (
+		select vinn = oldVinN, 
+			ColorClass = wc.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineColor wc on vn.ColorID = wc.ID
+		group by oldVinN, wc.Name
+	), b as (
+		select vinn, count(*) cnt 
+		from a 
+		group by vinn having count(*) > 1
+	), c as (
+		select n.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E20.Ambiguous eRP ColorClass For This Vinn', 
+		isVinnColorClassAmbiguous = 1;
 
---When there is no ambiguity on erpSide
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		ColorClass = wc.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.WineColor wc on vn.ColorID = wc.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wc.Name
-), aa as (
-	select vinn, max(ColorClass) ColorClass2 
-	from a 
-	group by vinn having count(*) = 1
-), b as (
-	select z.*, aa.ColorClass2 
-	from dbo.WAName z 
-		join aa on z.vinn = aa.vinn
-)
-update b set 
-	erpColorClass = ColorClass2, 
-	isErpColorClassOK = 1, 
-    isColorClassTranslated = case when isNull(b.ColorClass, '')  = isNull(ColorClass2, '') then 0 else 1 end;
+	--When there is no ambiguity on erpSide
+	; with a as (
+		select vinn = oldVinN, 
+			ColorClass = wc.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineColor wc on vn.ColorID = wc.ID
+		group by oldVinN, wc.Name
+	), aa as (
+		select vinn, max(ColorClass) ColorClass2 
+		from a 
+		group by vinn having count(*) = 1
+	), b as (
+		select z.*, aa.ColorClass2 
+		from dbo.WAName z 
+			join aa on z.vinn = aa.vinn
+	)
+	update b set 
+		erpColorClass = ColorClass2, 
+		isErpColorClassOK = 1, 
+		isColorClassTranslated = case when isNull(b.ColorClass, '')  = isNull(ColorClass2, '') then 0 else 1 end;
 
---When JColorClass is one of the eRp entries
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		ColorClass = wc.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.WineColor wc on vn.ColorID = wc.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wc.Name
-), b as (
-	select z.* 
-	from dbo.WAName z 
-	where exists (select 1 from a where a.vinn = z.vinn and a.ColorClass = z.ColorClass)
-)
-update b set erpColorClass = ColorClass, isErpColorClassOK = 1;
+	--When JColorClass is one of the eRp entries
+	; with a as (
+		select vinn = oldVinN, 
+			ColorClass = wc.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineColor wc on vn.ColorID = wc.ID
+		group by oldVinN, wc.Name
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select 1 from a where a.vinn = z.vinn and a.ColorClass = z.ColorClass)
+	)
+	update b set erpColorClass = ColorClass, isErpColorClassOK = 1;
+end else begin
+	; with a as (
+		select vinn = vn.ID, 
+			ColorClass = wc.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineColor wc on vn.ColorID = wc.ID
+		group by vn.ID, wc.Name
+	), b as (
+		select vinn, count(*) cnt 
+		from a 
+		group by vinn having count(*) > 1
+	), c as (
+		select n.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E20.Ambiguous eRP ColorClass For This Vinn', 
+		isVinnColorClassAmbiguous = 1;
+
+	--When there is no ambiguity on erpSide
+	; with a as (
+		select vinn = vn.ID, 
+			ColorClass = wc.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineColor wc on vn.ColorID = wc.ID
+		group by vn.ID, wc.Name
+	), aa as (
+		select vinn, max(ColorClass) ColorClass2 
+		from a 
+		group by vinn having count(*) = 1
+	), b as (
+		select z.*, aa.ColorClass2 
+		from dbo.WAName z 
+			join aa on z.vinn = aa.vinn
+	)
+	update b set 
+		erpColorClass = ColorClass2, 
+		isErpColorClassOK = 1, 
+		isColorClassTranslated = case when isNull(b.ColorClass, '')  = isNull(ColorClass2, '') then 0 else 1 end;
+
+	--When JColorClass is one of the eRp entries
+	with a as (
+		select vinn = vn.ID, 
+			ColorClass = wc.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineColor wc on vn.ColorID = wc.ID
+		group by vn.ID, wc.Name
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select 1 from a where a.vinn = z.vinn and a.ColorClass = z.ColorClass)
+	)
+	update b set erpColorClass = ColorClass, isErpColorClassOK = 1;
+end
 
 update dbo.WAName set 
 	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E41. ColorClass Filled In From eRP'
@@ -1202,59 +1645,115 @@ where ColorClass is null and eRPColorClass is not null;
 print '-- 9h. Dryness -- ' + cast(getdate() as varchar(30))
 update dbo.WAName set isVinnDrynessAmbiguous = 0, isErpDrynessOK = 0, isDrynessTranslated = 0, erpDryness = null;
 
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		Dryness = wd.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.WineDryness wd on vn.DrynessID = wd.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wd.Name
-), b as (
-	select vinn, count(*) cnt 
-	from a 
-	group by vinn having count(*) > 1
-), c as (
-	select n.* 
-	from dbo.WAName n 
-		join b on n.vinn = b.vinn
-)
-update c set 
-	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E27.Ambiguous eRP Dryness For This Vinn', 
-    isVinnDrynessAmbiguous = 1;
+if @IsUseOldWineN = 1 begin
+	with a as (
+		select vinn = oldVinN, 
+			Dryness = wd.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineDryness wd on vn.DrynessID = wd.ID
+		group by oldVinN, wd.Name
+	), b as (
+		select vinn, count(*) cnt 
+		from a 
+		group by vinn having count(*) > 1
+	), c as (
+		select n.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E27.Ambiguous eRP Dryness For This Vinn', 
+		isVinnDrynessAmbiguous = 1;
 
---When there is no ambiguity on erpSide
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		Dryness = wd.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.WineDryness wd on vn.DrynessID = wd.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wd.Name
-), aa as (
-	select vinn, max(Dryness) Dryness2 
-	from a 
-	group by vinn having count(*) = 1
-), b as (
-	select z.*, aa.Dryness2 
-	from dbo.WAName z 
-		join aa on z.vinn = aa.vinn
-)
-update b set 
-	erpDryness = Dryness2, 
-	isErpDrynessOK = 1, 
-    isDrynessTranslated = case when isNull(b.Dryness, '')  = isNull(Dryness2, '') then 0 else 1 end;
+	--When there is no ambiguity on erpSide
+	with a as (
+		select vinn = oldVinN, 
+			Dryness = wd.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineDryness wd on vn.DrynessID = wd.ID
+		group by oldVinN, wd.Name
+	), aa as (
+		select vinn, max(Dryness) Dryness2 
+		from a 
+		group by vinn having count(*) = 1
+	), b as (
+		select z.*, aa.Dryness2 
+		from dbo.WAName z 
+			join aa on z.vinn = aa.vinn
+	)
+	update b set 
+		erpDryness = Dryness2, 
+		isErpDrynessOK = 1, 
+		isDrynessTranslated = case when isNull(b.Dryness, '')  = isNull(Dryness2, '') then 0 else 1 end;
 
---When JDryness is one of the eRp entries
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		Dryness = wd.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.WineDryness wd on vn.DrynessID = wd.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wd.Name
-), b as (
-	select z.* 
-	from dbo.WAName z 
-	where exists (select 1 from a where a.vinn = z.vinn and a.Dryness = z.Dryness)
-)
-update b set erpDryness = Dryness, isErpDrynessOK = 1;
+	--When JDryness is one of the eRp entries
+	with a as (
+		select vinn = oldVinN, 
+			Dryness = wd.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineDryness wd on vn.DrynessID = wd.ID
+		group by oldVinN, wd.Name
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select 1 from a where a.vinn = z.vinn and a.Dryness = z.Dryness)
+	)
+	update b set erpDryness = Dryness, isErpDrynessOK = 1;
+end else begin
+	with a as (
+		select vinn = vn.ID, 
+			Dryness = wd.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineDryness wd on vn.DrynessID = wd.ID
+		group by vn.ID, wd.Name
+	), b as (
+		select vinn, count(*) cnt 
+		from a 
+		group by vinn having count(*) > 1
+	), c as (
+		select n.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E27.Ambiguous eRP Dryness For This Vinn', 
+		isVinnDrynessAmbiguous = 1;
+
+	--When there is no ambiguity on erpSide
+	with a as (
+		select vinn = vn.ID, 
+			Dryness = wd.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineDryness wd on vn.DrynessID = wd.ID
+		group by vn.ID, wd.Name
+	), aa as (
+		select vinn, max(Dryness) Dryness2 
+		from a 
+		group by vinn having count(*) = 1
+	), b as (
+		select z.*, aa.Dryness2 
+		from dbo.WAName z 
+			join aa on z.vinn = aa.vinn
+	)
+	update b set 
+		erpDryness = Dryness2, 
+		isErpDrynessOK = 1, 
+		isDrynessTranslated = case when isNull(b.Dryness, '')  = isNull(Dryness2, '') then 0 else 1 end;
+
+	--When JDryness is one of the eRp entries
+	with a as (
+		select vinn = vn.ID, 
+			Dryness = wd.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineDryness wd on vn.DrynessID = wd.ID
+		group by vn.ID, wd.Name
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select 1 from a where a.vinn = z.vinn and a.Dryness = z.Dryness)
+	)
+	update b set erpDryness = Dryness, isErpDrynessOK = 1;
+end
 
 update dbo.WAName set 
 	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E28.Dryness Filled In From eRP'
@@ -1263,103 +1762,200 @@ where Dryness is null and eRPDryness is not null;
 print '-- 9i. WineType -- ' + cast(getdate() as varchar(30))
 update dbo.WAName set isVinnWineTypeAmbiguous = 0, isErpWineTypeOK = 0, isWineTypeTranslated = 0, erpWineType = null;
 
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		Dryness = wt.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.WineType wt on vn.TypeID = wt.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wt.Name
-), b as (
-	select vinn, count(*) cnt 
-	from a 
-	group by vinn having count(*) > 1
-), c as (
-	select n.* 
-	from dbo.WAName n 
-		join b on n.vinn = b.vinn
-)
-update c set 
-	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E25.Ambiguous eRP WineType For This Vinn', 
-    isVinnWineTypeAmbiguous = 1;
+if @IsUseOldWineN = 1 begin
+	with a as (
+		select vinn = oldVinN, 
+			Dryness = wt.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineType wt on vn.TypeID = wt.ID
+		group by oldVinN, wt.Name
+	), b as (
+		select vinn, count(*) cnt 
+		from a 
+		group by vinn having count(*) > 1
+	), c as (
+		select n.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E25.Ambiguous eRP WineType For This Vinn', 
+		isVinnWineTypeAmbiguous = 1;
 
---When there is no ambiguity on erpSide
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		WineType = wt.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.WineType wt on vn.TypeID = wt.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wt.Name
-), aa as (
-	select vinn, max(WineType) WineType2 
-	from a 
-	group by vinn having count(*) = 1
-), b as (
-	select z.*, aa.WineType2 
-	from dbo.WAName z 
-		join aa on z.vinn = aa.vinn
-)
-update b set 
-	erpWineType = WineType2, 
-	isErpWineTypeOK = 1, 
-    isWineTypeTranslated = case when isNull(b.WineType, '')  = isNull(WineType2, '') then 0 else 1 end;
+	--When there is no ambiguity on erpSide
+	with a as (
+		select vinn = oldVinN, 
+			WineType = wt.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineType wt on vn.TypeID = wt.ID
+		group by oldVinN, wt.Name
+	), aa as (
+		select vinn, max(WineType) WineType2 
+		from a 
+		group by vinn having count(*) = 1
+	), b as (
+		select z.*, aa.WineType2 
+		from dbo.WAName z 
+			join aa on z.vinn = aa.vinn
+	)
+	update b set 
+		erpWineType = WineType2, 
+		isErpWineTypeOK = 1, 
+		isWineTypeTranslated = case when isNull(b.WineType, '')  = isNull(WineType2, '') then 0 else 1 end;
 
---When JWineType is one of the eRp entries
-with a as (
-	select vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, 
-		WineType = wt.Name
-	from RPOWine.dbo.Wine_VinN vn 
-		join RPOWine.dbo.WineType wt on vn.TypeID = wt.ID
-	group by case when @IsUseOldWineN = 1 then oldVinN else vn.ID end, wt.Name
-), b as (
-	select z.* 
-	from dbo.WAName z 
-	where exists (select 1 from a where a.vinn = z.vinn and a.WineType = z.WineType)
-)
-update b set erpWineType = WineType, isErpWineTypeOK = 1;
+	--When JWineType is one of the eRp entries
+	with a as (
+		select vinn = oldVinN, 
+			WineType = wt.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineType wt on vn.TypeID = wt.ID
+		group by oldVinN, wt.Name
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select 1 from a where a.vinn = z.vinn and a.WineType = z.WineType)
+	)
+	update b set erpWineType = WineType, isErpWineTypeOK = 1;
+end else begin
+	with a as (
+		select vinn = vn.ID, 
+			Dryness = wt.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineType wt on vn.TypeID = wt.ID
+		group by vn.ID, wt.Name
+	), b as (
+		select vinn, count(*) cnt 
+		from a 
+		group by vinn having count(*) > 1
+	), c as (
+		select n.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E25.Ambiguous eRP WineType For This Vinn', 
+		isVinnWineTypeAmbiguous = 1;
+
+	--When there is no ambiguity on erpSide
+	with a as (
+		select vinn = vn.ID, 
+			WineType = wt.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineType wt on vn.TypeID = wt.ID
+		group by vn.ID, wt.Name
+	), aa as (
+		select vinn, max(WineType) WineType2 
+		from a 
+		group by vinn having count(*) = 1
+	), b as (
+		select z.*, aa.WineType2 
+		from dbo.WAName z 
+			join aa on z.vinn = aa.vinn
+	)
+	update b set 
+		erpWineType = WineType2, 
+		isErpWineTypeOK = 1, 
+		isWineTypeTranslated = case when isNull(b.WineType, '')  = isNull(WineType2, '') then 0 else 1 end;
+
+	--When JWineType is one of the eRp entries
+	with a as (
+		select vinn = vn.ID, 
+			WineType = wt.Name
+		from RPOWine.dbo.Wine_VinN vn 
+			join RPOWine.dbo.WineType wt on vn.TypeID = wt.ID
+		group by vn.ID, wt.Name
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where exists (select 1 from a where a.vinn = z.vinn and a.WineType = z.WineType)
+	)
+	update b set erpWineType = WineType, isErpWineTypeOK = 1;
+end
 
 update dbo.WAName set 
 	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E26.WineType Filled In From eRP'
 where WineType is null and eRPWineType is not null;
 
 print '-- 9j. Unresovable Vinns -- ' + cast(getdate() as varchar(30))
-; with a as (
-	select distinct 
-		vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end 
-	from RPOWine.dbo.Wine_VinN vn
-), b as (
-	select z.* 
-	from dbo.WAName z 
-	where isNull(isTempVinn, 0) = 0 and exists (select 1 from a where a.vinn = z.vinn)
-)
-update b set 
-	errors = case when errors is null then '' else errors + '   ' end + 'E42.  Vinn Producer Unresolvable'
-where isErpProducerOK = 0;
+if @IsUseOldWineN = 1 begin
+	; with a as (
+		select distinct 
+			vinn = oldVinN
+		from RPOWine.dbo.Wine_VinN vn
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where isNull(isTempVinn, 0) = 0 and exists (select 1 from a where a.vinn = z.vinn)
+	)
+	update b set 
+		errors = case when errors is null then '' else errors + '   ' end + 'E42.  Vinn Producer Unresolvable'
+	where isErpProducerOK = 0;
 
-with a as (
-	select distinct 
-		vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end 
-	from RPOWine.dbo.Wine_VinN vn
-), b as (
-	select z.* 
-	from dbo.WAName z 
-	where isNull(isTempVinn,0) = 0 and exists (select 1 from a where a.vinn = z.vinn)
-)
-update b set 
-	errors = case when errors is null then '' else errors + '   ' end + 'E43.  Vinn LabelName Unresolvable'  
-where isErpLabelNameOK = 0;
+	with a as (
+		select distinct 
+			vinn = oldVinN
+		from RPOWine.dbo.Wine_VinN vn
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where isNull(isTempVinn,0) = 0 and exists (select 1 from a where a.vinn = z.vinn)
+	)
+	update b set 
+		errors = case when errors is null then '' else errors + '   ' end + 'E43.  Vinn LabelName Unresolvable'  
+	where isErpLabelNameOK = 0;
 
-with a as (
-	select distinct 
-		vinn = case when @IsUseOldWineN = 1 then oldVinN else vn.ID end 
-	from RPOWine.dbo.Wine_VinN vn
-), b as (
-	select z.* 
-	from dbo.WAName z 
-	where isNull(isTempVinn,0) = 0 and exists (select 1 from a where a.vinn = z.vinn)
-)
-update b set 
-	errors = case when errors is null then '' else errors + '   ' end + 'E44.  Vinn ColorClass Unresolvable'  
-where isErpColorClassOK = 0
+	with a as (
+		select distinct 
+			vinn = oldVinN
+		from RPOWine.dbo.Wine_VinN vn
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where isNull(isTempVinn,0) = 0 and exists (select 1 from a where a.vinn = z.vinn)
+	)
+	update b set 
+		errors = case when errors is null then '' else errors + '   ' end + 'E44.  Vinn ColorClass Unresolvable'  
+	where isErpColorClassOK = 0
+end else begin
+	; with a as (
+		select distinct 
+			vinn = vn.ID 
+		from RPOWine.dbo.Wine_VinN vn
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where isNull(isTempVinn, 0) = 0 and exists (select 1 from a where a.vinn = z.vinn)
+	)
+	update b set 
+		errors = case when errors is null then '' else errors + '   ' end + 'E42.  Vinn Producer Unresolvable'
+	where isErpProducerOK = 0;
+
+	with a as (
+		select distinct 
+			vinn = vn.ID 
+		from RPOWine.dbo.Wine_VinN vn
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where isNull(isTempVinn,0) = 0 and exists (select 1 from a where a.vinn = z.vinn)
+	)
+	update b set 
+		errors = case when errors is null then '' else errors + '   ' end + 'E43.  Vinn LabelName Unresolvable'  
+	where isErpLabelNameOK = 0;
+
+	with a as (
+		select distinct 
+			vinn = vn.ID
+		from RPOWine.dbo.Wine_VinN vn
+	), b as (
+		select z.* 
+		from dbo.WAName z 
+		where isNull(isTempVinn,0) = 0 and exists (select 1 from a where a.vinn = z.vinn)
+	)
+	update b set 
+		errors = case when errors is null then '' else errors + '   ' end + 'E44.  Vinn ColorClass Unresolvable'  
+	where isErpColorClassOK = 0
+end
 
 print '-- 10 AssignVinnAndWineToForSale -- ' + cast(getdate() as varchar(30))
 exec LogMsg 'Import Stage 11';
@@ -1369,82 +1965,144 @@ update dbo.WAName set isTempVinn = 0;
 update dbo.WAName set vinn = -idN, isTempVinn = 1 where vinn is null or vinn < 0;
 
 --Deduce WineN
-with a as (
-	select 
-		vinn = case when @IsUseOldWineN = 1 then oldVinN else VinN end, 
-		vintage, 
-		wineN = case when @IsUseOldWineN = 1 then oldWineN else WineN end
-	from RPOWine.dbo.Wine 
-	where vinn is not null and vintage is not null and wineN is not null 
-	group by 
-		case when @IsUseOldWineN = 1 then oldVinN else VinN end, 
-		vintage, 
-		case when @IsUseOldWineN = 1 then oldWineN else WineN end
-), b as (
-	select vinn, vintage, min(wineN) wineN 
-	from a 
-	group by vinn, vintage having count(*) >1
-), c as (
-	select n.* 
-	from dbo.WAName n 
-		join b on n.vinn = b.vinn
-)
-update c set 
-	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E17.Ambiguous eRP WineN For Some Vintages';
+if @IsUseOldWineN = 1 begin
+	with a as (
+		select 
+			vinn = oldVinN, 
+			vintage, 
+			wineN = oldWineN
+		from RPOWine.dbo.Wine 
+		where vinn is not null and vintage is not null and wineN is not null 
+		group by 
+			oldVinN, vintage, oldWineN
+	), b as (
+		select vinn, vintage, min(wineN) wineN 
+		from a 
+		group by vinn, vintage having count(*) >1
+	), c as (
+		select n.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E17.Ambiguous eRP WineN For Some Vintages';
 
-with a as (
-	select 
-		vinn = case when @IsUseOldWineN = 1 then oldVinN else VinN end, 
-		vintage, 
-		wineN = case when @IsUseOldWineN = 1 then oldWineN else WineN end
-	from RPOWine.dbo.Wine
-	where vinn is not null and vintage is not null and wineN is not null 
-	group by 
-		case when @IsUseOldWineN = 1 then oldVinN else VinN end, 
-		vintage, 
-		case when @IsUseOldWineN = 1 then oldWineN else WineN end
-), b as (
-	select vinn, vintage, min(wineN) wineN 
-	from a 
-	group by vinn, vintage having count(*) >1
-), c as (
-	select s.*, vinN 
-	from dbo.ForSale s 
-		left join dbo.WAName n on s.wid = n.wid
-), d as (
-	select c.* 
-	from c 
-		join b on c.vinn = b.vinn and c.vintage = b.vintage
-)
-update d set 
-	warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E18.Ambiguous eRP WineN Given WineAlertId=>Vinn';
+	with a as (
+		select 
+			vinn = oldVinN, 
+			vintage, 
+			wineN = oldWineN
+		from RPOWine.dbo.Wine
+		where vinn is not null and vintage is not null and wineN is not null 
+		group by oldVinN, vintage, oldWineN
+	), b as (
+		select vinn, vintage, min(wineN) wineN 
+		from a 
+		group by vinn, vintage having count(*) >1
+	), c as (
+		select s.*, vinN 
+		from dbo.ForSale s 
+			left join dbo.WAName n on s.wid = n.wid
+	), d as (
+		select c.* 
+		from c 
+			join b on c.vinn = b.vinn and c.vintage = b.vintage
+	)
+	update d set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E18.Ambiguous eRP WineN Given WineAlertId=>Vinn';
 
-with a as (
-	select 
-		vinn = case when @IsUseOldWineN = 1 then oldVinN else VinN end, 
-		vintage, 
-		wineN = case when @IsUseOldWineN = 1 then oldWineN else WineN end
-	from RPOWine.dbo.Wine
-	where vinn is not null and vintage is not null and wineN is not null 
-	group by 
-		case when @IsUseOldWineN = 1 then oldVinN else VinN end, 
-		vintage, 
-		case when @IsUseOldWineN = 1 then oldWineN else WineN end
-), b as (
-	select vinn, vintage, min(wineN) wineN 
-	from a 
-	group by vinn, vintage having count(*) = 1
-), c as (
-	select s.*, vinn 
-	from dbo.ForSale s 
-		left join dbo.WAName n on s.wid = n.wid 
-	where n.errors is null and wineN is null and vinn > 0
-), d as (
-	select c.*, b.wineN bWineN 
-	from c 
-		join b on c.vinn = b.vinn and c.vintage = b.vintage
-)
-update d set wineN = bWineN, isWineNDeduced = 1;
+	with a as (
+		select 
+			vinn = oldVinN, 
+			vintage, 
+			wineN = oldWineN
+		from RPOWine.dbo.Wine
+		where vinn is not null and vintage is not null and wineN is not null 
+		group by oldVinN, vintage, oldWineN
+	), b as (
+		select vinn, vintage, min(wineN) wineN 
+		from a 
+		group by vinn, vintage having count(*) = 1
+	), c as (
+		select s.*, vinn 
+		from dbo.ForSale s 
+			left join dbo.WAName n on s.wid = n.wid 
+		where n.errors is null and wineN is null and vinn > 0
+	), d as (
+		select c.*, b.wineN bWineN 
+		from c 
+			join b on c.vinn = b.vinn and c.vintage = b.vintage
+	)
+	update d set wineN = bWineN, isWineNDeduced = 1;
+end else begin
+	with a as (
+		select 
+			vinn = VinN, 
+			vintage, 
+			wineN = WineN
+		from RPOWine.dbo.Wine 
+		where vinn is not null and vintage is not null and wineN is not null 
+		group by VinN, vintage, WineN
+	), b as (
+		select vinn, vintage, min(wineN) wineN 
+		from a 
+		group by vinn, vintage having count(*) >1
+	), c as (
+		select n.* 
+		from dbo.WAName n 
+			join b on n.vinn = b.vinn
+	)
+	update c set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E17.Ambiguous eRP WineN For Some Vintages';
+
+	with a as (
+		select 
+			vinn = VinN, 
+			vintage, 
+			wineN = WineN
+		from RPOWine.dbo.Wine
+		where vinn is not null and vintage is not null and wineN is not null 
+		group by VinN, vintage, WineN
+	), b as (
+		select vinn, vintage, min(wineN) wineN 
+		from a 
+		group by vinn, vintage having count(*) >1
+	), c as (
+		select s.*, vinN 
+		from dbo.ForSale s 
+			left join dbo.WAName n on s.wid = n.wid
+	), d as (
+		select c.* 
+		from c 
+			join b on c.vinn = b.vinn and c.vintage = b.vintage
+	)
+	update d set 
+		warnings = case when warnings  is null then ''else warnings + ',   ' end + 'E18.Ambiguous eRP WineN Given WineAlertId=>Vinn';
+
+	with a as (
+		select 
+			vinn = VinN, 
+			vintage, 
+			wineN = WineN
+		from RPOWine.dbo.Wine
+		where vinn is not null and vintage is not null and wineN is not null 
+		group by VinN, vintage, WineN
+	), b as (
+		select vinn, vintage, min(wineN) wineN 
+		from a 
+		group by vinn, vintage having count(*) = 1
+	), c as (
+		select s.*, vinn 
+		from dbo.ForSale s 
+			left join dbo.WAName n on s.wid = n.wid 
+		where n.errors is null and wineN is null and vinn > 0
+	), d as (
+		select c.*, b.wineN bWineN 
+		from c 
+			join b on c.vinn = b.vinn and c.vintage = b.vintage
+	)
+	update d set wineN = bWineN, isWineNDeduced = 1;
+end
 
 update dbo.ForSale set isTempWineN = 0;
 update dbo.ForSale set wineN = - idN, isTempWineN = 1 where wineN is null;

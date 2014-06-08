@@ -50,6 +50,10 @@ if @IsFullReload = 1 begin
 	
 end else begin
 
+	declare @Res table(
+		Act varchar(10),
+		ID int);
+
 	merge Wine as t
 	using (
 		select TasteNote_ID, Wine_N_ID, Wine_VinN_ID,
@@ -140,7 +144,14 @@ end else begin
 			s.Producer, s.ProducerShow, s.ProducerURL, s.ProducerProfileFileName, s.ShortTitle, s.Publication, s.Places,
 			s.Region, s.Rating, s.RatingShow, s.ReviewerIdN, s.showForERP, s.showForWJ, s.source, s.SourceDate, s.Site,
 			s.Vintage, s.Variety, s.VinN, s.WineN, s.WineType,
-			s.oldIdn, s.oldWineN, s.oldVinN, s.RV_TasteNote, s.RV_Wine_N);
+			s.oldIdn, s.oldWineN, s.oldVinN, s.RV_TasteNote, s.RV_Wine_N)
+	OUTPUT $action, inserted.ID INTO @Res;
+
+	declare @ins int, @upd int
+	select @ins = count(*) from @Res where Act = 'INSERT'
+	select @upd = count(*) from @Res where Act = 'UPDATE'
+	
+	print '-- Inserted: ' + cast(@ins as varchar(20)) + '; Updated: ' + cast(@upd as varchar(20))
 			
 end
 begin try
