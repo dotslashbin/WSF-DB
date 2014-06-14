@@ -1,4 +1,6 @@
 ﻿
+
+
 CREATE VIEW [dbo].[vWine]
 
 AS
@@ -20,11 +22,12 @@ select
 	encodedKeyWords = tn.oldEncodedKeyWords,
 	fixedId = tn.oldFixedId,
 	HasWJTasting = wn.HasWJTasting,
-	IsActiveWineN = isnull(tn.IsActiveWineN, wn.IsActiveWineN),
+	IsActiveWineN = isnull(tn.IsActiveWineN, 0),
 	Issue = i.Title,
 	IsERPTasting = tn.oldIsErpTasting, 
 	IsWJTasting = tn.oldIsWjTasting, 
 	IsCurrentlyForSale = wn.IsCurrentlyForSale,
+	IsCurrentlyOnAuction = wn.IsCurrentlyOnAuction,
 	LabelName = wl.Name,
 	Location = ll.Name,
 	Locale = lloc.Name,
@@ -57,7 +60,7 @@ select
 	ReviewerIdN = tn.oldReviewerIdN,
 	showForERP = tn.oldShowForERP, 
 	showForWJ = tn.oldShowForWJ,
-	source = isnull(u.FullName, ''),
+	Source = isnull(u.FullName, ''),
 	SourceDate = tn.oldSourceDate,
 	Site = lc.Name,
 	Vintage = wvin.Name,

@@ -1,4 +1,5 @@
 ﻿
+
 -- =============================================
 -- Author:		Alex B.
 -- Create date: 2/4/2014
@@ -43,7 +44,7 @@ BEGIN TRY
 	
 	delete Issue_Article where IssueID = @ID
 	delete Issue_TasteNote where IssueID = @ID
-	delete Issue_TastingEvent where IssueID = @ID
+	--delete Issue_TastingEvent where IssueID = @ID
 	delete Issue where ID = @ID
 	select @Result = @@ROWCOUNT
 	if @@error <> 0 begin
@@ -78,7 +79,5 @@ if @ShowRes = 1
 
 RETURN isnull(@Result, -1)
 GO
-GRANT EXECUTE
-    ON OBJECT::[dbo].[Issue_Del] TO [RP_DataAdmin]
-    AS [dbo];
+
 

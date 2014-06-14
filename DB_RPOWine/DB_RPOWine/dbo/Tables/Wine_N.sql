@@ -19,7 +19,6 @@
     [MostRecentAuctionPriceCnt] INT           NULL,
     [hasWJTasting]              BIT           NULL,
     [hasERPTasting]             BIT           NULL,
-    [IsActiveWineN]             BIT           NULL,
     [IsCurrentlyForSale]        BIT           NULL,
     [IsCurrentlyOnAuction]      BIT           NULL,
     [RV]                        ROWVERSION    NOT NULL,
@@ -27,6 +26,8 @@
     CONSTRAINT [FK_Wine_N_Wine_VinN] FOREIGN KEY ([Wine_VinN_ID]) REFERENCES [dbo].[Wine_VinN] ([ID]),
     CONSTRAINT [FK_Wine_N_WineVintage] FOREIGN KEY ([VintageID]) REFERENCES [dbo].[WineVintage] ([ID])
 );
+
+
 
 
 

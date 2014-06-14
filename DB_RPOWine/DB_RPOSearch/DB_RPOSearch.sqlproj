@@ -93,6 +93,8 @@
     <Build Include="Security\utils.sql" />
     <Build Include="Storage\RPOWineSearchStopList.sql" />
     <Build Include="dbo\Stored Procedures\__23UpdateImportPrices_01.sql" />
+    <Build Include="dbo\Stored Procedures\DeleteAllJulian.sql" />
+    <Build Include="dbo\Stored Procedures\23Update_RequiredIndexes.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SqlSchemaCompare_DBvsProject.scmp" />
