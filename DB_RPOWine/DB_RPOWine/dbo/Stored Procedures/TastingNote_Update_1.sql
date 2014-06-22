@@ -1,15 +1,23 @@
 ﻿
 
 
+
 -- =============================================
 -- Author:		Alex B.
 -- Create date: 1/28/2014
 -- Description:	Updates TasteNote record.
+
+-- Updates 6/17/2014 by Sergey Savchenko. 
+-- remove parameter @showResult,
+-- do not update @UserId, (do not remove it from the list of parameters though)
+-- return @ID from function
+
 -- =============================================
 CREATE PROCEDURE [dbo].[TastingNote_Update]
 	@ID int, 
 	@OriginID int = NULL, -- used to point to the "edited" note...
-	@UserId int = NULL, @IssueID int = NULL,
+	@UserId int = NULL,
+	@IssueID int = NULL,
 	@Wine_N_ID int = NULL,
 	
 	@TasteDate date = NULL,
@@ -21,23 +29,9 @@ CREATE PROCEDURE [dbo].[TastingNote_Update]
 
 	@Places nvarchar(150) = null,
 	@Notes nvarchar(max) = NULL,
-	--@PublicationDate date = NULL,
 	
-	@WF_StatusID smallint = NULL,
-	--@UserName varchar(50),
-	@ShowRes smallint = 1
+	@WF_StatusID smallint = NULL
 		
-/*
-select top 20 * from TasteNote order by ID desc
-declare @r int
-exec @r = TasteNote_Update @ID = 278791, @OriginID=NULL, @UserId=2, @Wine_N_ID=6151,
-	@TasteDate = '2/1/2013', @MaturityID = 2,
-	@Rating_Lo = 88, @Rating_Hi = 94, @Notes = 'First in my list... and a simple update.',
-	@WF_StatusID = NULL
-select @r
-
-exec TasteNote_Update @ID = 254321, @WF_StatusID = 100
-*/	
 
 AS
 set nocount on
@@ -154,11 +148,7 @@ BEGIN TRY
 	if @@error <> 0 begin
 		select @Result = -1
 		ROLLBACK TRAN
-	--end else begin
-	--	declare @msg nvarchar(1024) = dbo.fn_GetObjectDescription('TasteNote', @ID)
-	--	exec Audit_Add @Type='Success', @Category='Update', @Source='SQL', @UserName=@UserName, @MachineName='', 
-	--		@ObjectType='TasteNote', @ObjectID=@ID, @Description='TasteNote updated', @Message=@msg,
-	--		@ShowRes=0
+
 	end
 
 	COMMIT TRANSACTION
@@ -179,7 +169,6 @@ BEGIN CATCH
 	raiserror(@errMsg, @errSeverity, 1)
 END CATCH
 
-if @ShowRes = 1
-	select Result = isnull(@Result, -1)
+select Result = isnull(@ID, -1)
 
-RETURN isnull(@Result, -1)
+RETURN isnull(@ID, -1)

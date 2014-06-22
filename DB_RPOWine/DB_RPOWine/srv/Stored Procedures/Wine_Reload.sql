@@ -16,14 +16,14 @@ AS
 set nocount on;
 set xact_abort on;
 
-begin try
-	alter fullText Index on Wine disable;
-end try
-begin catch
-end catch
-
 if @IsFullReload = 1 begin
 	truncate table Wine;
+
+	begin try
+		alter fullText Index on Wine disable;
+	end try
+	begin catch
+	end catch
 
 	insert into Wine (TasteNote_ID, Wine_N_ID, Wine_VinN_ID,
 		ArticleID, ArticleIdNKey,
@@ -48,11 +48,36 @@ if @IsFullReload = 1 begin
 		oldIdn, oldWineN, oldVinN, RV_TasteNote, RV_Wine_N
 	from vWine;
 	
+	begin try
+		alter fullText Index on Wine enable;
+	end try
+	begin catch
+	end catch
+
 end else begin
 
 	declare @Res table(
 		Act varchar(10),
-		ID int);
+		ID int null,
+		DelID int null);
+
+	select TasteNote_ID, Wine_N_ID, Wine_VinN_ID,
+		ArticleID, ArticleIdNKey,
+		ColorClass,	Country, ClumpName,	Dryness, DrinkDate, DrinkDate_hi, EstimatedCost, encodedKeyWords,
+		fixedId, HasWJTasting, IsActiveWineN, Issue, IsERPTasting, IsWJTasting, IsCurrentlyForSale, IsCurrentlyOnAuction,
+		LabelName, Location, Locale, Maturity, MostRecentPrice, MostRecentPriceHi, MostRecentAuctionPrice,
+		Notes,
+		Producer, ProducerShow, ProducerURL, ProducerProfileFileName, ShortTitle, Publication, Places,
+		Region,	Rating, RatingShow, ReviewerIdN, showForERP, showForWJ, source, SourceDate, Site,
+		Vintage, Variety, VinN, WineN, WineType,
+		oldIdn, oldWineN, oldVinN, 
+		RV_TasteNote = cast(RV_TasteNote as binary(8)), 
+		RV_Wine_N = cast(RV_Wine_N as binary(8))
+	into #t
+	from vWine;
+	
+	--CREATE NONCLUSTERED INDEX IX_t on #t (TasteNote_ID, Wine_N_ID, Wine_VinN_ID)
+	alter table #t add constraint PR_t primary key (TasteNote_ID, Wine_N_ID);
 
 	merge Wine as t
 	using (
@@ -66,8 +91,8 @@ end else begin
 			Region,	Rating, RatingShow, ReviewerIdN, showForERP, showForWJ, source, SourceDate, Site,
 			Vintage, Variety, VinN, WineN, WineType,
 			oldIdn, oldWineN, oldVinN, RV_TasteNote, RV_Wine_N
-		from vWine
-	) as s on t.TasteNote_ID = s.TasteNote_ID and t.Wine_N_ID = s.Wine_N_ID and t.Wine_VinN_ID = s.Wine_VinN_ID
+		from #t	--vWine
+	) as s on t.TasteNote_ID = s.TasteNote_ID and t.Wine_N_ID = s.Wine_N_ID --and t.Wine_VinN_ID = s.Wine_VinN_ID
 	when matched 
 		and (t.RV_TasteNote != s.RV_TasteNote or t.RV_Wine_N != s.RV_Wine_N)
 	then
@@ -146,19 +171,21 @@ end else begin
 			s.Region, s.Rating, s.RatingShow, s.ReviewerIdN, s.showForERP, s.showForWJ, s.source, s.SourceDate, s.Site,
 			s.Vintage, s.Variety, s.VinN, s.WineN, s.WineType,
 			s.oldIdn, s.oldWineN, s.oldVinN, s.RV_TasteNote, s.RV_Wine_N)
-	OUTPUT $action, inserted.ID INTO @Res;
+	when not matched by source then
+		DELETE
+	OUTPUT $action, inserted.ID, deleted.ID INTO @Res;
 
-	declare @ins int, @upd int
+	drop table #t;
+	
+	declare @ins int, @upd int, @dlt int
 	select @ins = count(*) from @Res where Act = 'INSERT'
 	select @upd = count(*) from @Res where Act = 'UPDATE'
+	select @dlt = count(*) from @Res where Act = 'DELETE'
 	
-	print '-- Inserted: ' + cast(@ins as varchar(20)) + '; Updated: ' + cast(@upd as varchar(20))
+	print '-- Inserted: ' + cast(@ins as varchar(20)) 
+		+ '; Updated: ' + cast(@upd as varchar(20))
+		+ '; Deleted: ' + cast(@dlt as varchar(20))
 			
 end
-begin try
-	alter fullText Index on Wine enable;
-end try
-begin catch
-end catch
 
 RETURN 1

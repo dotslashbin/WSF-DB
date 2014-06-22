@@ -67,10 +67,14 @@
 
 
 
+
+
 GO
 CREATE NONCLUSTERED INDEX [IX_Wine_WineNID]
-    ON [dbo].[Wine]([Wine_N_ID] ASC)
-    INCLUDE([TasteNote_ID], [Wine_VinN_ID], [ID]);
+    ON [dbo].[Wine]([Wine_N_ID] ASC, [TasteNote_ID] ASC)
+    INCLUDE([Wine_VinN_ID], [ID]);
+
+
 
 
 
