@@ -96,8 +96,8 @@ art as (
 		join Users u (nolock) on a.AuthorId = u.UserId
 		left join (
 			select idN = m.idN, WineProducer=w.Producer, Date = isnull(w.sourceDate, w.DateUpdated)
-			from RPOWineData.dbo.tocMap m
-				join RPOWineData.dbo.Wine w on w.FixedId = m.fixedId
+			from RPOWineDataD.dbo.tocMap m
+				join RPOWineDataD.dbo.Wine w on w.FixedId = m.fixedId
 			--group by m.idN
 			) ww on a.oldArticleIdN = ww.idN
 		left join WineProducer wp (nolock) on ww.WineProducer = wp.Name
@@ -249,7 +249,7 @@ GO
 /* ------------ check ----------
 select * from #t where WineProducerID = 0
 select * from Article where ID in (226, 1016)
-select * from RPOWineData..Articles where ArticleIdNKey in (294, -99900051)
+select * from RPOWineDataD..Articles where ArticleIdNKey in (294, -99900051)
 select * from Assignment where ID = 481
 select * from Assignment_Article where AssignmentID = 481 
 select * from Assignment_TastingEvent where AssignmentID = 481 
@@ -310,7 +310,7 @@ from TasteNote tn
 	join vWineDetails w on tn.Wine_N_ID = w.Wine_N_ID
 where tn.ID = 93778
 select * from Article_TasteNote where TasteNoteID = 93778
-select * from RPOWineData.dbo.tocMap where fixedId = 382987
+select * from RPOWineDataD.dbo.tocMap where fixedId = 382987
 
 delete TastingEvent_TasteNote where TasteNoteID in (
 	select tn.ID 

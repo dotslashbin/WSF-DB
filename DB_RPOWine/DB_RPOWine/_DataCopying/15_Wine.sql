@@ -1,6 +1,6 @@
 ﻿-- ======= Wine ========
 --
--- Data Source: RPOWineData.dbo
+-- Data Source: RPOWineDataD.dbo
 --
 --
 USE [RPOWine]
@@ -42,7 +42,7 @@ select
 	IsCurrentlyForSale = max(cast((case when isnull(IsActiveWineN, 1) = 1 then IsCurrentlyForSale else 0 end) as smallint)),
 	IsCurrentlyOnAuction = max(cast((case when isnull(IsActiveWineN, 1) = 1 then IsCurrentlyOnAuction else 0 end) as smallint))
 into #t
-from RPOWineData.dbo.Wine wn
+from RPOWineDataD.dbo.Wine wn
 	left join WineProducer wp on isnull(wn.Producer, '') = wp.Name
 	left join WineType wt on isnull(wn.WineType, '') = wt.Name
 	left join WineLabel wl on isnull(wn.LabelName, '') = wl.Name
@@ -86,7 +86,7 @@ commit tran
 begin tran
 	insert into Wine_N (Wine_VinN_ID,VintageID, oldIdn,oldEntryN,oldFixedId,oldWineNameIdN, oldWineN, oldVinN, WF_StatusID,
 		MostRecentPrice, MostRecentPriceHi, MostRecentPriceCnt, MostRecentAuctionPrice, MostRecentAuctionPriceHi, 
-		MostRecentAuctionPriceCnt, hasWJTasting, hasERPTasting, IsActiveWineN, IsCurrentlyForSale, IsCurrentlyOnAuction)
+		MostRecentAuctionPriceCnt, hasWJTasting, hasERPTasting, IsCurrentlyForSale, IsCurrentlyOnAuction)
 	select 
 		VinNID = v.ID,
 		VintageID = #t.VintageID, 
@@ -98,7 +98,7 @@ begin tran
 		oldVinN = max(#t.oldVinN),
 		WF_StatusID = 100,
 		#t.MostRecentPrice, #t.MostRecentPriceHi, #t.MostRecentPriceCnt, #t.MostRecentAuctionPrice, #t.MostRecentAuctionPriceHi, 
-		#t.MostRecentAuctionPriceCnt, #t.hasWJTasting, #t.hasERPTasting, #t.IsActiveWineN, #t.IsCurrentlyForSale, #t.IsCurrentlyOnAuction
+		#t.MostRecentAuctionPriceCnt, #t.hasWJTasting, #t.hasERPTasting, #t.IsCurrentlyForSale, #t.IsCurrentlyOnAuction
 	from #t
 		join Wine_VinN v on #t.ProducerID = v.ProducerID and #t.TypeID = v.TypeID 
 			and #t.LabelID = v.LabelID and #t.VarietyID = v.VarietyID
@@ -108,7 +108,7 @@ begin tran
 			and #t.locSiteID = v.locSiteID
 	group by v.ID, #t.VintageID,
 		#t.MostRecentPrice, #t.MostRecentPriceHi, #t.MostRecentPriceCnt, #t.MostRecentAuctionPrice, #t.MostRecentAuctionPriceHi, 
-		#t.MostRecentAuctionPriceCnt, #t.hasWJTasting, #t.hasERPTasting, #t.IsActiveWineN, #t.IsCurrentlyForSale, #t.IsCurrentlyOnAuction
+		#t.MostRecentAuctionPriceCnt, #t.hasWJTasting, #t.hasERPTasting, #t.IsCurrentlyForSale, #t.IsCurrentlyOnAuction
 	--rollback tran
 commit tran
 
@@ -126,7 +126,7 @@ commit tran
 --				and #t.locCountryID = v.locCountryID and #t.locRegionID = v.locRegionID
 --				and #t.locLocationID = v.locLocationID and #t.locLocaleID = v.locLocaleID
 --				and #t.locSiteID = v.locSiteID
---			join RPOWineData.dbo.Wine wn on #t.ProducerName = isnull(wn.Producer, '') 
+--			join RPOWineDataD.dbo.Wine wn on #t.ProducerName = isnull(wn.Producer, '') 
 --				and #t.TypeName = isnull(wn.WineType, '') and #t.LabelName = isnull(wn.LabelName, '')
 --				and #t.VarietyName = isnull(wn.Variety, '') and #t.DrynessName = isnull(wn.Dryness, '')
 --				and #t.ColorName = isnull(wn.ColorClass, '') and #t.VintageName = isnull(wn.Vintage, '')
@@ -155,7 +155,7 @@ commit tran
 --		IsCurrentlyOnAuction
 --	from w
 --		join Wine_N wn on w.VinNID = wn.Wine_VinN_ID and w.VintageID = wn.VintageID
---		join RPOWineData.dbo.Wine ow on w.wineIdn = ow.Idn
+--		join RPOWineDataD.dbo.Wine ow on w.wineIdn = ow.Idn
 ----rollback tran
 --commit tran
 
@@ -174,7 +174,7 @@ from (
 		ColorClass = isnull(wn.ColorClass, ''), --Vintage = isnull(wn.Vintage, ''),
 		Country = isnull(wn.Country, ''), Region = isnull(wn.Region, ''), 
 		Location = isnull(wn.Location, ''), Locale = isnull(wn.Locale, ''), Site = isnull(wn.Site, '')
-	from RPOWineData.dbo.Wine wn
+	from RPOWineDataD.dbo.Wine wn
 ) a
 
 select @uwDest = count(*) from Wine_VinN
@@ -194,7 +194,7 @@ from (
 		ColorClass = isnull(wn.ColorClass, ''), Vintage = isnull(wn.Vintage, ''),
 		Country = isnull(wn.Country, ''), Region = isnull(wn.Region, ''), 
 		Location = isnull(wn.Location, ''), Locale = isnull(wn.Locale, ''), Site = isnull(wn.Site, '')
-	from RPOWineData.dbo.Wine wn
+	from RPOWineDataD.dbo.Wine wn
 ) a
 
 select @uwDest = count(*) from Wine_N

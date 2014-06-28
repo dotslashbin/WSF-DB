@@ -10,7 +10,7 @@ AS
 set nocount on;
 set xact_abort on;
 
-begin tran
+--begin tran
 
 	; with 
 	tn1 as (
@@ -56,6 +56,6 @@ begin tran
 		or oldIsErpTasting != tnRes.isErpTasting or oldIsWjTasting != tnRes.isWjTasting)
 	;
 	
-commit tran
+--commit tran
 
 RETURN 1

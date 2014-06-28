@@ -1,6 +1,6 @@
 ﻿-- ======= Wine Types ========
 --
--- Data Source: RPOWineData.dbo
+-- Data Source: RPOWineDataD.dbo
 --
 --
 USE [RPOWine]
@@ -25,7 +25,7 @@ set identity_insert WineType off
 go
 insert into WineType (Name, WF_StatusID)
 select wn.WineType, WF_StatusID = 100
-from RPOWineData.dbo.Wine wn
+from RPOWineDataD.dbo.Wine wn
 	left join WineType c on wn.WineType = c.Name
 where wn.WineType is not null and LEN(wn.WineType) > 0 and c.ID is NULL
 group by wn.WineType
@@ -38,14 +38,14 @@ set identity_insert WineLabel off
 go
 insert into WineLabel (Name, WF_StatusID)
 select wn.LabelName, WF_StatusID = 100
-from RPOWineData.dbo.Wine wn
+from RPOWineDataD.dbo.Wine wn
 	left join WineLabel l on wn.LabelName = l.Name
 where wn.LabelName  is not null and LEN(wn.LabelName ) > 0  and l.ID is NULL
 group by wn.LabelName 
 GO
 
 ---------- WineProducer
---select top 200 * from RPOWineData.dbo.Wine
+--select top 200 * from RPOWineDataD.dbo.Wine
 set identity_insert WineProducer on
 insert into WineProducer (ID, Name, NameToShow, locCountryID,locRegionID,locLocationID,locLocaleID,locSiteID, WF_StatusID) 
 values (0, N'', N'', 0,0,0,0,0,0)
@@ -54,7 +54,7 @@ go
 insert into WineProducer (Name, NameToShow, WebSiteURL, ProfileFileName, locCountryID,locRegionID,locLocationID,locLocaleID,locSiteID, WF_StatusID)
 select wn.Producer, NameToShow = max(wn.ProducerShow), WebSiteURL = max(wn.ProducerURL), ProfileFileName = max(wn.ProducerProfileFileName), 
 	0,0,0,0,0, WF_StatusID = 100
-from RPOWineData.dbo.Wine wn
+from RPOWineDataD.dbo.Wine wn
 	left join WineProducer l on wn.Producer = l.Name
 where wn.Producer is not null and LEN(wn.Producer) > 0 and l.ID is NULL
 group by wn.Producer
@@ -62,14 +62,14 @@ GO
 --select top 200 * from WineProducer where WebSiteURL is NOT NULL
 
 -------- WineDryness
---select max(len(Dryness)) from RPOWineData.dbo.Wine
+--select max(len(Dryness)) from RPOWineDataD.dbo.Wine
 set identity_insert WineDryness on
 insert into WineDryness (ID, Name, WF_StatusID) values (0, N'', 0)
 set identity_insert WineDryness off
 go
 insert into WineDryness (Name, WF_StatusID)
 select wn.Dryness, WF_StatusID=100
-from RPOWineData.dbo.Wine wn
+from RPOWineDataD.dbo.Wine wn
 	left join WineDryness l on wn.Dryness = l.Name
 where wn.Dryness  is not null and LEN(wn.Dryness ) > 0  and l.ID is NULL
 group by wn.Dryness 
@@ -82,7 +82,7 @@ set identity_insert WineColor off
 go
 insert into WineColor (Name, WF_StatusID)
 select wn.ColorClass, WF_StatusID = 100
-from RPOWineData.dbo.Wine wn
+from RPOWineDataD.dbo.Wine wn
 	left join WineColor l on wn.ColorClass  = l.Name
 where wn.ColorClass is not null and LEN(wn.ColorClass ) > 0 and l.ID is NULL
 group by wn.ColorClass  
@@ -95,15 +95,15 @@ set identity_insert WineVariety off
 go
 insert into WineVariety (Name, WF_StatusID)
 select wn.Variety, WF_StatusID = 100
-from RPOWineData.dbo.Wine wn
+from RPOWineDataD.dbo.Wine wn
 	left join WineVariety l on wn.Variety = l.Name
 where wn.Variety is not null and LEN(wn.Variety ) > 0  and l.ID is NULL
 group by wn.Variety  
 GO
 
 -------- Bottle Size
---select max(len(BottleSize)) from RPOWineData.dbo.Wine
---select top 20 * from RPOWineData.dbo.Wine
+--select max(len(BottleSize)) from RPOWineDataD.dbo.Wine
+--select top 20 * from RPOWineDataD.dbo.Wine
 set identity_insert WineBottleSize on
 insert into WineBottleSize (ID, Name, Volume, WF_StatusID) values (0, N'', 0, 0)
 set identity_insert WineBottleSize off
@@ -121,7 +121,7 @@ from (select BottleSize = case
 			when BottleSize = '750 ml' then '750 ml - Standard Bottle'
 			else BottleSize
 		end
-		from RPOWineData.dbo.Wine)wn
+		from RPOWineDataD.dbo.Wine)wn
 	left join WineBottleSize l on wn.BottleSize = l.Name
 where wn.BottleSize is not null and LEN(wn.BottleSize) > 0 and l.ID is NULL
 group by wn.BottleSize   
@@ -130,14 +130,14 @@ GO
 --select * from WineBottleSize order by Name -- ?: ShortName, NameInSummary
 
 -------- WineVintage
---select max(len(Vintage)) from RPOWineData.dbo.Wine
+--select max(len(Vintage)) from RPOWineDataD.dbo.Wine
 set identity_insert WineVintage on
 insert into WineVintage (ID, Name, WF_StatusID) values (0, N'', 0)
 set identity_insert WineVintage off
 go
 insert into WineVintage (Name, WF_StatusID)
 select wn.Vintage, WF_StatusID = 100
-from RPOWineData.dbo.Wine wn
+from RPOWineDataD.dbo.Wine wn
 	left join WineVintage l on wn.Vintage   = l.Name
 where wn.Vintage is not null and LEN(wn.Vintage ) > 0  and l.ID is NULL
 group by wn.Vintage  

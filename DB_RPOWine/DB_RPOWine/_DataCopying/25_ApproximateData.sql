@@ -31,3 +31,5 @@ from r
 	join WineProducer wp on r.ProducerID = wp.ID
 	join Wine_VinN v on wp.ID = v.ProducerID
 where cnt = 1
+;
+GO

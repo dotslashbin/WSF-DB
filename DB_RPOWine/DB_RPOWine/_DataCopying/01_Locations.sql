@@ -1,6 +1,6 @@
 ﻿-- ======= Locations ========
 --
--- Data Source: RPOWineData.dbo, ArticlesParser.dbo
+-- Data Source: RPOWineDataD.dbo, ArticlesParser.dbo
 --
 --
 USE [RPOWine]
@@ -16,7 +16,7 @@ set identity_insert LocationCountry off
 go
 insert into LocationCountry (Name, WF_StatusID)
 select Country, WF_StatusID = 100
-from RPOWineData.dbo.Wine wn
+from RPOWineDataD.dbo.Wine wn
 	left join LocationCountry c on wn.Country = c.Name
 where wn.Country is not null and LEN(wn.Country) > 0 and c.ID is NULL
 group by wn.Country
@@ -29,7 +29,7 @@ set identity_insert LocationRegion off
 go
 insert into LocationRegion (Name, WF_StatusID)
 select wn.Region, WF_StatusID = 100
-from RPOWineData.dbo.Wine wn
+from RPOWineDataD.dbo.Wine wn
 	left join LocationRegion r on wn.Region = r.Name
 where wn.Region is not null and LEN(wn.Region) > 0 and r.ID is NULL
 group by wn.Region
@@ -42,7 +42,7 @@ set identity_insert LocationLocation off
 go
 insert into LocationLocation (Name, WF_StatusID)
 select wn.Location, WF_StatusID = 100
-from RPOWineData.dbo.Wine wn
+from RPOWineDataD.dbo.Wine wn
 	left join LocationLocation r on wn.Location = r.Name
 where wn.Location is not null and LEN(wn.Location) > 0 and r.ID is NULL
 group by wn.Location
@@ -55,7 +55,7 @@ set identity_insert LocationLocale off
 go
 insert into LocationLocale (Name, WF_StatusID)
 select wn.Locale, WF_StatusID = 100
-from RPOWineData.dbo.Wine wn
+from RPOWineDataD.dbo.Wine wn
 	left join LocationLocale r on wn.Locale = r.Name
 where wn.Locale is not null and LEN(wn.Locale) > 0 and r.ID is NULL
 group by wn.Locale
@@ -68,7 +68,7 @@ set identity_insert LocationSite off
 go
 insert into LocationSite (Name, WF_StatusID)
 select wn.Site, WF_StatusID = 100
-from RPOWineData.dbo.Wine wn
+from RPOWineDataD.dbo.Wine wn
 	left join LocationSite r on wn.Site = r.Name
 where wn.Site is not null and LEN(wn.Site) > 0 and r.ID is NULL
 group by wn.Site
@@ -81,7 +81,7 @@ set identity_insert LocationPlaces off
 go
 insert into LocationPlaces (Name, WF_StatusID)
 select wn.Places, WF_StatusID = 100
-from RPOWineData.dbo.Wine wn
+from RPOWineDataD.dbo.Wine wn
 	left join LocationPlaces r on wn.Site = r.Name
 where wn.Places is not null and LEN(wn.Places) > 0 and r.ID is NULL
 group by wn.Places

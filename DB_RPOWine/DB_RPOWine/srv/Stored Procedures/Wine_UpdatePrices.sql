@@ -2,7 +2,7 @@
 -- =============================================
 -- Author:		Alex B.
 -- Create date: 5/23/2014
--- Description:	Updates price and auction price based on new data in erpSearchD databse.
+-- Description:	Updates price and auction price based on new data in RPOSearch databse.
 -- =============================================
 CREATE PROCEDURE [srv].[Wine_UpdatePrices]
 
@@ -14,9 +14,9 @@ set xact_abort on;
 --alter table WAName add
 --	Wine_VinN_ID int null
 
-begin tran
+--begin tran
 	-- 01. Set VinN in WAName (4 sec)
-	update eRPSearchD.dbo.WAName set Wine_VinN_ID = NULL;
+	update RPOSearch.dbo.WAName set Wine_VinN_ID = NULL;
 
 	; with r as (
 		select --top 20
@@ -27,8 +27,8 @@ begin tran
 			wn.erpDryness, DrynessID = wd.ID, wn.erpColorClass, ColorID = wc.ID,
 			wn.erpCountry, CountryID = lc.ID, wn.erpRegion, RegionID = lr.ID,
 			wn.erpLocation, LocationID = ll.ID
-		from eRPSearchD.dbo.WAName wn
-			join eRPSearchD.dbo.ForSaleDetail sd on sd.Wid = wn.Wid
+		from RPOSearch.dbo.WAName wn
+			join RPOSearch.dbo.ForSaleDetail sd on sd.Wid = wn.Wid
 			left join WineProducer wp on isnull(wn.erpProducer, '') = wp.Name
 			left join WineType wt on isnull(wn.erpWineType, '') = wt.Name
 			left join WineLabel wl on isnull(wn.erpLabelName, '') = wl.Name
@@ -47,9 +47,9 @@ begin tran
 				and wv.ID = vn.VarietyID and wd.ID = vn.DrynessID and wc.ID = vn.ColorID
 				and lc.ID = vn.locCountryID and lr.ID = vn.locRegionID and ll.ID = vn.locLocationID
 	)
-	update eRPSearchD.dbo.WAName set Wine_VinN_ID = r.Wine_VinN_ID
+	update RPOSearch.dbo.WAName set Wine_VinN_ID = r.Wine_VinN_ID
 	from r
-		join eRPSearchD.dbo.WAName on r.idN = WAName.idN
+		join RPOSearch.dbo.WAName on r.idN = WAName.idN
 	where r.Wine_VinN_ID is not null
 	;
 
@@ -64,8 +64,8 @@ begin tran
 			AuctionPrice = min(case when sd.isAuction = 0 then null else sd.DollarsPer750Bottle end),
 			AuctionPriceHi = max(case when sd.isAuction = 0 then null else sd.DollarsPer750Bottle end),
 			AuctionPriceCnt = sum(case when sd.isAuction = 0 then 0 else 1 end)
-		from eRPSearchD.dbo.ForSaleDetail sd
-			join eRPSearchD.dbo.WAName wan on sd.Wid = wan.Wid
+		from RPOSearch.dbo.ForSaleDetail sd
+			join RPOSearch.dbo.WAName wan on sd.Wid = wan.Wid
 			join WineVintage wvin on isnull(sd.Vintage, '') = wvin.Name
 			join Wine_N wn on wan.Wine_VinN_ID = wn.Wine_VinN_ID and wn.VintageID = wvin.ID
 		where isnull(sd.DollarsPer750Bottle, 0) > 0 and sd.Errors is null and wan.Errors is null
@@ -102,8 +102,8 @@ begin tran
 			AuctionPrice = min(case when sd.isAuction = 0 then null else sd.DollarsPer750Bottle end),
 			AuctionPriceHi = max(case when sd.isAuction = 0 then null else sd.DollarsPer750Bottle end),
 			AuctionPriceCnt = sum(case when sd.isAuction = 0 then 0 else 1 end)
-		from eRPSearchD.dbo.ForSaleDetail sd
-			join eRPSearchD.dbo.WAName wan on sd.Wid = wan.Wid
+		from RPOSearch.dbo.ForSaleDetail sd
+			join RPOSearch.dbo.WAName wan on sd.Wid = wan.Wid
 			join WineVintage wvin on isnull(sd.Vintage, '') = wvin.Name
 			join Wine_N wn on wan.Wine_VinN_ID = wn.Wine_VinN_ID and wn.VintageID = wvin.ID
 		where isnull(sd.DollarsPer750Bottle, 0) > 0 and sd.Errors is null and wan.Errors is null
@@ -147,6 +147,6 @@ begin tran
 	where (wn.hasWJTasting != has.hasWJTasting or wn.hasERPTasting != has.hasERPTasting)
 	;
 	
-commit tran
+--commit tran
 
 RETURN 1

@@ -64,6 +64,7 @@ DBCC CHECKIDENT (Publisher, RESEED, 0)
 GO
 print '--------- delete Wine data --------'
 GO
+truncate table Wine
 delete Wine_N
 delete Wine_VinN
 truncate table WineBottleSize

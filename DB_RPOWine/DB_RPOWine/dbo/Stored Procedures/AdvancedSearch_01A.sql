@@ -33,13 +33,15 @@ CREATE PROCEDURE [dbo].[AdvancedSearch_01A]
 	@ArticleID int = NULL,
 	@Author nvarchar(50) = NULL,
 	
+	@IsActiveWineN smallint = 1,
+	
 	-- Sorting
 	@StartRow int = NULL, @EndRow int = NULL,
 	@SortBy varchar(20) = NULL, @SortOrder varchar(3) = NULL,
 	
 	@topNRows int = 500,
 	@isDebug bit = 0
-	
+
 /*
 exec AdvancedSearch_01A @SortBy = 'RecentPrice', @SortOrder = 'asc', @topNRows = 500, @isDebug = 1,
 	@WineProducer = 'taylor', @WineLabel = 'port', @IsWineForSale = 1, @showForERP = 1,
@@ -72,7 +74,7 @@ if isnull(@StartRow, 0) < 0 or isnull(@EndRow, 0) <= 0
 --------- Results --------
 
 if (@StartRow is NULL or @EndRow is NULL) begin
-	-- no row_number!
+	-- no row_number!	
 	select top (@topNRows)  
 		[Vintage], 
 		[Vintages] = isnull(Vintage, ''),	-- Case Vintage  WHEN '' THEN ''  ELSE Vintage  END,  
@@ -103,8 +105,8 @@ if (@StartRow is NULL or @EndRow is NULL) begin
 	--where isActiveWineN = 1
 	--	and contains((encodedKeyWords,labelname,producershow), @Keyword)
 	--	and (showForERP=1) 
-	where
-			(@WineProducer = '*' or contains((Producer, ProducerShow), @WineProducer))
+	where 
+		    (@WineProducer = '*' or contains((Producer, ProducerShow), @WineProducer))
 		and (@WineLabel = '*' or contains((encodedKeyWords,labelname,producershow), @WineLabel))	-- LabelName for proper search by macroses
 		and (@TextSearch = '*' or contains((encodedKeyWords, ProducerShow, LabelName), @TextSearch))
 		and (@Notes = '*' or contains(Notes, @Notes))
@@ -130,7 +132,7 @@ if (@StartRow is NULL or @EndRow is NULL) begin
 		and (@IsTasteNoteExists is NULL or (Notes is NOT NULL and Notes!= ''))
 		and (@showForERP is NULL or showForERP = @showForERP)
 		and (@showForWJ is NULL or showForWJ = @showForWJ)
-
+		and (@IsActiveWineN is NULL or IsActiveWineN = @IsActiveWineN)
 	order by 
 		case when @SortBy = 'Vintage' and @SortOrder = 'asc' then Vintage else null end asc, 
 		case when @SortBy = 'Vintage' and @SortOrder = 'des' then Vintage else null end desc,
@@ -187,6 +189,7 @@ end else begin
 		and (@IsTasteNoteExists is NULL or (Notes is NOT NULL and Notes!= ''))
 		and (@showForERP is NULL or showForERP = @showForERP)
 		and (@showForWJ is NULL or showForWJ = @showForWJ)
+		and (@IsActiveWineN is NULL or IsActiveWineN = @IsActiveWineN)
 		
 	; with res as (
 	select top (@topNRows)  
@@ -270,6 +273,7 @@ end else begin
 		and (@IsTasteNoteExists is NULL or (Notes is NOT NULL and Notes!= ''))
 		and (@showForERP is NULL or showForERP = @showForERP)
 		and (@showForWJ is NULL or showForWJ = @showForWJ)
+		and (@IsActiveWineN is NULL or IsActiveWineN = @IsActiveWineN)
 	)
 	select *
 	from res

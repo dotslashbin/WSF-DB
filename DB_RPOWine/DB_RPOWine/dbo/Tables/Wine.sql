@@ -15,7 +15,7 @@
     [encodedKeyWords]         NVARCHAR (255) NULL,
     [fixedId]                 INT            NULL,
     [HasWJTasting]            BIT            NULL,
-    [IsActiveWineN]           BIT            NULL,
+    [IsActiveWineN]           SMALLINT       CONSTRAINT [DF_Wine_IsActiveWineN] DEFAULT ((0)) NOT NULL,
     [Issue]                   NVARCHAR (255) NULL,
     [IsERPTasting]            BIT            NULL,
     [IsWJTasting]             BIT            NULL,
@@ -59,6 +59,8 @@
     [RV_Wine_N]               BINARY (8)     CONSTRAINT [DF__Wine__RV_Wine_N__15A6CAE1] DEFAULT (0x00) NOT NULL,
     CONSTRAINT [PK_Wine] PRIMARY KEY CLUSTERED ([ID] ASC)
 );
+
+
 
 
 

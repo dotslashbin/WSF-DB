@@ -47,7 +47,7 @@ where wn.Wine_VinN_ID is NULL and isnull(sd.DollarsPer750Bottle, 0) > 0
 group by isnull(wn.erpProducer,wn.Producer)
 
 -------- WineDryness
---select max(len(Dryness)) from RPOWineData.dbo.Wine
+--select max(len(Dryness)) from RPOWineDataD.dbo.Wine
 insert into WineDryness (Name, WF_StatusID)
 select wn.Dryness, WF_StatusID=100
 from eRPSearchD.dbo.WAName wn

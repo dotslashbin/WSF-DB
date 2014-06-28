@@ -1,6 +1,6 @@
 ﻿-- ======= Publication Types ========
 --
--- Data Source: RPOWineData.dbo, Membership..aspnet_Users
+-- Data Source: RPOWineDataD.dbo, Membership..aspnet_Users
 --
 --
 USE [RPOWine]
@@ -23,7 +23,7 @@ GO
 		when Publication like 'Executive Wine Seminar%' then 'Executive Wine Seminar'
 		else Publication
 	end
-	from RPOWineData.dbo.Wine
+	from RPOWineDataD.dbo.Wine
 	group by case
 		when Publication like '%robertpark%' then 'eRobertParker.com'
 		when Publication like 'Executive Wine Seminar%' then 'Executive Wine Seminar'
@@ -56,7 +56,7 @@ GO
 --		oldReviewerIdN = ReviewerIdN, 
 --		WF_StatusID = 100,
 --		cnt = count(*)
---	from RPOWineData.dbo.Wine
+--	from RPOWineDataD.dbo.Wine
 --	group by ReviewerIdN, Source
 --)
 --insert into Reviewer (Name, UserId, oldReviewerIdN, WF_StatusID)
@@ -76,7 +76,7 @@ GO
 		Name = isnull([Source], ''),
 		RN = row_number() over(order by Source),
 		cnt = count(*)
-	from RPOWineData.dbo.Wine
+	from RPOWineDataD.dbo.Wine
 	group by Source
 )
 insert into Users ([UserId],[UserName],[FirstName],[LastName],[IsAvailable],[created])

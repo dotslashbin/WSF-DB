@@ -8,7 +8,7 @@ GO
 --delete Article
 --DBCC CHECKIDENT (Article, RESEED, 1)
 --GO
---select count(*) from RPOWineData.dbo.Articles	--1,387
+--select count(*) from RPOWineDataD.dbo.Articles	--1,387
 --select count(*) from Article
 --select count(*) from Issue_Article
 --select count(*) from Assignment_Article
@@ -60,11 +60,11 @@ select * into #t from (
 		ShortTitle = max(isnull(pa.ShortTitle, ww.ShortTitle)),
 		IssueDate = max(isnull(a.sourceDate, isnull(ww.SourceDate, a.dateUpdated))),
 		FileName = 'article' + cast(max(a.ArticleId) as varchar(20)) + '.asp'
-	from RPOWineData.dbo.Articles a
+	from RPOWineDataD.dbo.Articles a
 		left join (select idN = m.idN, 
 			Publication=max(w.Publication), Issue=max(w.Issue), ShortTitle=max(w.ShortTitle), SourceDate=max(w.SourceDate)
-			from RPOWineData.dbo.tocMap m
-				left join RPOWineData.dbo.Wine w on w.FixedId = m.fixedId
+			from RPOWineDataD.dbo.tocMap m
+				left join RPOWineDataD.dbo.Wine w on w.FixedId = m.fixedId
 			group by m.idN) ww on a.idN = ww.idN
 		left join pa on 'article' + cast(a.ArticleId as varchar(20)) + '.asp' = pa.FileName
 	group by isnull(ww.Publication, a.Publication), isnull(ww.Issue, a.Issue), a.Source, isnull(a.Title, pa.Title), a.ArticleId
@@ -74,7 +74,7 @@ select * into #t from (
 		pa.Cuisine, pa.Date, pa.ShortTitle, pa.IssueDate,
 		pa.FileName
 	from pa
-		left join RPOWineData.dbo.Articles a on 'article' + cast(a.ArticleId as varchar(20)) + '.asp' = pa.FileName
+		left join RPOWineDataD.dbo.Articles a on 'article' + cast(a.ArticleId as varchar(20)) + '.asp' = pa.FileName
 	where a.ArticleId is NULL
 ) t;
 		
@@ -175,8 +175,8 @@ GO
 insert into Article_TasteNote(ArticleID, TasteNoteID)
 select a.ID, tn.ID
 from Article a (nolock)
-	join RPOWineData.dbo.tocMap m (nolock) on m.idN = a.oldArticleIdN
-	join RPOWineData.dbo.Wine w on w.FixedId = m.fixedId
+	join RPOWineDataD.dbo.tocMap m (nolock) on m.idN = a.oldArticleIdN
+	join RPOWineDataD.dbo.Wine w on w.FixedId = m.fixedId
 	join TasteNote tn (nolock) on w.Idn = tn.oldIdn
 where a.oldArticleIdN is NOT NULL and tn.oldIdn is NOT NULL
 GO

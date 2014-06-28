@@ -1,13 +1,13 @@
 ﻿-- =============================================
 -- Author:		Alex B.
 -- Create date: 4/19/2014
--- Description:	Completely reload Wine table from vWine view
+-- Description:	Completely reloads Wine table from vWine view
 -- =============================================
 CREATE PROCEDURE [srv].[Wine_Reload]
 	@IsFullReload bit = 0
 	
 --
--- @IsFullReload = 1 --> truncate data in Wine table and completely reload it.
+-- @IsFullReload = 1 --> truncates data in Wine table and completely reloads it.
 -- @IsFullReload = 0 --> merges data
 --
 
@@ -39,7 +39,7 @@ if @IsFullReload = 1 begin
 	select TasteNote_ID, Wine_N_ID, Wine_VinN_ID,
 		ArticleID, ArticleIdNKey,
 		ColorClass,	Country, ClumpName,	Dryness, DrinkDate, DrinkDate_hi, EstimatedCost, encodedKeyWords,
-		fixedId, HasWJTasting, IsActiveWineN, Issue, IsERPTasting, IsWJTasting, IsCurrentlyForSale, IsCurrentlyOnAuction,
+		fixedId, HasWJTasting, isnull(IsActiveWineN, 0), Issue, IsERPTasting, IsWJTasting, IsCurrentlyForSale, IsCurrentlyOnAuction,
 		LabelName, Location, Locale, Maturity, MostRecentPrice, MostRecentPriceHi, MostRecentAuctionPrice,
 		Notes,
 		Producer, ProducerShow, ProducerURL, ProducerProfileFileName, ShortTitle, Publication, Places,
@@ -64,7 +64,7 @@ end else begin
 	select TasteNote_ID, Wine_N_ID, Wine_VinN_ID,
 		ArticleID, ArticleIdNKey,
 		ColorClass,	Country, ClumpName,	Dryness, DrinkDate, DrinkDate_hi, EstimatedCost, encodedKeyWords,
-		fixedId, HasWJTasting, IsActiveWineN, Issue, IsERPTasting, IsWJTasting, IsCurrentlyForSale, IsCurrentlyOnAuction,
+		fixedId, HasWJTasting, IsActiveWineN = isnull(IsActiveWineN,0), Issue, IsERPTasting, IsWJTasting, IsCurrentlyForSale, IsCurrentlyOnAuction,
 		LabelName, Location, Locale, Maturity, MostRecentPrice, MostRecentPriceHi, MostRecentAuctionPrice,
 		Notes,
 		Producer, ProducerShow, ProducerURL, ProducerProfileFileName, ShortTitle, Publication, Places,

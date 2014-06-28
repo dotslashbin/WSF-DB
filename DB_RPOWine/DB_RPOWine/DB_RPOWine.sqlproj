@@ -804,5 +804,6 @@
     <None Include="_DataCopying\972_AddingNewArticles_NoEvents.sql" />
     <None Include="_DataCopying\12_WineLookups_NoTastingNotes.sql" />
     <None Include="_DataCopying\17_Wine_NoTastingNotes.sql" />
+    <None Include="_DataCopying\___FinalStep.sql" />
   </ItemGroup>
 </Project>

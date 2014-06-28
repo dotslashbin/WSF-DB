@@ -1,6 +1,6 @@
 ﻿-- ======= Wine ========
 --
--- Data Source: RPOWineData.dbo
+-- Data Source: RPOWineDataD.dbo
 --
 --
 USE [RPOWine]
@@ -92,7 +92,7 @@ commit tran
 begin tran
 	insert into Wine_N (Wine_VinN_ID,VintageID, oldIdn,oldEntryN,oldFixedId,oldWineNameIdN, oldWineN, oldVinN, WF_StatusID,
 		MostRecentPrice, MostRecentPriceHi, MostRecentPriceCnt, MostRecentAuctionPrice, MostRecentAuctionPriceHi, 
-		MostRecentAuctionPriceCnt, hasWJTasting, hasERPTasting, IsActiveWineN, IsCurrentlyForSale, IsCurrentlyOnAuction)
+		MostRecentAuctionPriceCnt, hasWJTasting, hasERPTasting, IsCurrentlyForSale, IsCurrentlyOnAuction)
 	select 
 		VinNID = v.ID,
 		VintageID = #t.VintageID, 
@@ -104,7 +104,7 @@ begin tran
 		oldVinN = NULL,
 		WF_StatusID = 100,
 		#t.MostRecentPrice, #t.MostRecentPriceHi, #t.MostRecentPriceCnt, #t.MostRecentAuctionPrice, #t.MostRecentAuctionPriceHi, 
-		#t.MostRecentAuctionPriceCnt, #t.hasWJTasting, #t.hasERPTasting, #t.IsActiveWineN, #t.IsCurrentlyForSale, #t.IsCurrentlyOnAuction
+		#t.MostRecentAuctionPriceCnt, #t.hasWJTasting, #t.hasERPTasting, #t.IsCurrentlyForSale, #t.IsCurrentlyOnAuction
 	--select #t.ProducerName, #t.TypeName, #t.ColorName, #t.DrynessName, #t.LabelName, #t.VarietyName, #t.VintageName, 
 	--	#t.locCountry, #t.locRegion, #t.locLocation,
 	--	#t.MostRecentPrice, #t.MostRecentPriceHi, #t.MostRecentPriceCnt, #t.MostRecentAuctionPrice, #t.MostRecentAuctionPriceHi, #t.MostRecentAuctionPriceCnt
@@ -119,7 +119,7 @@ begin tran
 	where w.ID is NULL
 	group by v.ID, #t.VintageID,
 		#t.MostRecentPrice, #t.MostRecentPriceHi, #t.MostRecentPriceCnt, #t.MostRecentAuctionPrice, #t.MostRecentAuctionPriceHi, 
-		#t.MostRecentAuctionPriceCnt, #t.hasWJTasting, #t.hasERPTasting, #t.IsActiveWineN, #t.IsCurrentlyForSale, #t.IsCurrentlyOnAuction
+		#t.MostRecentAuctionPriceCnt, #t.hasWJTasting, #t.hasERPTasting, #t.IsCurrentlyForSale, #t.IsCurrentlyOnAuction
 	--rollback tran
 commit tran
 

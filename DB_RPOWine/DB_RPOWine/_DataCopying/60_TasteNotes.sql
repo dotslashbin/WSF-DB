@@ -1,6 +1,6 @@
 ﻿-- ======= Taste Notes ========
 --
--- Data Source: RPOWineData.dbo
+-- Data Source: RPOWineDataD.dbo
 --
 --
 USE [RPOWine]
@@ -54,7 +54,7 @@ select distinct
 	EstimatedCost = wn.EstimatedCost,
 	EstimatedCost_Hi = wn.EstimatedCost_Hi
 into #t
-from RPOWineData.dbo.Wine wn
+from RPOWineDataD.dbo.Wine wn
 	left join WineProducer wp on isnull(wn.Producer, '') = wp.Name
 	left join WineType wt on isnull(wn.WineType, '') = wt.Name
 	left join WineLabel wl on isnull(wn.LabelName, '') = wl.Name
@@ -145,7 +145,7 @@ end else begin
 		EstimatedCost_Hi = w.EstimatedCost_Hi,
 		WF_StatusID = 100
 		--oldPublicationDate = w.SourceDate
-	from RPOWineData.dbo.Wine w (nolock)
+	from RPOWineDataD.dbo.Wine w (nolock)
 		join #t on w.Idn = #t.Idn
 		join Issue i (nolock) on #t.PublicationID = i.PublicationID and #t.Issue = i.Title
 		left join Users u on isnull(w.Source, '') != '' and u.FullName = case 
@@ -155,8 +155,8 @@ end else begin
 		end
 		left join (
 			select FixedId = m.fixedId, UserId = max(u.UserId)
-			from RPOWineData.dbo.tocMap m
-				join RPOWineData.dbo.Articles a on a.idN = m.idN
+			from RPOWineDataD.dbo.tocMap m
+				join RPOWineDataD.dbo.Articles a on a.idN = m.idN
 				join Users u on isnull(a.Source, '') != '' and u.FullName = case
 					when a.Source = 'Robert Parker' then 'Robert M. Parker, Jr.' 
 					when a.Source = 'Jay Miller' then 'Jay S Miller' 
@@ -169,7 +169,7 @@ end else begin
 	declare @tnSource int, @tnDest int
 
 	-- TasteNote
-	select @tnSource = count(*) from RPOWineData.dbo.Wine
+	select @tnSource = count(*) from RPOWineDataD.dbo.Wine
 	select @tnDest = count(*) from TasteNote
 
 	if @tnSource != @tnDest
