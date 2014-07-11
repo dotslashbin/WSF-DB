@@ -37,6 +37,7 @@ select
 		when PubName like 'Bordeaux%' then 1 
 		when PubName like 'Burgundy%' then 1 
 		when PubName like 'Buying%' then 1 
+		when PubName in ('Rhone Book','Wine Advocate') then 1
 		else 2
 	end,
 	Name = PubName
