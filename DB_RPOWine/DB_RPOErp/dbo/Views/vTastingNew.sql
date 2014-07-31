@@ -1,0 +1,1 @@
+﻿create view vTastingNew as select * from RPOErpIn..tastingNew

@@ -1,0 +1,26 @@
+﻿CREATE TABLE [dbo].[tcol] (
+    [TABLE_CATALOG]            NVARCHAR (128)  NULL,
+    [TABLE_SCHEMA]             NVARCHAR (128)  NULL,
+    [TABLE_NAME]               [sysname]       NOT NULL,
+    [COLUMN_NAME]              [sysname]       NULL,
+    [ORDINAL_POSITION]         INT             NULL,
+    [COLUMN_DEFAULT]           NVARCHAR (4000) NULL,
+    [IS_NULLABLE]              VARCHAR (3)     NULL,
+    [DATA_TYPE]                NVARCHAR (128)  NULL,
+    [CHARACTER_MAXIMUM_LENGTH] INT             NULL,
+    [CHARACTER_OCTET_LENGTH]   INT             NULL,
+    [NUMERIC_PRECISION]        TINYINT         NULL,
+    [NUMERIC_PRECISION_RADIX]  SMALLINT        NULL,
+    [NUMERIC_SCALE]            INT             NULL,
+    [DATETIME_PRECISION]       SMALLINT        NULL,
+    [CHARACTER_SET_CATALOG]    [sysname]       NULL,
+    [CHARACTER_SET_SCHEMA]     [sysname]       NULL,
+    [CHARACTER_SET_NAME]       [sysname]       NULL,
+    [COLLATION_CATALOG]        [sysname]       NULL,
+    [COLLATION_SCHEMA]         [sysname]       NULL,
+    [COLLATION_NAME]           [sysname]       NULL,
+    [DOMAIN_CATALOG]           [sysname]       NULL,
+    [DOMAIN_SCHEMA]            [sysname]       NULL,
+    [DOMAIN_NAME]              [sysname]       NULL
+);
+

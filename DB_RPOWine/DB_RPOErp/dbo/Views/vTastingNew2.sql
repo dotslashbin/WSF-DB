@@ -1,0 +1,1 @@
+﻿create view vTastingNew2 as select * from vTastingNew where dataSourceN is not null and dataIdN is not null

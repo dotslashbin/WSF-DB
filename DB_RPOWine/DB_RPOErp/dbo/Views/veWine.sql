@@ -1,0 +1,1 @@
+﻿create view veWine as select *  from RPOErpIn..eWine

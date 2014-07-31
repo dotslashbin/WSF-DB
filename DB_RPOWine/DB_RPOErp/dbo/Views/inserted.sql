@@ -1,0 +1,1 @@
+﻿CREATE view inserted as (select * from tasting where tastingN = 3785085)

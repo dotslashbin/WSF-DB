@@ -1,0 +1,1 @@
+﻿CREATE view [vuserwines] as select * from transfer..userWines22

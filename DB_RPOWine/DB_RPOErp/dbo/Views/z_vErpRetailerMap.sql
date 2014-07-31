@@ -1,0 +1,1 @@
+﻿create view [z_vErpRetailerMap] as select b whN from mapPriceGToWh where a = dbo.erp('retailers')

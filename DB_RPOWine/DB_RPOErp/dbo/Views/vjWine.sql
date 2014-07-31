@@ -1,0 +1,1 @@
+﻿create view vjWine as select * from (select row_number() over (partition by winen  order by fixedid )ii, * from  RPOErpIn..jWine)a where ii=1
