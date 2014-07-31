@@ -1,5 +1,6 @@
 ﻿
 
+
 CREATE PROCEDURE [dbo].[Assignment_GetList_ByUserId]
 	@UserID int = NULL
 		
@@ -54,11 +55,12 @@ set nocount on
 
 	where r.UserId  = @UserID
 	
-	
-select AssignmentID,r.UserId,UserRoleID,uu.FullName from Assignment_Resource as r
+
+select r.AssignmentID,r.UserId,r.UserRoleID,uu.FullName from Assignment_Resource as r
+join Assignment_Resource as ru on ru.AssignmentID = r.AssignmentID 	
 join Assignment as a on a.ID = r.AssignmentID 	
 join Users uu (nolock) on r.UserId = uu.UserId
-where r.UserId  = @UserID
+where ru.UserId  = @UserID
 
 	
 select distinct r.AssignmentID,TypeID, r.Deadline from Assignment_ResourceD as r

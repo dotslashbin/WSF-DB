@@ -3,6 +3,7 @@
     [TasteNote_ID]            INT            NOT NULL,
     [Wine_N_ID]               INT            NOT NULL,
     [Wine_VinN_ID]            INT            NOT NULL,
+    [IdN]                     INT            NOT NULL,
     [ArticleID]               INT            NULL,
     [ArticleIdNKey]           INT            NULL,
     [ColorClass]              NVARCHAR (30)  NOT NULL,
@@ -71,6 +72,8 @@
 
 
 
+
+
 GO
 CREATE NONCLUSTERED INDEX [IX_Wine_WineNID]
     ON [dbo].[Wine]([Wine_N_ID] ASC, [TasteNote_ID] ASC)
@@ -79,4 +82,10 @@ CREATE NONCLUSTERED INDEX [IX_Wine_WineNID]
 
 
 
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Wine_IsActiveWineN]
+    ON [dbo].[Wine]([IsActiveWineN] ASC, [IsERPTasting] ASC, [IsWJTasting] ASC)
+    INCLUDE([ID]);
 

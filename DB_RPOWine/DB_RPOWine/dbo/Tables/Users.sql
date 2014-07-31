@@ -7,8 +7,11 @@
     [created]     SMALLDATETIME  CONSTRAINT [DF_User_created] DEFAULT (getdate()) NOT NULL,
     [updated]     SMALLDATETIME  NULL,
     [FullName]    AS             (ltrim(rtrim((rtrim(isnull([FirstName],''))+' ')+ltrim(isnull([LastName],''))))),
+    [UserIdProd]  INT            NULL,
     CONSTRAINT [PK_User] PRIMARY KEY CLUSTERED ([UserId] ASC)
 );
+
+
 
 
 GO

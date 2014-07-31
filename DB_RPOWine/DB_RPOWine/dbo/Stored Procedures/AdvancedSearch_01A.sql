@@ -73,6 +73,56 @@ if isnull(@StartRow, 0) < 0 or isnull(@EndRow, 0) <= 0
 	select @StartRow = NULL, @EndRow = NULL
 --------- Results --------
 
+--create table #t (ID int, constraint [PK___t] primary key (ID asc))
+
+--if (@WineProducer = '*' and @WineLabel = '*' and @TextSearch = '*' and @Notes = '*') begin
+--	-- no full text search
+--	insert into #t (ID)
+--	select ID 
+--	from Wine (nolock)
+--	where
+--			(@WineVintage is NULL or Vintage like @WineVintage)
+--		and (@WineType is NULL or WineType = @WineType)
+--		and (@WineColor is NULL or ColorClass = @WineColor)
+--		and (@WineVariety is NULL or Variety = @WineVariety)
+--		and (@WineCountry is NULL or Country = @WineCountry)
+--		and (@WinePlaces is NULL or Places = @WinePlaces)
+--		and (@WineMaturityID is NULL or Maturity = @WineMaturityID)
+		
+--		and (@Publication is NULL or Publication = @Publication)
+--		and (@Issue is NULL or Issue = @Issue)
+--		and (@ArticleID is NULL or ArticleID = @ArticleID)
+--		and (@Author is NULL or source = @Author)
+		
+--		and (@WineCostLimit is NULL or (MostRecentPrice is not null and MostRecentPrice <= @WineCostLimit))
+--		and (@WineRatingLimit is NULL or (Rating is not null and Rating >= @WineRatingLimit))
+--end else begin
+--	insert into #t (ID)
+--	select ID 
+--	from Wine (nolock)
+--	where
+--		    (@WineProducer = '*' or contains((Producer, ProducerShow), @WineProducer))
+--		and (@WineLabel = '*' or contains((encodedKeyWords,labelname,producershow), @WineLabel))	-- LabelName for proper search by macroses
+--		and (@TextSearch = '*' or contains((encodedKeyWords, ProducerShow, LabelName), @TextSearch))
+--		and (@Notes = '*' or contains(Notes, @Notes))
+
+--		and (@WineVintage is NULL or Vintage like @WineVintage)
+--		and (@WineType is NULL or WineType = @WineType)
+--		and (@WineColor is NULL or ColorClass = @WineColor)
+--		and (@WineVariety is NULL or Variety = @WineVariety)
+--		and (@WineCountry is NULL or Country = @WineCountry)
+--		and (@WinePlaces is NULL or Places = @WinePlaces)
+--		and (@WineMaturityID is NULL or Maturity = @WineMaturityID)
+		
+--		and (@Publication is NULL or Publication = @Publication)
+--		and (@Issue is NULL or Issue = @Issue)
+--		and (@ArticleID is NULL or ArticleID = @ArticleID)
+--		and (@Author is NULL or source = @Author)
+		
+--		and (@WineCostLimit is NULL or (MostRecentPrice is not null and MostRecentPrice <= @WineCostLimit))
+--		and (@WineRatingLimit is NULL or (Rating is not null and Rating >= @WineRatingLimit))
+--end
+
 if (@StartRow is NULL or @EndRow is NULL) begin
 	-- no row_number!	
 	select top (@topNRows)  
@@ -101,7 +151,8 @@ if (@StartRow is NULL or @EndRow is NULL) begin
 		[Maturity] = ISNULL(Maturity,'6'),  
 		[VinN],
 		TotalRows = 0
-	from Wine (nolock)
+	from Wine w (nolock)
+		--join #t on w.ID = #t.ID
 	--where isActiveWineN = 1
 	--	and contains((encodedKeyWords,labelname,producershow), @Keyword)
 	--	and (showForERP=1) 
@@ -159,6 +210,7 @@ if (@StartRow is NULL or @EndRow is NULL) begin
 		case when @SortBy = 'Maturity' and @SortOrder = 'asc' then Maturity else null end asc, 
 		case when @SortBy = 'Maturity' and @SortOrder = 'des' then Maturity else null end desc,
 		ProducerShow, LabelName, Vintage, WineN
+	option (fast 10);
 end else begin
 	select @TotalRows = count(*)
 	from Wine (nolock)
@@ -280,6 +332,8 @@ end else begin
 	where RowNumber between @StartRow and @EndRow
 	order by RowNumber
 end
+
+--drop table #t
 
 RETURN 1
 GO

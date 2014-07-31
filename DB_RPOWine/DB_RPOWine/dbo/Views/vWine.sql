@@ -1,6 +1,5 @@
 ﻿
 
-
 CREATE VIEW [dbo].[vWine]
 
 AS
@@ -9,6 +8,7 @@ select
 	TasteNote_ID = isnull(tn.ID, 0),
 	Wine_N_ID = wn.ID,
 	Wine_VinN_ID = wn.Wine_VinN_ID,
+	IdN = isnull(tn.oldIdN, -((wn.ID * 1000) + isnull(tn.ID,0))),
 	
 	articleID = tn.oldArticleId,
 	articleIdNKey = tn.oldArticleIdNKey,

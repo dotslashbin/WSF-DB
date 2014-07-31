@@ -25,7 +25,7 @@ if @IsFullReload = 1 begin
 	begin catch
 	end catch
 
-	insert into Wine (TasteNote_ID, Wine_N_ID, Wine_VinN_ID,
+	insert into Wine (TasteNote_ID, Wine_N_ID, Wine_VinN_ID, IdN,
 		ArticleID, ArticleIdNKey,
 		ColorClass,	Country, ClumpName,	Dryness, DrinkDate, DrinkDate_hi, EstimatedCost, encodedKeyWords,
 		fixedId, HasWJTasting, IsActiveWineN, Issue, IsERPTasting, IsWJTasting, IsCurrentlyForSale, IsCurrentlyOnAuction,
@@ -36,7 +36,7 @@ if @IsFullReload = 1 begin
 		Vintage, Variety, VinN, WineN, WineType,
 		oldIdn, oldWineN, oldVinN, RV_TasteNote, RV_Wine_N
 	)
-	select TasteNote_ID, Wine_N_ID, Wine_VinN_ID,
+	select TasteNote_ID, Wine_N_ID, Wine_VinN_ID, IdN,
 		ArticleID, ArticleIdNKey,
 		ColorClass,	Country, ClumpName,	Dryness, DrinkDate, DrinkDate_hi, EstimatedCost, encodedKeyWords,
 		fixedId, HasWJTasting, isnull(IsActiveWineN, 0), Issue, IsERPTasting, IsWJTasting, IsCurrentlyForSale, IsCurrentlyOnAuction,
@@ -61,7 +61,7 @@ end else begin
 		ID int null,
 		DelID int null);
 
-	select TasteNote_ID, Wine_N_ID, Wine_VinN_ID,
+	select TasteNote_ID, Wine_N_ID, Wine_VinN_ID, IdN,
 		ArticleID, ArticleIdNKey,
 		ColorClass,	Country, ClumpName,	Dryness, DrinkDate, DrinkDate_hi, EstimatedCost, encodedKeyWords,
 		fixedId, HasWJTasting, IsActiveWineN = isnull(IsActiveWineN,0), Issue, IsERPTasting, IsWJTasting, IsCurrentlyForSale, IsCurrentlyOnAuction,
@@ -81,7 +81,7 @@ end else begin
 
 	merge Wine as t
 	using (
-		select TasteNote_ID, Wine_N_ID, Wine_VinN_ID,
+		select TasteNote_ID, Wine_N_ID, Wine_VinN_ID, IdN,
 			ArticleID, ArticleIdNKey,
 			ColorClass,	Country, ClumpName,	Dryness, DrinkDate, DrinkDate_hi, EstimatedCost, encodedKeyWords,
 			fixedId, HasWJTasting, IsActiveWineN, Issue, IsERPTasting, IsWJTasting, IsCurrentlyForSale, IsCurrentlyOnAuction,
@@ -150,7 +150,7 @@ end else begin
 			RV_TasteNote = isnull(nullif(s.RV_TasteNote, 0x00), t.RV_TasteNote), 
 			RV_Wine_N = isnull(nullif(s.RV_Wine_N, 0x00), t.RV_Wine_N)
 	when not matched by target then
-		INSERT (TasteNote_ID, Wine_N_ID, Wine_VinN_ID,
+		INSERT (TasteNote_ID, Wine_N_ID, Wine_VinN_ID, IdN,
 			ArticleID, ArticleIdNKey,
 			ColorClass,	Country, ClumpName,	Dryness, DrinkDate, DrinkDate_hi, EstimatedCost, encodedKeyWords,
 			fixedId, HasWJTasting, IsActiveWineN, Issue, IsERPTasting, IsWJTasting, IsCurrentlyForSale, IsCurrentlyOnAuction,
@@ -161,7 +161,7 @@ end else begin
 			Vintage, Variety, VinN, WineN, WineType,
 			oldIdn, oldWineN, oldVinN, RV_TasteNote, RV_Wine_N
 		)
-		values(s.TasteNote_ID, s.Wine_N_ID, s.Wine_VinN_ID,
+		values(s.TasteNote_ID, s.Wine_N_ID, s.Wine_VinN_ID, IdN,
 			s.ArticleID, s.ArticleIdNKey,
 			s.ColorClass, s.Country, s.ClumpName, s.Dryness, s.DrinkDate, s.DrinkDate_hi, s.EstimatedCost, s.encodedKeyWords,
 			s.fixedId, s.HasWJTasting, s.IsActiveWineN, s.Issue, s.IsERPTasting, s.IsWJTasting, s.IsCurrentlyForSale, s.IsCurrentlyOnAuction,

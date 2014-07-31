@@ -4,6 +4,9 @@
     [BottlesPerStockItem] INT            NULL,
     [Pending]             BIT            NULL,
     [IsOK]                BIT            NULL,
-    [DateAdded]           SMALLDATETIME  NULL
+    [DateAdded]           SMALLDATETIME  NULL,
+    CONSTRAINT [PK_StdBottleSize] PRIMARY KEY CLUSTERED ([WAlertBottleSize] ASC)
 );
+
+
 
