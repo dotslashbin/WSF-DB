@@ -1,0 +1,1 @@
+﻿create view vtn as select * from erpin..tastingnew

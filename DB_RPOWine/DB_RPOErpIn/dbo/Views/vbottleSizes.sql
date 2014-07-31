@@ -1,0 +1,1 @@
+﻿create view vbottleSizes as select * from erp..BottleSizes

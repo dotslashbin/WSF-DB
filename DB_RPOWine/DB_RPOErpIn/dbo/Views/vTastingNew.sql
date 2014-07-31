@@ -1,0 +1,1 @@
+﻿CREATE view vTastingNew as select * from erpIn..tastingNew where dataSourceN is not null and dataIdN is not null

@@ -1,0 +1,34 @@
+﻿create view vYear1 as 
+	(select
+		--idN
+		wineN
+		,vinN
+		,wid
+		,producer
+		,labelName
+		,vintage
+		,country
+		,region
+		,location
+		,locale
+		,site
+		,variety
+		,colorClass
+		,dryness
+		,wineType
+		,isVinnName
+		,isVinnWid
+		,isWidName
+		,isWidVinn
+		,isNameVinn
+		,isNameWid
+		,wineNameN
+		,vinnNameCnt
+		,vinnWidCnt
+		,widNameCnt
+		,widVinnCnt
+		,nameVinnCnt
+		,nameWidCnt
+		,joinX
+		--joinY
+	from nameYear1)
