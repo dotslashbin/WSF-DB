@@ -52,8 +52,8 @@ set xact_abort on;
 	from tnRes
 		join TasteNote tn on tnRes.TasteNoteID = tn.ID
 	where (tn.IsActiveWineN != tnRes.IsActiveWineN 
-		or oldShowForERP != tnRes.showForERP or oldShowForWJ != tnRes.showForWJ
-		or oldIsErpTasting != tnRes.isErpTasting or oldIsWjTasting != tnRes.isWjTasting)
+		or tn.oldShowForERP != tnRes.showForERP or tn.oldShowForWJ != tnRes.showForWJ
+		or tn.oldIsErpTasting != tnRes.isErpTasting or tn.oldIsWjTasting != tnRes.isWjTasting)
 	;
 	
 --commit tran

@@ -34,7 +34,10 @@ if @IsFullReload = 1 begin
 		Producer, ProducerShow, ProducerURL, ProducerProfileFileName, ShortTitle, Publication, Places,
 		Region,	Rating, RatingShow, ReviewerIdN, showForERP, showForWJ, source, SourceDate, Site,
 		Vintage, Variety, VinN, WineN, WineType,
-		oldIdn, oldWineN, oldVinN, RV_TasteNote, RV_Wine_N
+		oldIdn, oldWineN, oldVinN, 
+		
+		wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID,
+		RV_TasteNote, RV_Wine_N
 	)
 	select TasteNote_ID, Wine_N_ID, Wine_VinN_ID, IdN,
 		ArticleID, ArticleIdNKey,
@@ -45,7 +48,10 @@ if @IsFullReload = 1 begin
 		Producer, ProducerShow, ProducerURL, ProducerProfileFileName, ShortTitle, Publication, Places,
 		Region,	Rating, RatingShow, ReviewerIdN, showForERP, showForWJ, source, SourceDate, Site,
 		Vintage, Variety, VinN, WineN, WineType,
-		oldIdn, oldWineN, oldVinN, RV_TasteNote, RV_Wine_N
+		oldIdn, oldWineN, oldVinN, 
+		
+		wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID,
+		RV_TasteNote, RV_Wine_N
 	from vWine;
 	
 	begin try
@@ -70,7 +76,8 @@ end else begin
 		Producer, ProducerShow, ProducerURL, ProducerProfileFileName, ShortTitle, Publication, Places,
 		Region,	Rating, RatingShow, ReviewerIdN, showForERP, showForWJ, source, SourceDate, Site,
 		Vintage, Variety, VinN, WineN, WineType,
-		oldIdn, oldWineN, oldVinN, 
+		oldIdn, oldWineN, oldVinN,
+		wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID,
 		RV_TasteNote = cast(RV_TasteNote as binary(8)), 
 		RV_Wine_N = cast(RV_Wine_N as binary(8))
 	into #t
@@ -90,7 +97,9 @@ end else begin
 			Producer, ProducerShow, ProducerURL, ProducerProfileFileName, ShortTitle, Publication, Places,
 			Region,	Rating, RatingShow, ReviewerIdN, showForERP, showForWJ, source, SourceDate, Site,
 			Vintage, Variety, VinN, WineN, WineType,
-			oldIdn, oldWineN, oldVinN, RV_TasteNote, RV_Wine_N
+			oldIdn, oldWineN, oldVinN, 
+			wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID,
+			RV_TasteNote, RV_Wine_N
 		from #t	--vWine
 	) as s on t.TasteNote_ID = s.TasteNote_ID and t.Wine_N_ID = s.Wine_N_ID --and t.Wine_VinN_ID = s.Wine_VinN_ID
 	when matched 
@@ -147,6 +156,13 @@ end else begin
 			oldIdn = isnull(s.oldIdn, t.oldIdn), 
 			oldWineN = isnull(s.oldWineN, t.oldWineN), 
 			oldVinN = isnull(s.oldVinN, t.oldVinN),
+			wProducerID = isnull(s.wProducerID, t.wProducerID), 
+			wTypeID = isnull(s.wTypeID, t.wTypeID), 
+			wLabelID = isnull(s.wLabelID, t.wLabelID), 
+			wVarietyID = isnull(s.wVarietyID, t.wVarietyID), 
+			wDrynessID = isnull(s.wDrynessID, t.wDrynessID), 
+			wColorID = isnull(s.wColorID, t.wColorID), 
+			wVintageID = isnull(s.wVintageID, t.wVintageID),
 			RV_TasteNote = isnull(nullif(s.RV_TasteNote, 0x00), t.RV_TasteNote), 
 			RV_Wine_N = isnull(nullif(s.RV_Wine_N, 0x00), t.RV_Wine_N)
 	when not matched by target then
@@ -159,7 +175,9 @@ end else begin
 			Producer, ProducerShow, ProducerURL, ProducerProfileFileName, ShortTitle, Publication, Places,
 			Region,	Rating, RatingShow, ReviewerIdN, showForERP, showForWJ, source, SourceDate, Site,
 			Vintage, Variety, VinN, WineN, WineType,
-			oldIdn, oldWineN, oldVinN, RV_TasteNote, RV_Wine_N
+			oldIdn, oldWineN, oldVinN, 
+			wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID,
+			RV_TasteNote, RV_Wine_N
 		)
 		values(s.TasteNote_ID, s.Wine_N_ID, s.Wine_VinN_ID, IdN,
 			s.ArticleID, s.ArticleIdNKey,
@@ -170,7 +188,9 @@ end else begin
 			s.Producer, s.ProducerShow, s.ProducerURL, s.ProducerProfileFileName, s.ShortTitle, s.Publication, s.Places,
 			s.Region, s.Rating, s.RatingShow, s.ReviewerIdN, s.showForERP, s.showForWJ, s.source, s.SourceDate, s.Site,
 			s.Vintage, s.Variety, s.VinN, s.WineN, s.WineType,
-			s.oldIdn, s.oldWineN, s.oldVinN, s.RV_TasteNote, s.RV_Wine_N)
+			s.oldIdn, s.oldWineN, s.oldVinN, 
+			wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID,
+			s.RV_TasteNote, s.RV_Wine_N)
 	when not matched by source then
 		DELETE
 	OUTPUT $action, inserted.ID, deleted.ID INTO @Res;

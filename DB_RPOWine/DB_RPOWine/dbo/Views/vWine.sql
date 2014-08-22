@@ -19,7 +19,15 @@ select
 	DrinkDate = tn.DrinkDate_Lo,
 	DrinkDate_hi = tn.DrinkDate_Hi,
 	EstimatedCost = tn.EstimatedCost,
-	encodedKeyWords = tn.oldEncodedKeyWords,
+	encodedKeyWords = case
+		when tn.ID is NOT NULL and tn.oldEncodedKeyWords is NOT NULL then tn.oldEncodedKeyWords
+		else replace(isnull(lc.Name, '') + ' ' + isnull(lr.Name, '') 
+			+ ' ' + isnull(ll.Name, '') + ' ' + isnull(lloc.Name, '') + ' ' + isnull(ls.Name,'')
+			+ ' ' + isnull(wp.Name, '') + ' ' + isnull(wp.NameToShow, '') 
+			+ ' ' + isnull(wt.Name, '') + ' ' + isnull(wl.Name, '')
+			+ ' ' + isnull(wv.Name, '') + ' ' + isnull(wd.Name, '') + ' ' + isnull(wc.Name, '')
+			+ ' ' + isnull(wvin.Name, ''), '  ', '')
+	end,
 	fixedId = tn.oldFixedId,
 	HasWJTasting = wn.HasWJTasting,
 	IsActiveWineN = isnull(tn.IsActiveWineN, 0),
@@ -69,8 +77,17 @@ select
 	WineN = wn.ID, 
 	WineType = wt.Name,
 	oldIdn = tn.oldIdn,
-	oldWineN = wn.oldWineN,
-	oldVinN = wn.oldVinN, 
+	oldWineN = isnull(wn.oldWineN, 250000 + wn.ID),	-- wn.oldWineN,
+	oldVinN = isnull(wn.oldVinN, 250000 + wn.Wine_VinN_ID),		-- wn.oldVinN, 
+	
+	wProducerID = wp.ID,
+	wTypeID = wt.ID,
+	wLabelID = wl.ID,
+	wVarietyID = wv.ID,
+	wDrynessID = wd.ID,
+	wColorID = wc.ID,
+	wVintageID = wvin.ID,
+	
 	RV_TasteNote = isnull(tn.RV, 0x00),
 	RV_Wine_N = wn.RV
 from 

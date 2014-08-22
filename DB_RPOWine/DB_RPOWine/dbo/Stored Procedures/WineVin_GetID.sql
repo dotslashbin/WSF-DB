@@ -1,4 +1,7 @@
-﻿-- =============================================
+﻿
+
+
+-- =============================================
 -- Author:		Alex B.
 -- Create date: 1/31/2014
 -- Description:	Searches for a WineVin and returns internal ID of the record.
@@ -36,11 +39,10 @@ declare @Result int,
 
 ------------ Checks
 if @IsAutoCreate = 1 and 
-	(len(isnull(@Producer, '')) < 1 or len(isnull(@WineType, '')) < 1 --or len(isnull(@Label, '')) < 1 
-	or len(isnull(@Variety, '')) < 1 or len(isnull(@Dryness, '')) < 1 or len(isnull(@Color, '')) < 1)
+	(len(isnull(@Producer, '')) < 1 or len(isnull(@WineType, '')) < 1  or len(isnull(@Color, '')) < 1)
 begin
 	select @Result = -1
-	raiserror('WineVin_GetID:: Cannot find or register a new WineVin: producer, wine type, label, variety, dryness and color are required.', 16, 1)
+	raiserror('WineVin_GetID:: Cannot find or register a new WineVin: producer, wine type, label and color are required.', 16, 1)
 	RETURN -1
 end
 ------------ Checks
@@ -129,7 +131,5 @@ if @ShowRes = 1 ---> always return new ID in the ADD procedure
 
 RETURN isnull(@Result, -1)
 GO
-GRANT EXECUTE
-    ON OBJECT::[dbo].[WineVin_GetID] TO [RP_DataAdmin]
-    AS [dbo];
+
 

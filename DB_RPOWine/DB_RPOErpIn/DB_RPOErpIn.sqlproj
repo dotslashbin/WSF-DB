@@ -1,0 +1,387 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>DB_RPOErpIn</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>4.1</ProjectVersion>
+    <ProjectGuid>{1b5b023b-658c-4af1-8a6d-eae5cd054a72}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql110DatabaseSchemaProvider</DSP>
+    <OutputType>Database</OutputType>
+    <RootPath>
+    </RootPath>
+    <RootNamespace>DB_RPOErpIn</RootNamespace>
+    <AssemblyName>DB_RPOErpIn</AssemblyName>
+    <ModelCollation>1033,CI</ModelCollation>
+    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <DeployToDatabase>True</DeployToDatabase>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetLanguage>CS</TargetLanguage>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <SqlServerVerification>False</SqlServerVerification>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+    <DefaultCollation>SQL_Latin1_General_CP1_CI_AS</DefaultCollation>
+    <DefaultFilegroup>PRIMARY</DefaultFilegroup>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <!-- VS10 without SP1 will not have VisualStudioVersion set, so do that here -->
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <!-- Default to the v10.0 targets path if the targets file for the current VS version is not found -->
+    <SSDTExists Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets')">True</SSDTExists>
+    <VisualStudioVersion Condition="'$(SSDTExists)' == ''">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <ItemGroup>
+    <Folder Include="Properties" />
+    <Folder Include="dbo\" />
+    <Folder Include="dbo\Tables\" />
+    <Folder Include="dbo\Views\" />
+    <Folder Include="dbo\Functions\" />
+    <Folder Include="dbo\Stored Procedures\" />
+    <Folder Include="Assemblies\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="dbo\Tables\bottleSizeAlias.sql" />
+    <Build Include="dbo\Tables\BottleSize.sql" />
+    <Build Include="dbo\Tables\bottleSizeJulian.sql" />
+    <Build Include="dbo\Tables\forSale.sql" />
+    <Build Include="dbo\Tables\forSaleDetail.sql" />
+    <Build Include="dbo\Tables\Retailers.sql" />
+    <Build Include="dbo\Tables\WAName.sql" />
+    <Build Include="dbo\Tables\tastingNew.sql" />
+    <Build Include="dbo\Tables\BottleSizes.sql" />
+    <Build Include="dbo\Tables\eWine.sql" />
+    <Build Include="dbo\Tables\jWine.sql" />
+    <Build Include="dbo\Tables\CurrencyConversion.sql" />
+    <Build Include="dbo\Tables\allocateWidVinn.sql" />
+    <Build Include="dbo\Tables\rpowinedataDWine.sql" />
+    <Build Include="dbo\Tables\erpSearchDWine.sql" />
+    <Build Include="dbo\Tables\erpSearchDWAName.sql" />
+    <Build Include="dbo\Tables\erpSearchDRetailers.sql" />
+    <Build Include="dbo\Tables\erpSearchDForSale.sql" />
+    <Build Include="dbo\Tables\erpSearchDForSaleDetail.sql" />
+    <Build Include="dbo\Tables\ovv_temp1.sql" />
+    <Build Include="dbo\Views\vName3.sql" />
+    <Build Include="dbo\Views\vNameYear.sql" />
+    <Build Include="dbo\Views\vName4.sql" />
+    <Build Include="dbo\Views\vNameYearB.sql" />
+    <Build Include="dbo\Views\vNameYear_a.sql" />
+    <Build Include="dbo\Views\vNameYear_b.sql" />
+    <Build Include="dbo\Views\vYear1.sql" />
+    <Build Include="dbo\Views\vErpWine.sql" />
+    <Build Include="dbo\Views\vYear3.sql" />
+    <Build Include="dbo\Views\vEws.sql" />
+    <Build Include="dbo\Views\vRaw4.sql" />
+    <Build Include="dbo\Views\vUsage1.sql" />
+    <Build Include="dbo\Views\vUsage4.sql" />
+    <Build Include="dbo\Views\vWineFromRpo.sql" />
+    <Build Include="dbo\Views\vUsage2.sql" />
+    <Build Include="dbo\Views\vUsage3.sql" />
+    <Build Include="dbo\Views\vRaw1.sql" />
+    <Build Include="dbo\Views\vtn.sql" />
+    <Build Include="dbo\Views\vto.sql" />
+    <Build Include="dbo\Views\vUsage.sql" />
+    <Build Include="dbo\Views\vwi.sql" />
+    <Build Include="dbo\Views\vwm.sql" />
+    <Build Include="dbo\Views\vUse.sql" />
+    <Build Include="dbo\Views\vvv.sql" />
+    <Build Include="dbo\Views\vBottleSize.sql" />
+    <Build Include="dbo\Views\vBottleSizeJulian.sql" />
+    <Build Include="dbo\Views\vTasting.sql" />
+    <Build Include="dbo\Views\vForSaleOK.sql" />
+    <Build Include="dbo\Views\vWineName.sql" />
+    <Build Include="dbo\Views\vBands.sql" />
+    <Build Include="dbo\Views\vPriceGToSeller.sql" />
+    <Build Include="dbo\Views\vbottleSizes.sql" />
+    <Build Include="dbo\Views\vCurrencyConversion.sql" />
+    <Build Include="dbo\Views\vname.sql" />
+    <Build Include="dbo\Views\vDonTasting.sql" />
+    <Build Include="dbo\Views\vDonWh.sql" />
+    <Build Include="dbo\Views\vWh.sql" />
+    <Build Include="dbo\Views\savedVersions.sql" />
+    <Build Include="dbo\Views\vForSalePlus.sql" />
+    <Build Include="dbo\Views\vDollars2.sql" />
+    <Build Include="dbo\Views\vForSalePlusOK.sql" />
+    <Build Include="dbo\Views\vDollars_before1006Jun01.sql" />
+    <Build Include="dbo\Views\vWine.sql" />
+    <Build Include="dbo\Views\vDollarsWithNoAuction.sql" />
+    <Build Include="dbo\Views\vDollarsWithAuction.sql" />
+    <Build Include="dbo\Views\vPriceByAuction.sql" />
+    <Build Include="dbo\Views\vForSale.sql" />
+    <Build Include="dbo\Views\vWhenChanged.sql" />
+    <Build Include="dbo\Views\vRetailer.sql" />
+    <Build Include="dbo\Views\vTastingNew.sql" />
+    <Build Include="dbo\Views\vDollars.sql" />
+    <Build Include="dbo\Views\vPrice.sql" />
+    <Build Include="dbo\Views\vAlert.sql" />
+    <Build Include="dbo\Views\vAlertOK.sql" />
+    <Build Include="dbo\Views\vRaw.sql" />
+    <Build Include="dbo\Views\vRaw2.sql" />
+    <Build Include="dbo\Views\vPrice2.sql" />
+    <Build Include="dbo\Views\vName1.sql" />
+    <Build Include="dbo\Views\vRaw3.sql" />
+    <Build Include="dbo\Views\vName2.sql" />
+    <Build Include="dbo\Views\vForSalePriceOK.sql" />
+    <Build Include="dbo\Views\vUnique.sql" />
+    <Build Include="dbo\Functions\vinnVintageToWineN.sql" />
+    <Build Include="dbo\Functions\updateTranslateToBottleSizeN.sql" />
+    <Build Include="dbo\Functions\updateTranslateToTasterN.sql" />
+    <Build Include="dbo\Functions\getJoinXnorm.sql" />
+    <Build Include="dbo\Functions\extractWineNFromURL.sql" />
+    <Build Include="dbo\Functions\isTable.sql" />
+    <Build Include="dbo\Functions\superTrim.sql" />
+    <Build Include="dbo\Functions\fmt.sql" />
+    <Build Include="dbo\Functions\fmtd.sql" />
+    <Build Include="dbo\Functions\fmtt.sql" />
+    <Build Include="dbo\Functions\normalizeName.sql" />
+    <Build Include="dbo\Functions\oFldslnBoth.sql" />
+    <Build Include="dbo\Functions\oFlds.sql" />
+    <Build Include="dbo\Functions\getJoinX.sql" />
+    <Build Include="dbo\Functions\getJoinY.sql" />
+    <Build Include="dbo\Functions\getName.sql" />
+    <Build Include="dbo\Functions\getName2.sql" />
+    <Build Include="dbo\Functions\convertSurname.sql" />
+    <Build Include="dbo\Functions\ooFun.sql" />
+    <Build Include="dbo\Functions\oSplit.sql" />
+    <Build Include="dbo\Stored Procedures\zupdateJulianPrices11.sql" />
+    <Build Include="dbo\Stored Procedures\updateNamesFromErpAndWs_before1011Nov04.sql" />
+    <Build Include="dbo\Stored Procedures\oopubg2.sql" />
+    <Build Include="dbo\Stored Procedures\zupdateNameYearNonErp.sql" />
+    <Build Include="dbo\Stored Procedures\updateNamesFromErpAndWs4.sql" />
+    <Build Include="dbo\Stored Procedures\ooOld.sql" />
+    <Build Include="dbo\Stored Procedures\updateBottleSizeAlias.sql" />
+    <Build Include="dbo\Stored Procedures\oodef.sql" />
+    <Build Include="dbo\Stored Procedures\oCross.sql" />
+    <Build Include="dbo\Stored Procedures\updateWineAlertVinn2.sql" />
+    <Build Include="dbo\Stored Procedures\ootaster.sql" />
+    <Build Include="dbo\Stored Procedures\oo.sql" />
+    <Build Include="dbo\Stored Procedures\oCrossV.sql" />
+    <Build Include="dbo\Stored Procedures\zupdateJulianPrices12.sql" />
+    <Build Include="dbo\Stored Procedures\oTableSize.sql" />
+    <Build Include="dbo\Stored Procedures\oovi.sql" />
+    <Build Include="dbo\Stored Procedures\ooiv.sql" />
+    <Build Include="dbo\Stored Procedures\updateTastings_old.sql" />
+    <Build Include="dbo\Stored Procedures\ooe.sql" />
+    <Build Include="dbo\Stored Procedures\updateNov.sql" />
+    <Build Include="dbo\Stored Procedures\ood.sql" />
+    <Build Include="dbo\Stored Procedures\oodi.sql" />
+    <Build Include="dbo\Stored Procedures\updateNov_before1011Nov26.sql" />
+    <Build Include="dbo\Stored Procedures\oodt.sql" />
+    <Build Include="dbo\Stored Procedures\zupdateJulianPrices.sql" />
+    <Build Include="dbo\Stored Procedures\oodtv.sql" />
+    <Build Include="dbo\Stored Procedures\oodv.sql" />
+    <Build Include="dbo\Stored Procedures\ooid.sql" />
+    <Build Include="dbo\Stored Procedures\ootd.sql" />
+    <Build Include="dbo\Stored Procedures\ooai.sql" />
+    <Build Include="dbo\Stored Procedures\ootvd.sql" />
+    <Build Include="dbo\Stored Procedures\od.sql" />
+    <Build Include="dbo\Stored Procedures\ooa.sql" />
+    <Build Include="dbo\Stored Procedures\buildMerge.sql" />
+    <Build Include="dbo\Stored Procedures\oovd.sql" />
+    <Build Include="dbo\Stored Procedures\updateJulianPrices.sql" />
+    <Build Include="dbo\Stored Procedures\ooim.sql" />
+    <Build Include="dbo\Stored Procedures\updateTastingsErpFromNew.sql" />
+    <Build Include="dbo\Stored Procedures\ov1.sql" />
+    <Build Include="dbo\Stored Procedures\oovtd.sql" />
+    <Build Include="dbo\Stored Procedures\updateTastingsFromEWS.sql" />
+    <Build Include="dbo\Stored Procedures\oomi.sql" />
+    <Build Include="dbo\Stored Procedures\dropTable.sql" />
+    <Build Include="dbo\Stored Procedures\ooad.sql" />
+    <Build Include="dbo\Stored Procedures\ooda.sql" />
+    <Build Include="dbo\Stored Procedures\oor.sql" />
+    <Build Include="dbo\Stored Procedures\updateTastingsErpToNew.sql" />
+    <Build Include="dbo\Stored Procedures\oomem.sql" />
+    <Build Include="dbo\Stored Procedures\updateTastingsEWSFromNew.sql" />
+    <Build Include="dbo\Stored Procedures\oodf.sql" />
+    <Build Include="dbo\Stored Procedures\oot.sql" />
+    <Build Include="dbo\Stored Procedures\updateTastingsErpFromNew_before1005May17.sql" />
+    <Build Include="dbo\Stored Procedures\ovv.sql" />
+    <Build Include="dbo\Stored Procedures\ooLarisa.sql" />
+    <Build Include="dbo\Stored Procedures\ov.sql" />
+    <Build Include="dbo\Stored Procedures\updateTastingNewFromRpo.sql" />
+    <Build Include="dbo\Stored Procedures\oodti.sql" />
+    <Build Include="dbo\Stored Procedures\oofrr.sql" />
+    <Build Include="dbo\Stored Procedures\updateNamesFromRpo.sql" />
+    <Build Include="dbo\Stored Procedures\oodit.sql" />
+    <Build Include="dbo\Stored Procedures\zupdateJulianPrices_old.sql" />
+    <Build Include="dbo\Stored Procedures\updateFromRpo.sql" />
+    <Build Include="dbo\Stored Procedures\ooCategories.sql" />
+    <Build Include="dbo\Stored Procedures\zupdateJulianPrices5.sql" />
+    <Build Include="dbo\Stored Procedures\oorf.sql" />
+    <Build Include="dbo\Stored Procedures\updateErpTastingsFromNew.sql" />
+    <Build Include="dbo\Stored Procedures\oodeff.sql" />
+    <Build Include="dbo\Stored Procedures\zupdateJulianPrices6.sql" />
+    <Build Include="dbo\Stored Procedures\oooi.sql" />
+    <Build Include="dbo\Stored Procedures\ooti.sql" />
+    <Build Include="dbo\Stored Procedures\oovr.sql" />
+    <Build Include="dbo\Stored Procedures\oofdr.sql" />
+    <Build Include="dbo\Stored Procedures\oodfr.sql" />
+    <Build Include="dbo\Stored Procedures\updateAll.sql" />
+    <Build Include="dbo\Stored Procedures\ooge.sql" />
+    <Build Include="dbo\Stored Procedures\updateNameAndUsage.sql" />
+    <Build Include="dbo\Stored Procedures\ooeg.sql" />
+    <Build Include="dbo\Stored Procedures\updateTastingsEWSFromNew_before1005May21.sql" />
+    <Build Include="dbo\Stored Procedures\updateJulianPrices14.sql" />
+    <Build Include="dbo\Stored Procedures\alterErpDefs.sql" />
+    <Build Include="dbo\Stored Procedures\ooKey.sql" />
+    <Build Include="dbo\Stored Procedures\updateTastingsErpFromNew_before1005May22.sql" />
+    <Build Include="dbo\Stored Procedures\oofm.sql" />
+    <Build Include="dbo\Stored Procedures\oomf.sql" />
+    <Build Include="dbo\Stored Procedures\ooSum.sql" />
+    <Build Include="dbo\Stored Procedures\updateJulianPrices15.sql" />
+    <Build Include="dbo\Stored Procedures\oosum2.sql" />
+    <Build Include="dbo\Stored Procedures\oGetDefAndDate.sql" />
+    <Build Include="dbo\Stored Procedures\zupdateJulianPrices7.sql" />
+    <Build Include="dbo\Stored Procedures\ooitv.sql" />
+    <Build Include="dbo\Stored Procedures\oorv.sql" />
+    <Build Include="dbo\Stored Procedures\oort.sql" />
+    <Build Include="dbo\Stored Procedures\oovid.sql" />
+    <Build Include="dbo\Stored Procedures\oodiv.sql" />
+    <Build Include="dbo\Stored Procedures\MinimizeDBSize.sql" />
+    <Build Include="dbo\Stored Procedures\oom.sql" />
+    <Build Include="dbo\Stored Procedures\memBuildClrAssemblyVBConcatSnug.sql" />
+    <Build Include="dbo\Stored Procedures\ooToDo.sql" />
+    <Build Include="dbo\Stored Procedures\updateTastingFromNew_old.sql" />
+    <Build Include="dbo\Stored Procedures\dougFunctions.sql" />
+    <Build Include="dbo\Stored Procedures\updateTastingNewFromERP.sql" />
+    <Build Include="dbo\Stored Procedures\uniqueToIssue.sql" />
+    <Build Include="dbo\Stored Procedures\checkForErpInWh.sql" />
+    <Build Include="dbo\Stored Procedures\verifyTheUpdate.sql" />
+    <Build Include="dbo\Stored Procedures\updateTastingNewFromEWS.sql" />
+    <Build Include="dbo\Stored Procedures\updateTastingFromNew_before1005May27.sql" />
+    <Build Include="dbo\Stored Procedures\zupdateNameYearRaw.sql" />
+    <Build Include="dbo\Stored Procedures\updateJulianPrices16.sql" />
+    <Build Include="dbo\Stored Procedures\savey.sql" />
+    <Build Include="dbo\Stored Procedures\updateBottleSize.sql" />
+    <Build Include="dbo\Stored Procedures\zupdateNameYearNorm.sql" />
+    <Build Include="dbo\Stored Procedures\zupdateAll.sql" />
+    <Build Include="dbo\Stored Procedures\exampleBackup.sql" />
+    <Build Include="dbo\Stored Procedures\updateNamesFromErpAndWs3.sql" />
+    <Build Include="dbo\Stored Procedures\ooo.sql" />
+    <Build Include="dbo\Stored Procedures\updateJulianPrices17.sql" />
+    <Build Include="dbo\Stored Procedures\zupdateJulianPrices3.sql" />
+    <Build Include="dbo\Stored Procedures\oov.sql" />
+    <Build Include="dbo\Stored Procedures\updateJulianPrices18.sql" />
+    <Build Include="dbo\Stored Procedures\updatePrice_old_activeBits.sql" />
+    <Build Include="dbo\Stored Procedures\zupdateJulianPrices8.sql" />
+    <Build Include="dbo\Stored Procedures\updateJulianPrices19.sql" />
+    <Build Include="dbo\Stored Procedures\updateDollars.sql" />
+    <Build Include="dbo\Stored Procedures\zupdateNameYearUnique.sql" />
+    <Build Include="dbo\Stored Procedures\ooi.sql" />
+    <Build Include="dbo\Stored Procedures\oof.sql" />
+    <Build Include="dbo\Stored Procedures\oofr.sql" />
+    <Build Include="dbo\Stored Procedures\steps.sql" />
+    <Build Include="dbo\Stored Procedures\oofd.sql" />
+    <Build Include="dbo\Stored Procedures\updateJulianPrices27.sql" />
+    <Build Include="dbo\Stored Procedures\oon.sql" />
+    <Build Include="dbo\Stored Procedures\zupdateJulianPrices9.sql" />
+    <Build Include="dbo\Stored Procedures\getFromErp3.sql" />
+    <Build Include="dbo\Stored Procedures\buildMergeWineName.sql" />
+    <Build Include="dbo\Stored Procedures\zupdateNameYearActiveBits.sql" />
+    <Build Include="dbo\Stored Procedures\updateJulianPrices28.sql" />
+    <Build Include="dbo\Stored Procedures\updateJulianPrices20.sql" />
+    <Build Include="dbo\Stored Procedures\updateNamesFromErpAndWs.sql" />
+    <Build Include="dbo\Stored Procedures\zupdateJulianPrices2.sql" />
+    <Build Include="dbo\Stored Procedures\updateDollars5.sql" />
+    <Build Include="dbo\Stored Procedures\updateJulianPrices21.sql" />
+    <Build Include="dbo\Stored Procedures\updateJulianPrices22.sql" />
+    <Build Include="dbo\Stored Procedures\updateDollars6.sql" />
+    <Build Include="dbo\Stored Procedures\oFieldsInAButNotInB.sql" />
+    <Build Include="dbo\Stored Procedures\oou.sql" />
+    <Build Include="dbo\Stored Procedures\todo.sql" />
+    <Build Include="dbo\Stored Procedures\updateWineName.sql" />
+    <Build Include="dbo\Stored Procedures\zupdateJulianPrices4.sql" />
+    <Build Include="dbo\Stored Procedures\resolveDuplicateWineNames.sql" />
+    <Build Include="dbo\Stored Procedures\updateNamesFromErpAndWs2.sql" />
+    <Build Include="dbo\Stored Procedures\listDuplicateWineNames.sql" />
+    <Build Include="dbo\Stored Procedures\updateDollars7.sql" />
+    <Build Include="dbo\Stored Procedures\show.sql" />
+    <Build Include="dbo\Stored Procedures\showv.sql" />
+    <Build Include="dbo\Stored Procedures\show2.sql" />
+    <Build Include="dbo\Stored Procedures\updateJulianPrices23.sql" />
+    <Build Include="dbo\Stored Procedures\showt.sql" />
+    <Build Include="dbo\Stored Procedures\showt2.sql" />
+    <Build Include="dbo\Stored Procedures\buildMergeWine.sql" />
+    <Build Include="dbo\Stored Procedures\updateDollars2.sql" />
+    <Build Include="dbo\Stored Procedures\updateWine_old.sql" />
+    <Build Include="dbo\Stored Procedures\updateJulianPrices24.sql" />
+    <Build Include="dbo\Stored Procedures\buildMergeTasting.sql" />
+    <Build Include="dbo\Stored Procedures\saveWhenChanged.sql" />
+    <Build Include="dbo\Stored Procedures\updateDollars3.sql" />
+    <Build Include="dbo\Stored Procedures\fieldsThatUseWh.sql" />
+    <Build Include="dbo\Stored Procedures\updateImportFromAccess.sql" />
+    <Build Include="dbo\Stored Procedures\exampleRemoteServer.sql" />
+    <Build Include="dbo\Stored Procedures\oodif.sql" />
+    <Build Include="dbo\Stored Procedures\oometa.sql" />
+    <Build Include="dbo\Stored Procedures\oGetDef.sql" />
+    <Build Include="dbo\Stored Procedures\updateDollars4.sql" />
+    <Build Include="dbo\Stored Procedures\updateErpFromIn.sql" />
+    <Build Include="dbo\Stored Procedures\oFields.sql" />
+    <Build Include="dbo\Stored Procedures\zupdateJulianPrices10.sql" />
+    <Build Include="dbo\Stored Procedures\updateErpWineFromIn.sql" />
+    <Build Include="dbo\Stored Procedures\updateMasterKeywords.sql" />
+    <Build Include="dbo\Stored Procedures\updateVinnEquivalance.sql" />
+    <Build Include="dbo\Stored Procedures\updateErpWineNameFromIn.sql" />
+    <Build Include="dbo\Stored Procedures\ooerp.sql" />
+    <Build Include="dbo\Stored Procedures\wineForVintageVinn.sql" />
+    <Build Include="dbo\Stored Procedures\exampleMerge.sql" />
+    <Build Include="dbo\Stored Procedures\oss.sql" />
+    <Build Include="dbo\Stored Procedures\updateJulianPrices25.sql" />
+    <Build Include="dbo\Stored Procedures\oopubg.sql" />
+    <Build Include="dbo\Stored Procedures\os.sql" />
+    <Build Include="dbo\Stored Procedures\updateErpTastingsFromIn.sql" />
+    <Build Include="dbo\Stored Procedures\cursorExample.sql" />
+    <Build Include="dbo\Stored Procedures\updateJulianPrices26.sql" />
+    <Build Include="dbo\Stored Procedures\ooicons.sql" />
+    <Build Include="dbo\Stored Procedures\oval.sql" />
+    <Build Include="dbo\Stored Procedures\addWine.sql" />
+    <Build Include="dbo\Functions\concatFF.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Assemblies\myWinesClr.dll" />
+    <None Include="Assemblies\WineMaint1.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="myWinesClr">
+      <HintPath>Assemblies\myWinesClr.dll</HintPath>
+      <SqlAssemblyName>myWinesClr</SqlAssemblyName>
+      <IsModelAware>True</IsModelAware>
+      <GenerateSqlClrDdl>False</GenerateSqlClrDdl>
+      <SqlOwnerName>dbo</SqlOwnerName>
+      <SqlPermissionSet>SAFE</SqlPermissionSet>
+    </Reference>
+    <Reference Include="WineMaint1">
+      <HintPath>Assemblies\WineMaint1.dll</HintPath>
+      <SqlAssemblyName>wineMaint1</SqlAssemblyName>
+      <IsModelAware>True</IsModelAware>
+      <GenerateSqlClrDdl>False</GenerateSqlClrDdl>
+      <SqlOwnerName>dbo</SqlOwnerName>
+      <SqlPermissionSet>SAFE</SqlPermissionSet>
+    </Reference>
+  </ItemGroup>
+</Project>

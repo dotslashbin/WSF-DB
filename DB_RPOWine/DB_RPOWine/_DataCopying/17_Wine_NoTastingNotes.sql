@@ -31,8 +31,8 @@ select
 	hasWJTasting = cast(0 as smallint), 
 	hasERPTasting = cast(0 as smallint), 
 	IsActiveWineN = cast(0 as smallint), 
-	IsCurrentlyForSale = cast(0 as smallint),
-	IsCurrentlyOnAuction = cast(0 as smallint)
+	IsCurrentlyForSale = cast(max(case when isnull(sd.DollarsPer750Bottle, 0) > 0 then 1 else 0 end) as smallint),
+	IsCurrentlyOnAuction = cast(max(case when sd.isAuction = 0 then 0 else 1 end) as smallint)
 into #t
 from eRPSearchD.dbo.WAName wan
 	join eRPSearchD.dbo.ForSaleDetail sd on sd.Wid = wan.Wid

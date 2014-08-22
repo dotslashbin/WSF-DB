@@ -1,4 +1,5 @@
-﻿CREATE VIEW [dbo].[vWine4Erp]
+﻿
+CREATE VIEW [dbo].[vWine4Erp]
 
 AS
 
@@ -74,9 +75,10 @@ select --top 20
 	ThisYearHasPrices = cast(case when wn.MostRecentPrice is NULL then 0 else 1 end as bit),	-- WRONG!
 	Variety,
 	--Vin,
-	VinN,Vintage,
+	VinN = isnull(w.oldVinN, 250000 + w.VinN),
+	Vintage,
 	--WhoUpdated,
-	WineN,
+	WineN = isnull(w.oldWineN, 250000 + w.WineN),
 	--WineNameIdN,wineNameN,
 	WineType
 from Wine w (nolock)

@@ -33,8 +33,13 @@ insert into @TSources(dataSourceN)
 	select distinct(dataSourceN) from vTastingNew;
  
 merge vTasting a
-		using  vTastingNew  b
-			on a.dataSourceN = b.dataSourceN and a.dataIdN = b.dataIdN
+--using  vTastingNew  b
+--			on a.dataSourceN = b.dataSourceN and a.dataIdN = b.dataIdN
+using (
+	select *,
+		rn = row_number() over (partition by dataSourceN, dataIdN order by dataSourceN, dataIdN)
+	from vTastingNew
+) as b on b.rn = 1 and a.dataSourceN = b.dataSourceN and a.dataIdN = b.dataIdN
 when matched 
 		and	(     
 					     a._clumpName <> b._clumpName or (a._clumpName is null and b._clumpName is not null) or (a._clumpName is not null and b._clumpName is null)

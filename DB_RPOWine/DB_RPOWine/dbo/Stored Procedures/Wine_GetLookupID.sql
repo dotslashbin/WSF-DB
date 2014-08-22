@@ -1,4 +1,5 @@
-﻿-- =============================================
+﻿
+-- =============================================
 -- Author:		Alex B
 -- Create date: 1/22/14
 -- Description:	Gets internal ID of the lookup record.
@@ -62,7 +63,7 @@ end
 
 if (lower(@ObjectName) = 'winevariety') begin
 	select @Result = ID from WineVariety where lower(Name) = lower(@ObjectValue)
-	if isnull(@Result, 0) < 1 and @IsAutoCreate = 1 and len(@ObjectValue) > 0 begin
+	if isnull(@Result, -1) < 0 and @IsAutoCreate = 1 and len(@ObjectValue) > 0 begin
 		insert into WineVariety (Name) values (left(@ObjectValue, 50))
 		select @Result = scope_identity()
 	end
@@ -87,8 +88,8 @@ if (lower(@ObjectName) = 'wineproducer') begin
 	end
 end
 
-if ((lower(@ObjectName) = 'winelabel' and isnull(@Result, -1) < 0) 
-	or (lower(@ObjectName) != 'winelabel' and isnull(@Result, 0) < 1)) begin
+if ((lower(@ObjectName) in ('winelabel', 'winevariety') and isnull(@Result, -1) < 0) 
+	or (lower(@ObjectName) not in ('winelabel', 'winevariety') and isnull(@Result, 0) < 1)) begin
 	raiserror('Cannot find or create an entry in the [%s] with value "%s".', 16, 1, @ObjectName, @ObjectValue)
 end
 

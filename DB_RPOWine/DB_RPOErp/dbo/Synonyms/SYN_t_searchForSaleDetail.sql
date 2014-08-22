@@ -1,2 +1,4 @@
-﻿CREATE SYNONYM [dbo].[SYN_t_searchForSaleDetail] FOR [ERP-STAGE].[RPOSearch].[dbo].[ForSaleDetail];
+﻿CREATE SYNONYM [dbo].[SYN_t_searchForSaleDetail] FOR [RPOSearch].[dbo].[ForSaleDetail];
+
+
 

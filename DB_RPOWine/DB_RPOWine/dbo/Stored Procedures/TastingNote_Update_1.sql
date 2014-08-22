@@ -2,6 +2,7 @@
 
 
 
+
 -- =============================================
 -- Author:		Alex B.
 -- Create date: 1/28/2014
@@ -128,13 +129,13 @@ BEGIN TRY
 		Wine_N_ID = isnull(@Wine_N_ID, Wine_N_ID), 
 		TasteDate = isnull(@TasteDate, TasteDate), 
 		MaturityID = isnull(@MaturityID, MaturityID), 
-		Rating_Lo = isnull(@Rating_Lo, Rating_Lo), 
-		Rating_Hi = isnull(@Rating_Hi, Rating_Hi), 
-		DrinkDate_Lo = isnull(@DrinkDate_Lo, DrinkDate_Lo), 
-		DrinkDate_Hi = isnull(@DrinkDate_Hi, DrinkDate_Hi), 
+		Rating_Lo = @Rating_Lo, 
+		Rating_Hi = @Rating_Hi, 
+		DrinkDate_Lo = @DrinkDate_Lo, 
+		DrinkDate_Hi = @DrinkDate_Hi, 
 		
-		EstimatedCost = isnull(@EstimatedCost, EstimatedCost),
-		EstimatedCost_Hi = isnull(@EstimatedCost_Hi, EstimatedCost_Hi),
+		EstimatedCost = @EstimatedCost,
+		EstimatedCost_Hi = @EstimatedCost_Hi,
 		
 		IsBarrelTasting = isnull(@IsBarrelTasting, IsBarrelTasting), 
 		locPlacesID = isnull(@locPlacesID, locPlacesID),

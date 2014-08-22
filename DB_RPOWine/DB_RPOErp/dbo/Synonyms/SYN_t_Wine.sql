@@ -1,2 +1,4 @@
-﻿CREATE SYNONYM [dbo].[SYN_t_Wine] FOR [ERP-STAGE].[RPOWine].[dbo].[Wine];
+﻿CREATE SYNONYM [dbo].[SYN_t_Wine] FOR [RPOWine].[dbo].[vWine4Erp];
+
+
 

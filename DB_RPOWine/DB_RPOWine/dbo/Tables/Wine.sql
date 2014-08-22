@@ -58,8 +58,17 @@
     [updated]                 SMALLDATETIME  NULL,
     [RV_TasteNote]            BINARY (8)     CONSTRAINT [DF__Wine__RV_TasteNo__14B2A6A8] DEFAULT (0x00) NOT NULL,
     [RV_Wine_N]               BINARY (8)     CONSTRAINT [DF__Wine__RV_Wine_N__15A6CAE1] DEFAULT (0x00) NOT NULL,
+    [wProducerID]             INT            NOT NULL,
+    [wTypeID]                 INT            NOT NULL,
+    [wLabelID]                INT            NOT NULL,
+    [wVarietyID]              INT            NOT NULL,
+    [wDrynessID]              INT            NOT NULL,
+    [wColorID]                INT            NOT NULL,
+    [wVintageID]              INT            NOT NULL,
     CONSTRAINT [PK_Wine] PRIMARY KEY CLUSTERED ([ID] ASC)
 );
+
+
 
 
 
@@ -87,5 +96,13 @@ CREATE NONCLUSTERED INDEX [IX_Wine_WineNID]
 GO
 CREATE NONCLUSTERED INDEX [IX_Wine_IsActiveWineN]
     ON [dbo].[Wine]([IsActiveWineN] ASC, [IsERPTasting] ASC, [IsWJTasting] ASC)
-    INCLUDE([ID]);
+    INCLUDE([ID], [TasteNote_ID]);
+
+
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Wine_IntermScreen]
+    ON [dbo].[Wine]([wProducerID] ASC, [wLabelID] ASC, [wColorID] ASC, [IsActiveWineN] ASC)
+    INCLUDE([ID], [TasteNote_ID], [Wine_N_ID], [Wine_VinN_ID]);
 
