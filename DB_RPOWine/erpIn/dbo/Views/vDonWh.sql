@@ -1,0 +1,1 @@
+﻿create view vDonWh as select * from erpdon..wh

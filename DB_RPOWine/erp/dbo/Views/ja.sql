@@ -1,0 +1,1 @@
+﻿create view ja as select Loc,count(*)cntLoc,count(distinct region)cntRegion,count(distinct country)cntCountry from masterLoc group by loc 

@@ -1,0 +1,1 @@
+﻿CREATE view vvv as select * from erp..tasting where bottleSizeN is null

@@ -1,0 +1,1 @@
+﻿create view vUsage1 as (select wid,vinN,wineN,wineNameN,vintage,isOld from idUsage1)

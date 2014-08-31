@@ -842,5 +842,6 @@
     <None Include="_DataCopying\17_Wine_NoTastingNotes.sql" />
     <None Include="_DataCopying\___FinalStep.sql" />
     <None Include="_DataCopying\___FixUserIDs.sql" />
+    <None Include="_DataCopying\99_TemporaryAdjustments.sql" />
   </ItemGroup>
 </Project>

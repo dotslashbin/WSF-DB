@@ -1,0 +1,1 @@
+﻿create view vwm as select * from erp..wineName

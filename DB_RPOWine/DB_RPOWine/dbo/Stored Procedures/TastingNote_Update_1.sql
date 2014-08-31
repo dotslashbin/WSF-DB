@@ -1,9 +1,4 @@
-﻿
-
-
-
-
--- =============================================
+﻿-- =============================================
 -- Author:		Alex B.
 -- Create date: 1/28/2014
 -- Description:	Updates TasteNote record.
@@ -49,6 +44,14 @@ select @UserId = nullif(@UserId, 0)
 select @prevWF_StatusID = WF_StatusID, @prevOriginID = OriginID from TasteNote (nolock) where ID = @ID
 if @prevWF_StatusID is NULL begin
 	raiserror('TasteNote_Update:: Taste Note record with ID=%i does not exist.', 16, 1, @ID)
+	RETURN -1
+end
+
+-- BB 08.30.2014
+--
+--
+if @prevWF_StatusID < 0 begin
+	raiserror('TasteNote_Update:: Archived record could not updated,  ID=%i .', 16, 1, @ID)
 	RETURN -1
 end
 
@@ -99,28 +102,35 @@ BEGIN TRY
 	
 	-- if current and new WF status if "published" - silent update
 	-- make a copy of the note IF current status is "published" and new status is not "published"
-	if @prevWF_StatusID >= 100 and isnull(@WF_StatusID, 0) < 100 begin
-		set @WF_StatusID = isnull(@WF_StatusID, 0)
+	
+	-- BB 08.30.2014
+	-- if note is published make copy to archive
+	-- otherwise just update the note
+	--
+	if @prevWF_StatusID >= 100  begin
 		insert into TasteNote (OriginID, UserId, IssueID, Wine_N_ID, TasteDate, MaturityID, 
-			Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, 
+			TastingEventID, RatingQ, Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, 
 		    EstimatedCost,EstimatedCost_Hi, 
 			locPlacesID, Notes,
+			
+			oldIdn, oldFixedId, oldClumpName, oldEncodedKeyWords, oldReviewerIdN,
+			oldIsErpTasting, oldIsWjTasting, oldShowForERP, oldShowForWJ, oldSourceDate,
+			oldArticleId, oldArticleIdNKey, ArticleID, IsActiveWineN,
+			
 			created, updated, WF_StatusID)
 		select OriginID=@ID, UserId, IssueID, Wine_N_ID, TasteDate, MaturityID, 
-			Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, 
+			TastingEventID, RatingQ, Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, 
 		    EstimatedCost,EstimatedCost_Hi, 
 			locPlacesID, Notes,
-			created, getdate(), @WF_StatusID
+			
+			oldIdn, oldFixedId, oldClumpName, oldEncodedKeyWords, oldReviewerIdN,
+			oldIsErpTasting, oldIsWjTasting, oldShowForERP, oldShowForWJ, oldSourceDate,
+			oldArticleId, oldArticleIdNKey, ArticleID, IsActiveWineN,
+
+			created, getdate(), -100
 		from TasteNote 
 		where ID = @ID
-		select @ID = scope_identity()
-	end else if @prevWF_StatusID < 100 and isnull(@WF_StatusID, 0) >= 100 and isnull(@prevOriginID, 0) > 0 begin
-		-- update "origin" record to status = -100 -- archived.
-		update TasteNote set 
-			updated = getdate(), 
-			WF_StatusID = -100
-		where ID = @prevOriginID
-	end
+	end 
 
 	update TasteNote set 
 		OriginID = isnull(@OriginID, OriginID), 
@@ -140,8 +150,8 @@ BEGIN TRY
 		IsBarrelTasting = isnull(@IsBarrelTasting, IsBarrelTasting), 
 		locPlacesID = isnull(@locPlacesID, locPlacesID),
 		Notes = isnull(@Notes, Notes), 
-		updated = getdate(), 
-		WF_StatusID = isnull(@WF_StatusID, WF_StatusID)
+		updated = getdate() 
+		--WF_StatusID = isnull(@WF_StatusID, WF_StatusID)
 		--EditorID = @EditorID
 	where ID = @ID
 

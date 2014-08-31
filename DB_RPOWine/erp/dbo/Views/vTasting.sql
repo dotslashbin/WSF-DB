@@ -1,0 +1,1 @@
+﻿create view vTasting as select * from tasting

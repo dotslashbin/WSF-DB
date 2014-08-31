@@ -1,0 +1,1 @@
+﻿create view vCurrencyConversion as select * from erp..currencyConversion

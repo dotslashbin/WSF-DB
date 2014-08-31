@@ -1,0 +1,1 @@
+﻿create view vWinePlus  as select a.*,b.producer,producershow,labelname,colorclass,winetype,dryness,variety,country,region,location,locale,site,joinx,matchName 	from wine a join winename b on a.winenamen=b.winenamen

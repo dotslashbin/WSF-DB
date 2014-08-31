@@ -1,0 +1,1 @@
+﻿CREATE view vWine as select * from erp..wine

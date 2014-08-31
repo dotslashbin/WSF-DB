@@ -1,0 +1,1 @@
+﻿create view vDonTasting as select * from erpdon..tasting

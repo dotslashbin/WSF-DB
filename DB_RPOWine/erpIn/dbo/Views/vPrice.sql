@@ -1,0 +1,1 @@
+﻿CREATE view vPrice as select * from price

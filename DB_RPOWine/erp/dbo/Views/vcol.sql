@@ -1,0 +1,1 @@
+﻿create view vcol as select * from information_schema.columns

@@ -1,0 +1,1 @@
+﻿create view vto as select * from erp..tasting

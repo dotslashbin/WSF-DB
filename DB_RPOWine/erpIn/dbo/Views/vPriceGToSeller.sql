@@ -1,0 +1,1 @@
+﻿create view vPriceGToSeller as select * from erp..priceGToSeller

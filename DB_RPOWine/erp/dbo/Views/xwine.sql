@@ -1,0 +1,1 @@
+﻿CREATE view [dbo].[xwine] as select z.*, y.vintage from winename z join wine y on z.wineNameN = y.wineNameN

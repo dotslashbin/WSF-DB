@@ -3596,9 +3596,7 @@ exec RPOWine.srv.UpdateArticles
 if @IsUpdateWineDB = 1 begin
 	print '-- N. RPOWine.srv calls -- ' + cast(getdate() as varchar(30))
 	-- Alex B. - reload Wine table
-	exec RPOWine.srv.Wine_UpdatePrices
-	exec RPOWine.srv.Wine_UpdateIsActiveWineN
-	exec RPOWine.srv.Wine_Reload
+	exec [23UpdateImportPrices_RPOWine]
 end
 
 exec LogMsg 'Update of all files finished';

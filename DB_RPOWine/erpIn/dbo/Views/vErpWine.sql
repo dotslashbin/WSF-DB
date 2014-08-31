@@ -1,0 +1,1 @@
+﻿create view vErpWine as select * from rpowinedata..wine

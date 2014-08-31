@@ -1,0 +1,1 @@
+﻿create view [vErpRetailer]  as select * from wh where isRetailer = 1 and isGroup = 0

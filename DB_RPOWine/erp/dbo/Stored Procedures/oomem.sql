@@ -1,0 +1,1 @@
+﻿create procedure oomem as begin exec oodef mem end

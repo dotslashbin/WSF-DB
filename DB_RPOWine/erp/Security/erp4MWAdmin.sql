@@ -1,0 +1,3 @@
+﻿CREATE USER [erp4MWAdmin] WITHOUT LOGIN
+    WITH DEFAULT_SCHEMA = [db_owner];
+
