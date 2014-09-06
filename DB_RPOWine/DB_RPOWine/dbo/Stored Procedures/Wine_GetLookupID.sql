@@ -1,4 +1,5 @@
 ﻿
+
 -- =============================================
 -- Author:		Alex B
 -- Create date: 1/22/14
@@ -39,7 +40,7 @@ end
 
 if (lower(@ObjectName) = 'winedryness') begin
 	select @Result = ID from WineDryness where lower(Name) = lower(@ObjectValue)
-	if isnull(@Result, 0) < 1 and @IsAutoCreate = 1 and len(@ObjectValue) > 0 begin
+	if isnull(@Result, -1) < 0 and @IsAutoCreate = 1 and len(@ObjectValue) > 0 begin
 		insert into WineDryness (Name) values (left(@ObjectValue, 30))
 		select @Result = scope_identity()
 	end
@@ -88,14 +89,14 @@ if (lower(@ObjectName) = 'wineproducer') begin
 	end
 end
 
-if ((lower(@ObjectName) in ('winelabel', 'winevariety') and isnull(@Result, -1) < 0) 
-	or (lower(@ObjectName) not in ('winelabel', 'winevariety') and isnull(@Result, 0) < 1)) begin
+if ((lower(@ObjectName) in ('winelabel', 'winevariety','winedryness') and isnull(@Result, -1) < 0) 
+	or (lower(@ObjectName) not in ('winelabel', 'winevariety','winedryness') and isnull(@Result, 0) < 1)) begin
 	raiserror('Cannot find or create an entry in the [%s] with value "%s".', 16, 1, @ObjectName, @ObjectValue)
 end
 
 RETURN isnull(@Result, 0)
 GO
-GRANT EXECUTE ON [dbo].[Wine_GetLookupID] TO [RP_Customer] AS [dbo]
+
 GO
-GRANT EXECUTE ON [dbo].[Wine_GetLookupID] TO [RP_DataAdmin] AS [dbo]
+
 GO

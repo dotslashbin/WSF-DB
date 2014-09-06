@@ -97,6 +97,7 @@
     <Build Include="dbo\Stored Procedures\23Update_RequiredIndexes.sql" />
     <Build Include="Security\RoleMemberships.sql" />
     <Build Include="utils\Stored Procedures\DefragReindex.sql" />
+    <Build Include="dbo\Stored Procedures\23UpdateImportPrices_RPOWine.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SqlSchemaCompare_DBvsProject.scmp" />

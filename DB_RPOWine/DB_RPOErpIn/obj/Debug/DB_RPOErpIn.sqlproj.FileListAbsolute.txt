@@ -1,0 +1,8 @@
+D:\PROJECTS\PROJECTS_2014\Alex\Repos_DBProj\DB_RPOWine\DB_RPOErpIn\bin\Debug\DB_RPOErpIn.dacpac
+D:\PROJECTS\PROJECTS_2014\Alex\Repos_DBProj\DB_RPOWine\DB_RPOErpIn\obj\Debug\DB_RPOErpIn.sqlprojResolveAssemblyReference.cache
+D:\PROJECTS\PROJECTS_2014\Alex\Repos_DBProj\DB_RPOWine\DB_RPOErpIn\obj\Debug\Model.xml
+D:\PROJECTS\PROJECTS_2014\Alex\Repos_DBProj\DB_RPOWine\DB_RPOErpIn\obj\Debug\refactor.xml
+D:\PROJECTS\PROJECTS_2014\Alex\Repos_DBProj\DB_RPOWine\DB_RPOErpIn\obj\Debug\postdeploy.sql
+D:\PROJECTS\PROJECTS_2014\Alex\Repos_DBProj\DB_RPOWine\DB_RPOErpIn\obj\Debug\predeploy.sql
+D:\PROJECTS\PROJECTS_2014\Alex\Repos_DBProj\DB_RPOWine\DB_RPOErpIn\obj\Debug\DB_RPOErpIn.dll
+D:\PROJECTS\PROJECTS_2014\Alex\Repos_DBProj\DB_RPOWine\DB_RPOErpIn\obj\Debug\DB_RPOErpIn.pdb

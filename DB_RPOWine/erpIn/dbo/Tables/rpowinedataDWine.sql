@@ -11,7 +11,7 @@
     [encodedKeyWords]           NVARCHAR (255) NULL,
     [EntryN]                    INT            NOT NULL,
     [EstimatedCost]             MONEY          NULL,
-    [FixedId]                   INT            NOT NULL,
+    [FixedId]                   INT            NULL,
     [HasCurrentPrice]           BIT            NULL,
     [hasErpTasting]             BIT            NULL,
     [hasProducerProfile]        BIT            NULL,
@@ -65,4 +65,6 @@
     [WineN]                     INT            NULL,
     [WineType]                  NVARCHAR (50)  NOT NULL
 );
+
+
 

@@ -12,6 +12,7 @@
     [Dryness]       NVARCHAR (MAX) NULL,
     [WineType]      NVARCHAR (MAX) NULL,
     [Variety]       NVARCHAR (MAX) NULL,
+    [V2013]         NVARCHAR (MAX) NULL,
     [V2012]         NVARCHAR (MAX) NULL,
     [V2011]         NVARCHAR (MAX) NULL,
     [V2010]         NVARCHAR (MAX) NULL,
@@ -52,4 +53,6 @@
     [V1971]         NVARCHAR (MAX) NULL,
     [V1970]         NVARCHAR (MAX) NULL
 );
+
+
 

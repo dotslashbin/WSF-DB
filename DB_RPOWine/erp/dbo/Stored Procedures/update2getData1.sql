@@ -31,7 +31,7 @@ from dbo.SYN_t_searchForSale	-- erpSearchD.dbo.ForSale
 drop table erpIn.dbo.erpSearchDForSaleDetail
 --select * into erpIn.dbo.erpSearchDForSaleDetail from  [EROBPARK-3\EROBPARK2K8].erpSearchD.dbo.ForSaleDetail
 select * into erpIn.dbo.erpSearchDForSaleDetail 
-from dbo.SYN_t_searchForSale	-- erpSearchD.dbo.ForSaleDetail
+from dbo.SYN_t_searchForSaleDetail	-- erpSearchD.dbo.ForSaleDetail
  
 end
  

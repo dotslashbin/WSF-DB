@@ -1,6 +1,4 @@
-﻿
-
-CREATE VIEW [dbo].[vWine]
+﻿CREATE VIEW [dbo].[vWine]
 
 AS
 
@@ -28,7 +26,7 @@ select
 			+ ' ' + isnull(wv.Name, '') + ' ' + isnull(wd.Name, '') + ' ' + isnull(wc.Name, '')
 			+ ' ' + isnull(wvin.Name, ''), '  ', '')
 	end,
-	fixedId = tn.oldFixedId,
+	fixedId = isnull(tn.oldFixedId, -((wn.ID * 1000) + isnull(tn.ID,0))),
 	HasWJTasting = wn.HasWJTasting,
 	IsActiveWineN = isnull(tn.IsActiveWineN, 0),
 	Issue = i.Title,

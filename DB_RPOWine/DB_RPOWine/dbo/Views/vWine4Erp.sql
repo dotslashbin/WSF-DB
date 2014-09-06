@@ -1,4 +1,5 @@
 ﻿
+
 CREATE VIEW [dbo].[vWine4Erp]
 
 AS
@@ -19,7 +20,7 @@ select --top 20
 	--erpTastingCount,
 	EstimatedCost = w.EstimatedCost,
 	--EstimatedCost_Hi,
-	FixedId = tn.ID,
+	FixedId = w.FixedId,
 	--hasAGalloniTasting,
 	HasCurrentPrice = cast(case when wn.MostRecentPrice is not null then 1 else 0 end as bit),
 	--hasDSchildknechtTasting,hasDThomasesTasting,

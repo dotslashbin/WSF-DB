@@ -9,6 +9,10 @@ Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "DB_RPOErp", "DB_RPOErp\DB_R
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "DB_RPOErpIn", "DB_RPOErpIn\DB_RPOErpIn.sqlproj", "{1B5B023B-658C-4AF1-8A6D-EAE5CD054A72}"
 EndProject
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "erp", "erp\erp.sqlproj", "{471B97D4-60F2-495B-86E7-44E3C9C0CE0C}"
+EndProject
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "erpIn", "erpIn\erpIn.sqlproj", "{29EAE42B-8877-4CE0-8442-0409C61CDEB3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,18 @@ Global
 		{1B5B023B-658C-4AF1-8A6D-EAE5CD054A72}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B5B023B-658C-4AF1-8A6D-EAE5CD054A72}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1B5B023B-658C-4AF1-8A6D-EAE5CD054A72}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{471B97D4-60F2-495B-86E7-44E3C9C0CE0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{471B97D4-60F2-495B-86E7-44E3C9C0CE0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{471B97D4-60F2-495B-86E7-44E3C9C0CE0C}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{471B97D4-60F2-495B-86E7-44E3C9C0CE0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{471B97D4-60F2-495B-86E7-44E3C9C0CE0C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{471B97D4-60F2-495B-86E7-44E3C9C0CE0C}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{29EAE42B-8877-4CE0-8442-0409C61CDEB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29EAE42B-8877-4CE0-8442-0409C61CDEB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29EAE42B-8877-4CE0-8442-0409C61CDEB3}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{29EAE42B-8877-4CE0-8442-0409C61CDEB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29EAE42B-8877-4CE0-8442-0409C61CDEB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{29EAE42B-8877-4CE0-8442-0409C61CDEB3}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

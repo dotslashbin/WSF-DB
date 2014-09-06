@@ -1,6 +1,6 @@
 ﻿CREATE TABLE [dbo].[erpSearchDWine] (
     [IsActiveWineN]             BIT             NULL,
-    [WineN]                     INT             NOT NULL,
+    [WineN]                     INT             NULL,
     [Vintage]                   VARCHAR (255)   NULL,
     [Variety]                   VARCHAR (255)   NULL,
     [LabelName]                 VARCHAR (255)   NULL,
@@ -109,7 +109,8 @@
     [erpTastingCount]           INT             NULL,
     [isActiveWineN_old]         BIT             NULL,
     [joinx]                     NVARCHAR (1000) NULL,
-    [wineNameN]                 INT             NULL,
-    [oldWineN]                  INT             NULL
+    [wineNameN]                 INT             NULL
 );
+
+
 

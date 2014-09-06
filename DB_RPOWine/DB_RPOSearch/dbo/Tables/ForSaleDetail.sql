@@ -35,6 +35,8 @@
 
 
 
+
+
 GO
 CREATE NONCLUSTERED INDEX [IX_ForSaleDetail_Price]
     ON [dbo].[ForSaleDetail]([Price] ASC)

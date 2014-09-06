@@ -7,7 +7,7 @@
 CREATE PROCEDURE [dbo].[Wine_Search_02]
 	@IsTWASearch bit = 1,
 	@IsWA bit = 0, @IsWJ bit = 0, @IsOnSale bit = 0,
-	@Keyword varchar(50),
+	@Keyword varchar(250),
 	@SortBy varchar(20) = NULL, @SortOrder varchar(3) = NULL,
 	@wProducerID int = NULL
 	
