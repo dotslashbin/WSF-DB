@@ -32,10 +32,10 @@ set xact_abort on;
 			TasteNoteID = tn.ID,
 			Wine_N_ID = tn.Wine_N_ID,
 			IsActiveWineN = cast(case when act.ID is NOT NULL then 1 else 0 end as bit),
-			showForERP = cast(pub.IsPrimary as bit),
-			showForWJ = cast(case when pub.IsPrimary = 0 then 1 else 0 end as bit),
-			isErpTasting = cast(pub.IsPrimary as bit),
-			isWjTasting = cast(case when pub.IsPrimary = 0 then 1 else 0 end as bit)
+			showForERP = cast(case when pub.ID > 0 and pub.IsPrimary = 1 then 1 else 0 end as bit),	-- cast(pub.IsPrimary as bit),
+			showForWJ = cast(case when pub.ID > 0 and pub.IsPrimary = 0 then 1 else 0 end as bit),
+			isErpTasting = cast(case when pub.ID > 0 and pub.IsPrimary = 1 then 1 else 0 end as bit),	-- cast(pub.IsPrimary as bit),
+			isWjTasting = cast(case when pub.ID > 0 and pub.IsPrimary = 0 then 1 else 0 end as bit)
 		from TasteNote tn (nolock)
 			join Issue i (nolock) on tn.IssueID = i.ID
 			join Publication p (nolock) on i.PublicationID = p.ID

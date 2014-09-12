@@ -79,7 +79,18 @@ if @IsTWASearch = 1 begin
 		case when @SortBy = 'ProducerShow' and @SortOrder = 'des' then ProducerShow else null end desc,
 		ProducerShow
 end else if @IsTWASearch = 0 begin
-	; with r as (
+	; with f as (
+		select 
+			WineID = w.ID,
+			wWineN = w.WineN,
+			rn = row_number() over(partition by WineN order by WineN, tn.TasteDate desc)
+		from Wine w (nolock)
+			join TasteNote tn (nolock) on w.TasteNote_ID = tn.ID
+		where --w.IsActiveWineN = 1 and 
+			w.showForWJ = 1
+			and contains((encodedKeyWords,labelname,producershow), @Keyword)
+	),
+	r as (
 		select 
 			wProducerID, 
 			ProducerShow,
@@ -89,9 +100,11 @@ end else if @IsTWASearch = 0 begin
 			CntHasTasting = sum(case when showForWJ = 1 and TasteNote_ID > 0 then 1 else 0 end),
 			CntForSaleAndHasTasting = sum(case when isCurrentlyForSale = 1 and showForWJ = 1 and TasteNote_ID > 0 then 1 else 0 end)
 		from Wine (nolock)
-		where --isActiveWineN = 1
-			showForWJ = 1
-			and contains((encodedKeyWords,labelname,producershow), @Keyword)
+			join f on Wine.ID = f.WineID
+		where f.rn = 1
+		--where --isActiveWineN = 1
+		--	showForWJ = 1
+		--	and contains((encodedKeyWords,labelname,producershow), @Keyword)
 		group by wProducerID, ProducerShow
 	)
 	select 

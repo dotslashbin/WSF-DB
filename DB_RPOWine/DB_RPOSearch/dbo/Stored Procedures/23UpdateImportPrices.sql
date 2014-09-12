@@ -1,5 +1,4 @@
-﻿
--- =============================================
+﻿-- =============================================
 -- Author:		Alex B.
 -- Create date: 4/13/14
 -- Description:	Adoptation of the script 23UpdateImportPrices.sql,
@@ -349,7 +348,7 @@ if @IsUseOldWineN = 1 begin
 		select a.wid, 
 			vinn = z.oldVinN
 		from RPOWine.dbo.Wine_N z 
-			join a on a.wineN = z.oldWineN
+			join a on a.wineN = isnull(z.oldWineN, 250000 + z.ID)--z.oldWineN
 		group by wid, z.oldVinN
 	), c as (
 		select wid, vinn from dbo.WAName where vinn > 0 
@@ -438,7 +437,7 @@ update a set errors = case when errors  is null then '' else errors + ',   ' end
 if @IsUseOldWineN = 1 begin
 	with
 	a as (
-		select distinct WineN = oldWineN from RPOWine.dbo.Wine_N
+		select distinct WineN = isnull(oldWineN, 250000 + ID) from RPOWine.dbo.Wine_N
 	), b as (
 		select f.* 
 		from dbo.ForSaleDetail f 
@@ -727,10 +726,10 @@ if @IsUseOldWineN = 1 begin
 	), b as (
 		select f.* from dbo.ForSale f join a on f.wid = a.wid where wineN is not null
 	), c as (
-		select WineN = oldWineN, 
+		select WineN = isnull(oldWineN, 250000 + ID), 
 			vinn = min(oldVinN)  
 		from RPOWine.dbo.Wine_N 
-		group by oldWineN
+		group by isnull(oldWineN, 250000 + ID)
 	), d as (
 		select b.*, c.vinn from  b join c on b.wineN = c.wineN
 	), e as (
@@ -748,10 +747,10 @@ if @IsUseOldWineN = 1 begin
 	), b as (
 		select f.* from dbo.ForSale f join a on f.wid = a.wid where wineN is not null
 	), c as (
-		select WineN = oldWineN, 
+		select WineN = isnull(oldWineN, 250000 + ID), 
 			vinn = min(oldVinN)
 		from RPOWine.dbo.Wine_N 
-		group by oldWineN
+		group by isnull(oldWineN, 250000 + ID)
 	), d as (
 		select b.*, c.vinn from b join c on b.wineN = c.wineN
 	), e as (
@@ -2544,7 +2543,9 @@ insert into dbo.Wine(
 	ClumpName, ColorClass, 
 	--combinedLocation, DateUpdated, erpTastingCount, EstimatedCost_Hi, 
 	Country, DrinkDate, DrinkDate_Hi, Dryness, encodedKeyWords, EstimatedCost, FixedId, 
-	--hasAGalloniTasting, hasDSchildknechtTasting,hasDThomasesTasting, hasErpTasting, hasJMillerTasting, 
+	--hasAGalloniTasting, hasDSchildknechtTasting,hasDThomasesTasting, 
+	hasErpTasting, 
+	--hasJMillerTasting, 
 	--hasMSquiresTasting, hasMultipleWATastings, hasNMartinTasting, HasProducerWebSite, hasPRovaniTasting, hasRParkerTasting, 
 	hasWjTasting, 
 	--IsActiveTasting, IsActiveWineN_old, IsBarrelTasting, isBorrowedDrinkDate, 
@@ -2560,7 +2561,9 @@ select --ArticleId,ArticleIdNKey,ArticleOrder,BottleSize,BottlesPerCosting,
 	ClumpName, ColorClass,
 	--combinedLocation, DateUpdated, erpTastingCount, EstimatedCost_Hi,
 	Country, DrinkDate,DrinkDate_Hi,Dryness,encodedKeyWords, EstimatedCost, FixedId,
-	--hasAGalloniTasting,hasDSchildknechtTasting,hasDThomasesTasting,hasErpTasting,hasJMillerTasting,
+	--hasAGalloniTasting,hasDSchildknechtTasting,hasDThomasesTasting,
+	hasErpTasting,
+	--hasJMillerTasting,
 	--hasMSquiresTasting,hasMultipleWATastings,hasNMartinTasting,HasProducerWebSite,hasPRovaniTasting,hasRParkerTasting,
 	hasWjTasting,
 	--IsActiveTasting, IsActiveWineN_old,IsBarrelTasting, isBorrowedDrinkDate, 
@@ -2599,7 +2602,9 @@ insert into dbo.Wine(
 	ClumpName, ColorClass, 
 	--combinedLocation, DateUpdated, erpTastingCount, EstimatedCost_Hi, 
 	Country, DrinkDate, DrinkDate_Hi, Dryness, encodedKeyWords, EstimatedCost, FixedId, 
-	--hasAGalloniTasting, hasDSchildknechtTasting,hasDThomasesTasting, hasErpTasting, hasJMillerTasting, 
+	--hasAGalloniTasting, hasDSchildknechtTasting,hasDThomasesTasting, 
+	hasErpTasting, 
+	--hasJMillerTasting, 
 	--hasMSquiresTasting, hasMultipleWATastings, hasNMartinTasting, HasProducerWebSite, hasPRovaniTasting, hasRParkerTasting, 
 	hasWjTasting, 
 	--IsActiveTasting, IsActiveWineN_old, IsBarrelTasting, isBorrowedDrinkDate, 
@@ -2615,7 +2620,9 @@ select
 	ClumpName, ColorClass,
 	--combinedLocation, DateUpdated, erpTastingCount, EstimatedCost_Hi,
 	Country, DrinkDate,DrinkDate_Hi,Dryness,encodedKeyWords, EstimatedCost, FixedId,
-	--hasAGalloniTasting,hasDSchildknechtTasting,hasDThomasesTasting,hasErpTasting,hasJMillerTasting,
+	--hasAGalloniTasting,hasDSchildknechtTasting,hasDThomasesTasting,
+	hasErpTasting,
+	--hasJMillerTasting,
 	--hasMSquiresTasting,hasMultipleWATastings,hasNMartinTasting,HasProducerWebSite,hasPRovaniTasting,hasRParkerTasting,
 	hasWjTasting,
 	--IsActiveTasting, IsActiveWineN_old,IsBarrelTasting, isBorrowedDrinkDate, 
@@ -3278,7 +3285,7 @@ update c set wineNameIdN = idNx;
 
 if @IsUpdateWineDB = 0 begin
 	print '      ... skipped.'
-end else begin
+end else if (1 = 0) begin	-- never run this part, it is depricated.
 
 	update RPOWine.dbo.Wine_N set oldWineNameIdN = null;
 

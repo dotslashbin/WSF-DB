@@ -2,7 +2,6 @@
 -- Author:		Alex B.
 -- Create date: 8/8/14
 -- Description:	Returns search results
---				by producer
 -- =============================================
 CREATE PROCEDURE [dbo].[Wine_Search]
 	@IsTWASearch bit = 1,
@@ -45,9 +44,9 @@ if @IsTWASearch = 1 begin
 		[ProducerShow], 
 		[LabelName], 
 		[MostRecentPriceString] =  case    
-			when isnull(MostRecentPrice,0) > 0 and isnull(MostRecentPriceHi,0) > 0 and MostRecentPrice != MostRecentPriceHi
+			when isnull(MostRecentPrice,0) > 0 and isnull(MostRecentPriceHi,0) > 0 and round(MostRecentPrice,0) != round(MostRecentPriceHi,0)
 				then (isnull(convert(varchar(10),convert(int,Round(MostRecentPrice,0))),''))+(isnull('-'+convert(varchar(10),convert(int,Round(MostRecentPriceHi,0))),'')) 
-			when isnull(MostRecentPrice,0) > 0 and (MostRecentPriceHi is NULL or MostRecentPrice = MostRecentPriceHi or round(MostRecentPriceHi,0)=0 )
+			when isnull(MostRecentPrice,0) > 0 and (MostRecentPriceHi is NULL or round(MostRecentPrice,0) = round(MostRecentPriceHi,0) or round(MostRecentPriceHi,0)=0 )
 				then (isnull(convert(varchar(10),convert(int,Round(MostRecentPrice,0))),''))  
 			else ''
 		end , 
@@ -67,7 +66,8 @@ if @IsTWASearch = 1 begin
 		Location,
 		wProducerID, wLabelID, wColorID,
 		--ReviewerIdN=ISNULL(ReviewerIdN,''), 
-		UserId = isnull(tn.UserId, 0)
+		UserId = isnull(tn.UserId, 0),
+		tnID = isnull(tn.ID, 0)
 	from Wine w (nolock)
 		left join TasteNote tn (nolock) on w.TasteNote_ID = tn.ID
 	where w.IsActiveWineN = 1 and w.showForERP = 1
@@ -100,53 +100,85 @@ if @IsTWASearch = 1 begin
 		case when @SortBy = 'SourceDate' and @SortOrder = 'des' then Publication else null end desc,
 		case when @SortBy = 'MostRecentPrice' and @SortOrder = 'asc' then MostRecentPrice else null end asc, 
 		case when @SortBy = 'MostRecentPrice' and @SortOrder = 'des' then MostRecentPrice else null end desc,
-		ScreenWineName, Vintage
+		[Producer], [ScreenWineName], [Vintage] desc
 end else if @IsTWASearch = 0 begin
-	select top 500  
+	; with r as (
+		select top 500  
+			[Vintage], 
+			[Vintages] =  Case Vintage  WHEN '' THEN ''  ELSE Vintage  END,  
+			[RatingString] = ISNULL(Rating,''),  
+			[RatingShow] = ISNULL(RatingShow,''),  
+			[Producer], 
+			[ProducerShow], 
+			[LabelName], 
+			[MostRecentPriceString] =  case    
+				when isnull(MostRecentPrice,0) > 0 and isnull(MostRecentPriceHi,0) > 0 and round(MostRecentPrice,0) != round(MostRecentPriceHi,0)
+					then (isnull(convert(varchar(10),convert(int,Round(MostRecentPrice,0))),''))+(isnull('-'+convert(varchar(10),convert(int,Round(MostRecentPriceHi,0))),'')) 
+				when isnull(MostRecentPrice,0) > 0 and (MostRecentPriceHi is NULL or round(MostRecentPrice,0) = round(MostRecentPriceHi,0) or round(MostRecentPriceHi,0)=0 )
+					then (isnull(convert(varchar(10),convert(int,Round(MostRecentPrice,0))),''))  
+				else ''
+			end , 
+			[WineN],  
+			[ColorClass], 
+			[ScreenWineName]= isnull(ProducerShow,'') + ' ' +  isnull(LabelName,''), 
+			Publication = isnull(Publication,''),  
+			IsERPTasting,  
+			IsWJTasting,  
+			[RecentPrice] = (isnull(convert(varchar(10),convert(int,Round(MostRecentPrice,0))),'')), 
+			[MostRecentPriceHi] = (isnull(convert(varchar(10),convert(int,Round(MostRecentPriceHi,0))),'')), 
+			[mostRecentAuctionPrice] = (isnull(convert(varchar(10),convert(int,Round(mostRecentAuctionPrice,0))),'')), 
+			[IsCurrentlyForSale], 
+			[Maturity] = isnull(Maturity,'6'),  
+			[VinN],
+			Location,
+			wProducerID, wLabelID, wColorID,
+			--ReviewerIdN=ISNULL(ReviewerIdN,''), 
+			UserId = isnull(tn.UserId, 0),
+			tnID = isnull(tn.ID, 0),
+			Rating, MostRecentPrice,
+			rn = row_number() over(partition by WineN order by WineN, tn.TasteDate desc)
+		from Wine w (nolock)
+			left join TasteNote tn (nolock) on w.TasteNote_ID = tn.ID
+		where --w.IsActiveWineN = 1 and 
+			w.showForWJ = 1
+			and contains((encodedKeyWords,labelname,producershow), @Keyword)
+			and (@wProducerID is NULL or wProducerID = @wProducerID)
+			and (@wLabelID is NULL or wLabelID = @wLabelID)
+			and (@wColorID is NULL or wColorID = @wColorID)
+
+			and ((@IsWJ = 0 and @IsOnSale = 0)
+			  or (@IsWJ = 1 and @IsOnSale = 0 and IsWJTasting = 1 and tn.ID is NOT NULL)
+			  or (@IsWJ = 1 and @IsOnSale = 1 and IsWJTasting = 1 and IsCurrentlyForSale = 1)
+			  or (@IsWJ = 0 and @IsOnSale = 1 and IsCurrentlyForSale = 1)
+			  )
+	)
+	select 
 		[Vintage], 
-		[Vintages] =  Case Vintage  WHEN '' THEN ''  ELSE Vintage  END,  
-		[RatingString] = ISNULL(Rating,''),  
-		[RatingShow] = ISNULL(RatingShow,''),  
+		[Vintages],  
+		[RatingString],  
+		[RatingShow],  
 		[Producer], 
 		[ProducerShow], 
 		[LabelName], 
-		[MostRecentPriceString] =  case    
-			when isnull(MostRecentPrice,0) > 0 and isnull(MostRecentPriceHi,0) > 0 and MostRecentPrice != MostRecentPriceHi
-				then (isnull(convert(varchar(10),convert(int,Round(MostRecentPrice,0))),''))+(isnull('-'+convert(varchar(10),convert(int,Round(MostRecentPriceHi,0))),'')) 
-			when isnull(MostRecentPrice,0) > 0 and (MostRecentPriceHi is NULL or MostRecentPrice = MostRecentPriceHi or round(MostRecentPriceHi,0)=0 )
-				then (isnull(convert(varchar(10),convert(int,Round(MostRecentPrice,0))),''))  
-			else ''
-		end , 
+		[MostRecentPriceString], 
 		[WineN],  
 		[ColorClass], 
-		[ScreenWineName]= isnull(ProducerShow,'') + ' ' +  isnull(LabelName,''), 
-		Publication = isnull(Publication,''),  
+		[ScreenWineName], 
+		Publication,  
 		IsERPTasting,  
 		IsWJTasting,  
-		[RecentPrice] = (isnull(convert(varchar(10),convert(int,Round(MostRecentPrice,0))),'')), 
-		[MostRecentPriceHi] = (isnull(convert(varchar(10),convert(int,Round(MostRecentPriceHi,0))),'')), 
-		[mostRecentAuctionPrice] = (isnull(convert(varchar(10),convert(int,Round(mostRecentAuctionPrice,0))),'')), 
+		[RecentPrice], 
+		[MostRecentPriceHi], 
+		[mostRecentAuctionPrice], 
 		[IsCurrentlyForSale], 
-		[Maturity] = isnull(Maturity,'6'),  
+		[Maturity],  
 		[VinN],
 		Location,
 		wProducerID, wLabelID, wColorID,
-		--ReviewerIdN=ISNULL(ReviewerIdN,''), 
-		UserId = isnull(tn.UserId, 0)
-	from Wine w (nolock)
-		left join TasteNote tn (nolock) on w.TasteNote_ID = tn.ID
-	where --w.IsActiveWineN = 1 and 
-		w.showForWJ = 1
-		and contains((encodedKeyWords,labelname,producershow), @Keyword)
-		and (@wProducerID is NULL or wProducerID = @wProducerID)
-		and (@wLabelID is NULL or wLabelID = @wLabelID)
-		and (@wColorID is NULL or wColorID = @wColorID)
-
-		and ((@IsWJ = 0 and @IsOnSale = 0)
-		  or (@IsWJ = 1 and @IsOnSale = 0 and IsWJTasting = 1 and tn.ID is NOT NULL)
-		  or (@IsWJ = 1 and @IsOnSale = 1 and IsWJTasting = 1 and IsCurrentlyForSale = 1)
-		  or (@IsWJ = 0 and @IsOnSale = 1 and IsCurrentlyForSale = 1)
-		  )
+		UserId,
+		tnID --, rn
+	from r
+	where rn = 1
 	order by 
 		case when @SortBy = 'ScreenWineName' and @SortOrder = 'asc' then isnull(ProducerShow,'') + ' ' +  isnull(LabelName,'') else null end asc, 
 		case when @SortBy = 'ScreenWineName' and @SortOrder = 'des' then isnull(ProducerShow,'') + ' ' +  isnull(LabelName,'') else null end desc,
@@ -166,8 +198,7 @@ end else if @IsTWASearch = 0 begin
 		case when @SortBy = 'SourceDate' and @SortOrder = 'des' then Publication else null end desc,
 		case when @SortBy = 'MostRecentPrice' and @SortOrder = 'asc' then MostRecentPrice else null end asc, 
 		case when @SortBy = 'MostRecentPrice' and @SortOrder = 'des' then MostRecentPrice else null end desc,
-		ScreenWineName, Vintage
-
+		[Producer], [ScreenWineName], [Vintage] desc
 end
 
 RETURN 1

@@ -1,0 +1,3 @@
+﻿CREATE FULLTEXT STOPLIST [wineSearch]
+    AUTHORIZATION [dbo];
+

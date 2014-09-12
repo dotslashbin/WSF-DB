@@ -16,6 +16,7 @@
     [encodedKeyWords]         NVARCHAR (255) NULL,
     [fixedId]                 INT            NULL,
     [HasWJTasting]            BIT            NULL,
+    [HasERPTasting]           BIT            NULL,
     [IsActiveWineN]           SMALLINT       CONSTRAINT [DF_Wine_IsActiveWineN] DEFAULT ((0)) NOT NULL,
     [Issue]                   NVARCHAR (255) NULL,
     [IsERPTasting]            BIT            NULL,
@@ -54,10 +55,10 @@
     [oldIdn]                  INT            NULL,
     [oldWineN]                INT            NULL,
     [oldVinN]                 INT            NULL,
-    [created]                 SMALLDATETIME  CONSTRAINT [DF_tWine_created] DEFAULT (getdate()) NOT NULL,
+    [created]                 SMALLDATETIME  CONSTRAINT [DF_Wine_created] DEFAULT (getdate()) NOT NULL,
     [updated]                 SMALLDATETIME  NULL,
-    [RV_TasteNote]            BINARY (8)     CONSTRAINT [DF__Wine__RV_TasteNo__14B2A6A8] DEFAULT (0x00) NOT NULL,
-    [RV_Wine_N]               BINARY (8)     CONSTRAINT [DF__Wine__RV_Wine_N__15A6CAE1] DEFAULT (0x00) NOT NULL,
+    [RV_TasteNote]            BINARY (8)     CONSTRAINT [DF_Wine_RV_TasteNote] DEFAULT (0x00) NOT NULL,
+    [RV_Wine_N]               BINARY (8)     CONSTRAINT [DF_Wine_RV_Wine_N] DEFAULT (0x00) NOT NULL,
     [wProducerID]             INT            NOT NULL,
     [wTypeID]                 INT            NOT NULL,
     [wLabelID]                INT            NOT NULL,
@@ -67,6 +68,8 @@
     [wVintageID]              INT            NOT NULL,
     CONSTRAINT [PK_Wine] PRIMARY KEY CLUSTERED ([ID] ASC)
 );
+
+
 
 
 

@@ -28,6 +28,7 @@ select
 	end,
 	fixedId = isnull(tn.oldFixedId, -((wn.ID * 1000) + isnull(tn.ID,0))),
 	HasWJTasting = wn.HasWJTasting,
+	HasERPTasting = wn.HasERPTasting,
 	IsActiveWineN = isnull(tn.IsActiveWineN, 0),
 	Issue = i.Title,
 	IsERPTasting = tn.oldIsErpTasting, 
