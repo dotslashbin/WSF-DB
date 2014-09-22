@@ -1,4 +1,6 @@
-﻿CREATE VIEW [dbo].[vWine]
+﻿
+
+CREATE VIEW [dbo].[vWine]
 
 AS
 
@@ -18,7 +20,7 @@ select
 	DrinkDate_hi = tn.DrinkDate_Hi,
 	EstimatedCost = tn.EstimatedCost,
 	encodedKeyWords = case
-		when tn.ID is NOT NULL and tn.oldEncodedKeyWords is NOT NULL then tn.oldEncodedKeyWords
+		when tn.ID is NOT NULL and len(isnull(tn.oldEncodedKeyWords, '')) > 1 then tn.oldEncodedKeyWords
 		else replace(isnull(lc.Name, '') + ' ' + isnull(lr.Name, '') 
 			+ ' ' + isnull(ll.Name, '') + ' ' + isnull(lloc.Name, '') + ' ' + isnull(ls.Name,'')
 			+ ' ' + isnull(wp.Name, '') + ' ' + isnull(wp.NameToShow, '') 
@@ -55,10 +57,10 @@ select
 	RatingShow = 
 		case when isnull(tn.IsBarrelTasting, 0) = 1 then '(' else '' end +
 		+ case
-			when tn.Rating_Lo is NOT NULL and tn.Rating_Hi is NOT NULL 
+			when isnull(tn.Rating_Lo, 0) > 0 and isnull(tn.Rating_Hi, 0) > 0
 				then cast(tn.Rating_Lo as varchar(20)) + '-' + cast(tn.Rating_Hi as varchar(20))
-			when tn.Rating_Lo is NOT NULL and tn.Rating_Hi is NULL then cast(tn.Rating_Lo as varchar(20))
-			when tn.Rating_Lo is NULL and tn.Rating_Hi is NOT NULL then '?-' + cast(tn.Rating_Hi as varchar(20))
+			when isnull(tn.Rating_Lo, 0) > 0 and isnull(tn.Rating_Hi, 0) = 0 then cast(tn.Rating_Lo as varchar(20))
+			when isnull(tn.Rating_Lo, 0) = 0 and isnull(tn.Rating_Hi, 0) > 0 then '?-' + cast(tn.Rating_Hi as varchar(20))
 			else ''
 		end
 		+ isnull(tn.RatingQ, '')

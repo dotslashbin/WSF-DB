@@ -362,11 +362,11 @@
     <Build Include="dbo\Stored Procedures\oval.sql" />
     <Build Include="dbo\Stored Procedures\addWine.sql" />
     <Build Include="dbo\Functions\concatFF.sql" />
-    <Build Include="dbo\Synonyms\SYN_t_Wine.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assemblies\myWinesClr.dll" />
     <None Include="Assemblies\WineMaint1.dll" />
+    <None Include="SqlSchemaCompare_DBvsProject.scmp" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="myWinesClr">

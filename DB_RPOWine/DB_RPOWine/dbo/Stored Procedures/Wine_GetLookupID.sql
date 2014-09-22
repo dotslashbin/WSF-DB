@@ -1,4 +1,4 @@
-
+﻿
 
 -- =============================================
 -- Author:		Alex B
@@ -100,13 +100,9 @@ GO
 GO
 
 GO
-GRANT EXECUTE
-    ON OBJECT::[dbo].[Wine_GetLookupID] TO [RP_DataAdmin]
-    AS [dbo];
+
 
 
 GO
-GRANT EXECUTE
-    ON OBJECT::[dbo].[Wine_GetLookupID] TO [RP_Customer]
-    AS [dbo];
+
 

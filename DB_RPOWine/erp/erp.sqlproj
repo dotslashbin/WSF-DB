@@ -969,6 +969,7 @@
     <Build Include="Storage\MyWinesStopList.sql" />
     <Build Include="Storage\MWStopListEmpty.sql" />
     <Build Include="Security\Permissions.sql" />
+    <Build Include="dbo\Stored Procedures\getMWCnt.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assemblies\Hello1Cls1.dll" />
@@ -977,6 +978,7 @@
     <None Include="Assemblies\myWinesClr2.dll" />
     <None Include="Assemblies\SmartKeywordsClass2.dll" />
     <None Include="Assemblies\SmartKeywordsClass.dll" />
+    <None Include="SqlSchemaCompare_DBvsProject.scmp" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Hello1Cls1">

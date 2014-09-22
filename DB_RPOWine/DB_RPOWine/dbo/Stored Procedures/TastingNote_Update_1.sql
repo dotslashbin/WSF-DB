@@ -36,12 +36,14 @@ set xact_abort on
 declare @Result int, 
 		@EditorID int,
 		@prevWF_StatusID smallint,
-		@prevOriginID int
+		@prevOriginID int,
+		@prevWine_N_ID int
 
 select @UserId = nullif(@UserId, 0)
 
 ------------ Checks
-select @prevWF_StatusID = WF_StatusID, @prevOriginID = OriginID from TasteNote (nolock) where ID = @ID
+select @prevWF_StatusID = WF_StatusID, @prevOriginID = OriginID, @prevWine_N_ID = Wine_N_ID 
+from TasteNote (nolock) where ID = @ID
 if @prevWF_StatusID is NULL begin
 	raiserror('TasteNote_Update:: Taste Note record with ID=%i does not exist.', 16, 1, @ID)
 	RETURN -1
@@ -163,6 +165,11 @@ BEGIN TRY
 	end
 
 	COMMIT TRANSACTION
+	
+	-- it is better to keep this logic outside of the transactions
+	if @Wine_N_ID is NOT NULL
+		exec TastingNote_UpdateExt @TastingNoteID=@ID, @oldWine_N_ID=@prevWine_N_ID, @newWine_N_ID=@Wine_N_ID
+	
 END TRY
 BEGIN CATCH
 	declare @errSeverity int,

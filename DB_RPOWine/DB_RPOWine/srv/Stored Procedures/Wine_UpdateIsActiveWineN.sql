@@ -4,7 +4,12 @@
 -- Description:	Updates IsActiveWineN and other bits required for the "old" site functionality.
 -- =============================================
 CREATE PROCEDURE [srv].[Wine_UpdateIsActiveWineN]
+	@Wine_N_ID1 int = NULL, @Wine_N_ID2 int = NULL
 
+--
+-- @Wine_N_ID1 and @Wine_N_ID2 may be used to limit update set
+--
+	
 AS
 
 set nocount on;
@@ -26,6 +31,8 @@ set xact_abort on;
 			join Publication p (nolock) on i.PublicationID = p.ID
 			join Publisher pub (nolock) on p.PublisherID = pub.ID
 		where tn.WF_StatusID > 99 and pub.IsPrimary = 1
+			and (isnull(@Wine_N_ID1, tn.Wine_N_ID) = tn.Wine_N_ID 
+				or isnull(@Wine_N_ID2, tn.Wine_N_ID) = tn.Wine_N_ID)
 	),
 	tnRes as (
 		select --top 20
@@ -42,6 +49,8 @@ set xact_abort on;
 			join Publisher pub (nolock) on p.PublisherID = pub.ID
 			left join (select * from tn1 where rn = 1) act on tn.ID = act.ID
 		where tn.WF_StatusID > 99
+			and (isnull(@Wine_N_ID1, tn.Wine_N_ID) = tn.Wine_N_ID 
+				or isnull(@Wine_N_ID2, tn.Wine_N_ID) = tn.Wine_N_ID)
 	)
 	update TasteNote set
 		IsActiveWineN = tnRes.IsActiveWineN,

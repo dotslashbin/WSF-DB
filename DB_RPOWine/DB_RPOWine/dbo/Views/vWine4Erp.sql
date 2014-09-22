@@ -1,6 +1,4 @@
-﻿
-
-CREATE VIEW [dbo].[vWine4Erp]
+﻿CREATE VIEW [dbo].[vWine4Erp]
 
 AS
 
@@ -24,13 +22,16 @@ select --top 20
 	--hasAGalloniTasting,
 	HasCurrentPrice = cast(case when wn.MostRecentPrice is not null then 1 else 0 end as bit),
 	--hasDSchildknechtTasting,hasDThomasesTasting,
-	hasErpTasting = wn.hasERPTasting,
+	hasErpTasting = case 
+		when wn.hasErpTasting is null then isnull(w.isActiveWineN, 0)
+		else wn.hasErpTasting
+	end,
 	--hasJMillerTasting,
 	--hasMSquiresTasting,hasMultipleWATastings,hasNMartinTasting,
 	hasProducerProfile = cast(case when w.ProducerProfileFileName is NULL then 0 else 1 end as bit),
 	HasProducerWebSite = cast(case when w.ProducerURL is NULL then 0 else 1 end as bit),
 	--hasPRovaniTasting,hasRParkerTasting,
-	hasWJtasting = wn.hasWJTasting,
+	hasWJtasting = isnull(wn.hasWJTasting, 0),
 	Idn = w.IdN,
 	--isActiveT,IsActiveTasting,
 	IsActiveWineN = w.IsActiveWineN,
