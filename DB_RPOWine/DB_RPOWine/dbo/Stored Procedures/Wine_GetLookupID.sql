@@ -1,5 +1,3 @@
-﻿
-
 -- =============================================
 -- Author:		Alex B
 -- Create date: 1/22/14
@@ -104,5 +102,13 @@ GO
 
 
 GO
+GRANT EXECUTE
+    ON OBJECT::[dbo].[Wine_GetLookupID] TO [RP_DataAdmin]
+    AS [dbo];
 
+
+GO
+GRANT EXECUTE
+    ON OBJECT::[dbo].[Wine_GetLookupID] TO [RP_Customer]
+    AS [dbo];
 
