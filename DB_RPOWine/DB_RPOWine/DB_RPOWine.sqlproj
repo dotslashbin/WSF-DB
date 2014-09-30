@@ -861,13 +861,17 @@
       <AnsiNulls>On</AnsiNulls>
       <QuotedIdentifier>On</QuotedIdentifier>
     </Build>
+    <Build Include="dbo\Synonyms\SYN_t_Retailers.sql" />
+    <Build Include="dbo\Synonyms\SYN_t_ForSaleDetail.sql" />
+    <Build Include="Storage\wineSearch.sql" />
+    <Build Include="dbo\Stored Procedures\TastingNote_UpdateExt.sql">
+      <AnsiNulls>On</AnsiNulls>
+      <QuotedIdentifier>On</QuotedIdentifier>
+    </Build>
     <Build Include="dbo\Stored Procedures\Article_Search.sql">
       <AnsiNulls>On</AnsiNulls>
       <QuotedIdentifier>On</QuotedIdentifier>
     </Build>
-    <Build Include="dbo\Synonyms\SYN_t_Retailers.sql" />
-    <Build Include="dbo\Synonyms\SYN_t_ForSaleDetail.sql" />
-    <Build Include="Storage\wineSearch.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SqlSchemaCompare_DBvsProject.scmp" />

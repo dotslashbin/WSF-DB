@@ -1,5 +1,4 @@
 ﻿
-
 CREATE VIEW [dbo].[vWine]
 
 AS
@@ -20,7 +19,7 @@ select
 	DrinkDate_hi = tn.DrinkDate_Hi,
 	EstimatedCost = tn.EstimatedCost,
 	encodedKeyWords = case
-		when tn.ID is NOT NULL and len(isnull(tn.oldEncodedKeyWords, '')) > 1 then tn.oldEncodedKeyWords
+		when tn.ID is NOT NULL and tn.oldEncodedKeyWords is NOT NULL then tn.oldEncodedKeyWords
 		else replace(isnull(lc.Name, '') + ' ' + isnull(lr.Name, '') 
 			+ ' ' + isnull(ll.Name, '') + ' ' + isnull(lloc.Name, '') + ' ' + isnull(ls.Name,'')
 			+ ' ' + isnull(wp.Name, '') + ' ' + isnull(wp.NameToShow, '') 
@@ -29,14 +28,14 @@ select
 			+ ' ' + isnull(wvin.Name, ''), '  ', '')
 	end,
 	fixedId = isnull(tn.oldFixedId, -((wn.ID * 1000) + isnull(tn.ID,0))),
-	HasWJTasting = wn.HasWJTasting,
-	HasERPTasting = wn.HasERPTasting,
+	HasWJTasting = isnull(wn.HasWJTasting, 0),
+	HasERPTasting = isnull(wn.HasERPTasting, 0),
 	IsActiveWineN = isnull(tn.IsActiveWineN, 0),
 	Issue = i.Title,
-	IsERPTasting = tn.oldIsErpTasting, 
-	IsWJTasting = tn.oldIsWjTasting, 
-	IsCurrentlyForSale = wn.IsCurrentlyForSale,
-	IsCurrentlyOnAuction = wn.IsCurrentlyOnAuction,
+	IsERPTasting = isnull(tn.oldIsErpTasting, 0),
+	IsWJTasting = isnull(tn.oldIsWjTasting, 0),
+	IsCurrentlyForSale = isnull(wn.IsCurrentlyForSale, 0),
+	IsCurrentlyOnAuction = isnull(wn.IsCurrentlyOnAuction, 0),
 	LabelName = wl.Name,
 	Location = ll.Name,
 	Locale = lloc.Name,
@@ -67,8 +66,8 @@ select
 		+ case when isnull(tn.IsBarrelTasting, 0) = 1 then ')' else '' end
 	, 
 	ReviewerIdN = tn.oldReviewerIdN,
-	showForERP = tn.oldShowForERP, 
-	showForWJ = tn.oldShowForWJ,
+	showForERP = isnull(tn.oldShowForERP, 0),
+	showForWJ = isnull(tn.oldShowForWJ, 0),
 	Source = isnull(u.FullName, ''),
 	SourceDate = tn.oldSourceDate,
 	Site = lc.Name,

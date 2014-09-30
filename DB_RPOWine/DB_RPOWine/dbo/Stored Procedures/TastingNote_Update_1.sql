@@ -1,4 +1,5 @@
-﻿-- =============================================
+﻿
+-- =============================================
 -- Author:		Alex B.
 -- Create date: 1/28/2014
 -- Description:	Updates TasteNote record.
@@ -7,6 +8,12 @@
 -- remove parameter @showResult,
 -- do not update @UserId, (do not remove it from the list of parameters though)
 -- return @ID from function
+
+-- Updates 9/27/2014 by Sergey Savchenko.
+-- added input parameter @RatingQ varchar(2) =NULL
+-- update query two columns added 
+--		RatingQ = @RatingQ,
+--		oldEncodedKeyWords = NULL,
 
 -- =============================================
 CREATE PROCEDURE [dbo].[TastingNote_Update]
@@ -18,7 +25,7 @@ CREATE PROCEDURE [dbo].[TastingNote_Update]
 	
 	@TasteDate date = NULL,
 	@MaturityID smallint = NULL, 
-	@Rating_Lo smallint = NULL, @Rating_Hi smallint = NULL,
+	@Rating_Lo smallint = NULL, @Rating_Hi smallint = NULL, @RatingQ varchar(2) = NULL,
 	@DrinkDate_Lo date = NULL, @DrinkDate_Hi date = NULL,
 	@EstimatedCost money = NULL, @EstimatedCost_Hi money = NULL,
 	@IsBarrelTasting bit = NULL,
@@ -36,14 +43,12 @@ set xact_abort on
 declare @Result int, 
 		@EditorID int,
 		@prevWF_StatusID smallint,
-		@prevOriginID int,
-		@prevWine_N_ID int
+		@prevOriginID int
 
 select @UserId = nullif(@UserId, 0)
 
 ------------ Checks
-select @prevWF_StatusID = WF_StatusID, @prevOriginID = OriginID, @prevWine_N_ID = Wine_N_ID 
-from TasteNote (nolock) where ID = @ID
+select @prevWF_StatusID = WF_StatusID, @prevOriginID = OriginID from TasteNote (nolock) where ID = @ID
 if @prevWF_StatusID is NULL begin
 	raiserror('TasteNote_Update:: Taste Note record with ID=%i does not exist.', 16, 1, @ID)
 	RETURN -1
@@ -152,6 +157,10 @@ BEGIN TRY
 		IsBarrelTasting = isnull(@IsBarrelTasting, IsBarrelTasting), 
 		locPlacesID = isnull(@locPlacesID, locPlacesID),
 		Notes = isnull(@Notes, Notes), 
+		
+		RatingQ = @RatingQ,
+		oldEncodedKeyWords = NULL,
+		
 		updated = getdate() 
 		--WF_StatusID = isnull(@WF_StatusID, WF_StatusID)
 		--EditorID = @EditorID
@@ -165,11 +174,6 @@ BEGIN TRY
 	end
 
 	COMMIT TRANSACTION
-	
-	-- it is better to keep this logic outside of the transactions
-	if @Wine_N_ID is NOT NULL
-		exec TastingNote_UpdateExt @TastingNoteID=@ID, @oldWine_N_ID=@prevWine_N_ID, @newWine_N_ID=@Wine_N_ID
-	
 END TRY
 BEGIN CATCH
 	declare @errSeverity int,

@@ -1,5 +1,6 @@
 ﻿
 
+
 CREATE VIEW [dbo].[vWine4Erp]
 
 AS 
@@ -58,7 +59,10 @@ select [IsActiveWineN]
       ,[DisabledFlag]
       ,[NameCreatorWhoN]
       ,[UserCount]
-      ,[HasERPTasting]
+      ,[HasERPTasting] = case 
+			when hasErpTasting is null then isnull(isActiveWineN, 0)
+			else hasErpTasting
+		end
       ,[RecordCreatorWhoN]
       ,[RecordCreatedDate]
       ,[IsERPName]
@@ -74,7 +78,7 @@ select [IsActiveWineN]
       ,[isCurrentlyOnAuction]
       ,[ReviewerIdN]
       ,[IdN]
-      ,[HasWJTasting]
+      ,[HasWJTasting] = isnull(HasWJTasting, 0)
       ,[showForERP]
       ,[showForWJ]
       ,[hasAGalloniTasting]

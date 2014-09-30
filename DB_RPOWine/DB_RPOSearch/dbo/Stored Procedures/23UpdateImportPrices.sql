@@ -1,4 +1,5 @@
-﻿-- =============================================
+﻿
+-- =============================================
 -- Author:		Alex B.
 -- Create date: 4/13/14
 -- Description:	Adoptation of the script 23UpdateImportPrices.sql,
@@ -2562,10 +2563,13 @@ select --ArticleId,ArticleIdNKey,ArticleOrder,BottleSize,BottlesPerCosting,
 	--combinedLocation, DateUpdated, erpTastingCount, EstimatedCost_Hi,
 	Country, DrinkDate,DrinkDate_Hi,Dryness,encodedKeyWords, EstimatedCost, FixedId,
 	--hasAGalloniTasting,hasDSchildknechtTasting,hasDThomasesTasting,
-	hasErpTasting,
+	hasErpTasting = case 
+		when hasErpTasting is null then isnull(isActiveWineN, 0)
+		else hasErpTasting
+	end,
 	--hasJMillerTasting,
 	--hasMSquiresTasting,hasMultipleWATastings,hasNMartinTasting,HasProducerWebSite,hasPRovaniTasting,hasRParkerTasting,
-	hasWjTasting,
+	hasWjTasting = isnull(hasWjTasting, 0),
 	--IsActiveTasting, IsActiveWineN_old,IsBarrelTasting, isBorrowedDrinkDate, 
 	IsActiveWineN, Issue, isErpTasting, isWJTasting,
 	LabelName,Locale,Location,Maturity,Notes,
@@ -2621,10 +2625,13 @@ select
 	--combinedLocation, DateUpdated, erpTastingCount, EstimatedCost_Hi,
 	Country, DrinkDate,DrinkDate_Hi,Dryness,encodedKeyWords, EstimatedCost, FixedId,
 	--hasAGalloniTasting,hasDSchildknechtTasting,hasDThomasesTasting,
-	hasErpTasting,
+	hasErpTasting = case 
+		when hasErpTasting is null then isnull(isActiveWineN, 0)
+		else hasErpTasting
+	end,
 	--hasJMillerTasting,
 	--hasMSquiresTasting,hasMultipleWATastings,hasNMartinTasting,HasProducerWebSite,hasPRovaniTasting,hasRParkerTasting,
-	hasWjTasting,
+	hasWjTasting = isnull(hasWjTasting, 0),
 	--IsActiveTasting, IsActiveWineN_old,IsBarrelTasting, isBorrowedDrinkDate, 
 	IsActiveWineN, Issue, isErpTasting, isWJTasting,
 	LabelName,Locale,Location,Maturity,Notes,
