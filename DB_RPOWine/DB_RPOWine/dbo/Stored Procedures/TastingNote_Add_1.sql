@@ -1,10 +1,14 @@
 ﻿
 
 
+
 -- =============================================
 -- Author:		Alex B.
 -- Create date: 1/28/2014
 -- Description:	Adds new Taste Note.
+
+-- Updte date: 10/2/2014 Sergey
+-- Description:	Add @RaqtinQ  to list of parameters. Use in insert statement
 -- =============================================
 CREATE PROCEDURE [dbo].[TastingNote_Add]
 	--@ID int = NULL, 
@@ -19,6 +23,7 @@ CREATE PROCEDURE [dbo].[TastingNote_Add]
 	@EstimatedCost money = NULL, @EstimatedCost_Hi money = NULL,
 
 	@IsBarrelTasting bit = 0,
+	@RatingQ varchar(2) = null,
 
 	@Places nvarchar(150) = null,
 	@Notes nvarchar(max),
@@ -91,15 +96,17 @@ BEGIN TRY
 	BEGIN TRANSACTION
 
 	insert into TasteNote (OriginID, UserId, IssueID, Wine_N_ID, TasteDate, MaturityID, 
-		Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting,
+		Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting,RatingQ,
 		EstimatedCost,EstimatedCost_Hi, 
 		locPlacesID, Notes,
 		created, updated, WF_StatusID)
+		
 	values (@OriginID, @UserId, @IssueID, @Wine_N_ID, @TasteDate, @MaturityID, 
-		@Rating_Lo, @Rating_Hi, @DrinkDate_Lo, @DrinkDate_Hi, @IsBarrelTasting, 
+		@Rating_Lo, @Rating_Hi, @DrinkDate_Lo, @DrinkDate_Hi, @IsBarrelTasting,@RatingQ, 
 	    @EstimatedCost, @EstimatedCost_Hi,
 		@locPlacesID, @Notes,
 		getdate(), null, isnull(@WF_StatusID, 0))
+		
 	if @@error <> 0 begin
 		select @Result = -1
 		ROLLBACK TRAN

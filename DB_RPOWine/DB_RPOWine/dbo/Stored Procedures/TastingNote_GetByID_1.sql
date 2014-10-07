@@ -4,10 +4,17 @@
 
 
 
+
+
 -- =============================================
 -- Author:		Sergiy Savchenko
 -- Create date: 2/23/2014
 -- Description:	Gets List of Taste Notes mapped to tasting event
+
+-- Update date: 10/2/2014
+-- Description:	added two addiitonal columns to result list ratingq, importers
+--              
+
 -- =============================================
 CREATE PROCEDURE [dbo].[TastingNote_GetByID]
 	@ID int 
@@ -61,7 +68,27 @@ set nocount on
 		Vin_N_WF_StatusID = w.Vin_N_WF_StatusID,
 		EstimatedCost,
 		EstimatedCost_Hi 
-		
+
+        ,RatingQ
+        ,Importers =  STUFF(  (select '+'+'---new-line---'+ Name 
+                     +  case
+                          when LEN( isnull(Address,'')) > 0 then (',' + Address )
+                          else ''
+                        end   
+                     +  case
+                          when LEN( isnull(Phone1,'')) > 0 then (',' + Phone1 )
+                          else ''
+                        end   
+                     +  case
+                          when LEN( isnull(URL,'')) > 0 then (',' + URL)
+                          else ''
+                        end   
+                    from WineImporter wi
+                    join WineProducer_WineImporter wpi  (nolock) on wpi.ImporterId  = wi.ID
+                    where 
+                    wpi.ProducerId = w.ProducerID
+                    FOR XML PATH('')), 1, 1, '' )
+
 				
 	from TasteNote tn (nolock)
 		join Users u (nolock) on tn.UserId = u.UserId

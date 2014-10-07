@@ -1,19 +1,14 @@
-﻿
--- =============================================
+﻿-- =============================================
 -- Author:		Alex B.
 -- Create date: 4/19/2014
 -- Description:	Completely reloads Wine table from vWine view
 -- =============================================
 CREATE PROCEDURE [srv].[Wine_Reload]
-	@IsFullReload bit = 0,
+	@IsFullReload bit = 0
 	
-	@Wine_N_ID1 int = NULL, @Wine_N_ID2 int = NULL
-	
--- 
+--
 -- @IsFullReload = 1 --> truncates data in Wine table and completely reloads it.
 -- @IsFullReload = 0 --> merges data
---
--- @Wine_N_ID1 and @Wine_N_ID2 may be used to limit update set ONLY if @IsFullReload = 1
 --
 
 AS
@@ -86,9 +81,7 @@ end else begin
 		RV_TasteNote = cast(RV_TasteNote as binary(8)), 
 		RV_Wine_N = cast(RV_Wine_N as binary(8))
 	into #t
-	from vWine
-	where (isnull(@Wine_N_ID1, Wine_N_ID) = Wine_N_ID or isnull(@Wine_N_ID2, Wine_N_ID) = Wine_N_ID)
-	;
+	from vWine;
 	
 	--CREATE NONCLUSTERED INDEX IX_t on #t (TasteNote_ID, Wine_N_ID, Wine_VinN_ID)
 	alter table #t add constraint PR_t primary key (TasteNote_ID, Wine_N_ID);
@@ -108,8 +101,7 @@ end else begin
 			wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID,
 			RV_TasteNote, RV_Wine_N
 		from #t	--vWine
-	) as s on t.TasteNote_ID = s.TasteNote_ID 
-		and (s.TasteNote_ID > 0 or t.Wine_N_ID = s.Wine_N_ID) --and t.Wine_VinN_ID = s.Wine_VinN_ID
+	) as s on t.TasteNote_ID = s.TasteNote_ID and t.Wine_N_ID = s.Wine_N_ID --and t.Wine_VinN_ID = s.Wine_VinN_ID
 	when matched 
 		and (t.RV_TasteNote != s.RV_TasteNote or t.RV_Wine_N != s.RV_Wine_N)
 	then
@@ -200,7 +192,7 @@ end else begin
 			s.oldIdn, s.oldWineN, s.oldVinN, 
 			wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID,
 			s.RV_TasteNote, s.RV_Wine_N)
-	when not matched by source and @Wine_N_ID1 is null and @Wine_N_ID2 is null then
+	when not matched by source then
 		DELETE
 	OUTPUT $action, inserted.ID, deleted.ID INTO @Res;
 
