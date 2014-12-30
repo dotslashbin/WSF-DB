@@ -9,3 +9,12 @@
 
 
 
+
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Assignment_TastingEvent_TastingEventID]
+    ON [dbo].[Assignment_TastingEvent]([TastingEventID] ASC)
+    INCLUDE([AssignmentID])
+    ON [Articles];
+

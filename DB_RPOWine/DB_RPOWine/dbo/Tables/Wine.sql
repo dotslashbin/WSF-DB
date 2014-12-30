@@ -66,8 +66,14 @@
     [wDrynessID]              INT            NOT NULL,
     [wColorID]                INT            NOT NULL,
     [wVintageID]              INT            NOT NULL,
+    [BottleSize]              NVARCHAR (30)  NULL,
+    [IssueID]                 INT            DEFAULT ((0)) NOT NULL,
     CONSTRAINT [PK_Wine] PRIMARY KEY CLUSTERED ([ID] ASC)
 );
+
+
+
+
 
 
 

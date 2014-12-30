@@ -1,4 +1,5 @@
-﻿CREATE PROCEDURE [utils].[DefragReindex]
+﻿
+CREATE PROCEDURE [utils].[DefragReindex]
         @DBName varchar(255),
         @TableName varchar(255) = NULL, -- will perform operation for ALL tables within database if NULL 
         @MaxFrag int = 10,				-- max logical fragmentation percent allowed
@@ -93,6 +94,7 @@ end else begin
 	declare cr cursor read_only forward_only for
 		select TableName, IndexName, FragPercent
 		from #FragList
+		where len(rtrim(IndexName)) > 0
 		order by TableName
 	open cr
 	fetch next from cr into @TableName, @IndexName, @FragPercent

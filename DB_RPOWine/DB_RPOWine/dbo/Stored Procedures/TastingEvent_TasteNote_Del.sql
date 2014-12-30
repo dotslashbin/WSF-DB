@@ -1,13 +1,10 @@
-﻿
--- =============================================
+﻿-- =============================================
 -- Author:		Alex B.
 -- Create date: 1/26/2014
 -- Description:	Deletes TastingEvent-TasteNote linkage.
 -- =============================================
 CREATE PROCEDURE [dbo].[TastingEvent_TasteNote_Del]
 	@TastingEventID int, @TasteNoteID int,
-
-	--@UserName varchar(50),
 	@ShowRes smallint = 1
 
 /*
@@ -33,14 +30,6 @@ if not exists(select * from TasteNote (nolock) where ID = @TasteNoteID) begin
 	RETURN -1
 end
 
------------- Audit Log
---if len(isnull(@UserName, '')) < 1 begin
---	raiserror('TastingEvent_Del:: @UserName is required.', 16, 1)
---	RETURN -1
---end
-----exec @EditorID = Audit_GetLookupID @ObjectName = 'entryuser', @ObjectValue = @UserName
------------- Checks
-
 BEGIN TRY
 	BEGIN TRANSACTION
 
@@ -55,10 +44,6 @@ BEGIN TRY
 		-- remove default Tasting Event if necessary
 		update TasteNote set TastingEventID = NULL
 		where ID = @TasteNoteID and TastingEventID = @TastingEventID
-	
-	--	exec Audit_Add @Type='Success', @Category='Delete', @Source='SQL', @UserName=@UserName, @MachineName='', 
-	--		@ObjectType='WineProducer', @ObjectID=@ID, @Description='WineProducer deleted', @Message=@msg,
-	--		@ShowRes=0
 	end
 
 	COMMIT TRANSACTION

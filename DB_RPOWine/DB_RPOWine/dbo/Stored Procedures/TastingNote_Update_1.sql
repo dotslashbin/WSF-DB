@@ -1,5 +1,4 @@
-﻿
--- =============================================
+﻿-- =============================================
 -- Author:		Alex B.
 -- Create date: 1/28/2014
 -- Description:	Updates TasteNote record.
@@ -14,6 +13,8 @@
 -- update query two columns added 
 --		RatingQ = @RatingQ,
 --		oldEncodedKeyWords = NULL,
+-- 
+-- 10/15/14 - Alex B. added @BottleSizeID
 
 -- =============================================
 CREATE PROCEDURE [dbo].[TastingNote_Update]
@@ -32,6 +33,7 @@ CREATE PROCEDURE [dbo].[TastingNote_Update]
 
 	@Places nvarchar(150) = null,
 	@Notes nvarchar(max) = NULL,
+	@BottleSizeID int = NULL,
 	
 	@WF_StatusID smallint = NULL
 		
@@ -118,7 +120,7 @@ BEGIN TRY
 		insert into TasteNote (OriginID, UserId, IssueID, Wine_N_ID, TasteDate, MaturityID, 
 			TastingEventID, RatingQ, Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, 
 		    EstimatedCost,EstimatedCost_Hi, 
-			locPlacesID, Notes,
+			locPlacesID, Notes, BottleSizeID,
 			
 			oldIdn, oldFixedId, oldClumpName, oldEncodedKeyWords, oldReviewerIdN,
 			oldIsErpTasting, oldIsWjTasting, oldShowForERP, oldShowForWJ, oldSourceDate,
@@ -128,7 +130,7 @@ BEGIN TRY
 		select OriginID=@ID, UserId, IssueID, Wine_N_ID, TasteDate, MaturityID, 
 			TastingEventID, RatingQ, Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting, 
 		    EstimatedCost,EstimatedCost_Hi, 
-			locPlacesID, Notes,
+			locPlacesID, Notes, BottleSizeID,
 			
 			oldIdn, oldFixedId, oldClumpName, oldEncodedKeyWords, oldReviewerIdN,
 			oldIsErpTasting, oldIsWjTasting, oldShowForERP, oldShowForWJ, oldSourceDate,
@@ -160,6 +162,7 @@ BEGIN TRY
 		
 		RatingQ = @RatingQ,
 		oldEncodedKeyWords = NULL,
+		BottleSizeID = isnull(@BottleSizeID, BottleSizeID),
 		
 		updated = getdate() 
 		--WF_StatusID = isnull(@WF_StatusID, WF_StatusID)

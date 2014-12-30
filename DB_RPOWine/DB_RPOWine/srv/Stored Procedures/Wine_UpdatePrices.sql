@@ -1,5 +1,4 @@
-﻿
--- =============================================
+﻿-- =============================================
 -- Author:		Alex B.
 -- Create date: 5/23/2014
 -- Description:	Updates price and auction price based on new data in RPOSearch databse.
@@ -16,42 +15,7 @@ set xact_abort on;
 
 --begin tran
 	-- 01. Set VinN in WAName (4 sec)
-	update RPOSearch.dbo.WAName set Wine_VinN_ID = NULL;
-
-	; with r as (
-		select --top 20
-			wn.idN, wn.Wid, wn.Errors, wn.Warnings,
-			Wine_VinN_ID = vn.ID,
-			wn.erpProducer, ProducerID = wp.ID, wn.erpWineType, TypeID = wt.ID,
-			wn.erpLabelName, LabelID = wl.ID, wn.erpVariety, VarietyID = wv.ID,
-			wn.erpDryness, DrynessID = wd.ID, wn.erpColorClass, ColorID = wc.ID,
-			wn.erpCountry, CountryID = lc.ID, wn.erpRegion, RegionID = lr.ID,
-			wn.erpLocation, LocationID = ll.ID
-		from RPOSearch.dbo.WAName wn
-			join RPOSearch.dbo.ForSaleDetail sd on sd.Wid = wn.Wid
-			left join WineProducer wp on isnull(wn.erpProducer, '') = wp.Name
-			left join WineType wt on isnull(wn.erpWineType, '') = wt.Name
-			left join WineLabel wl on isnull(wn.erpLabelName, '') = wl.Name
-			left join WineVariety wv on isnull(wn.erpVariety, '') = wv.Name
-			left join WineDryness wd on isnull(wn.erpDryness, '') = wd.Name
-			left join WineColor wc on isnull(wn.erpColorClass, '') = wc.Name
-			--left join WineVintage wvin on isnull(wn.Vintage, '') = wvin.Name
-			
-			left join LocationCountry lc on isnull(wn.erpCountry, '') = lc.Name
-			left join LocationRegion lr on isnull(wn.erpRegion, '') = lr.Name
-			left join LocationLocation ll on isnull(wn.erpLocation, '') = ll.Name
-			--left join LocationLocale lloc on isnull(wn.Locale, '') = lloc.Name
-			--left join LocationSite ls on isnull(wn.Site, '') = ls.Name
-			left join Wine_VinN vn on
-				wp.ID = vn.ProducerID and wt.ID = vn.TypeID and wl.ID = vn.LabelID
-				and wv.ID = vn.VarietyID and wd.ID = vn.DrynessID and wc.ID = vn.ColorID
-				and lc.ID = vn.locCountryID and lr.ID = vn.locRegionID and ll.ID = vn.locLocationID
-	)
-	update RPOSearch.dbo.WAName set Wine_VinN_ID = r.Wine_VinN_ID
-	from r
-		join RPOSearch.dbo.WAName on r.idN = WAName.idN
-	where r.Wine_VinN_ID is not null
-	;
+	exec srv.Wine_MatchWithSearchDB;
 
 	-- 019. Checking results - no update
 	/*
@@ -64,8 +28,8 @@ set xact_abort on;
 			AuctionPrice = min(case when sd.isAuction = 0 then null else sd.DollarsPer750Bottle end),
 			AuctionPriceHi = max(case when sd.isAuction = 0 then null else sd.DollarsPer750Bottle end),
 			AuctionPriceCnt = sum(case when sd.isAuction = 0 then 0 else 1 end)
-		from RPOSearch.dbo.ForSaleDetail sd
-			join RPOSearch.dbo.WAName wan on sd.Wid = wan.Wid
+		from dbo.SYN_t_ForSaleDetail sd
+			join dbo.SYN_t_WAName wan on sd.Wid = wan.Wid
 			join WineVintage wvin on isnull(sd.Vintage, '') = wvin.Name
 			join Wine_N wn on wan.Wine_VinN_ID = wn.Wine_VinN_ID and wn.VintageID = wvin.ID
 		where isnull(sd.DollarsPer750Bottle, 0) > 0 and sd.Errors is null and wan.Errors is null
@@ -93,7 +57,9 @@ set xact_abort on;
 
 	-- 02. Update Price
 	-- NOTE: it does not clear out previous prices!!!
-	with r as (
+	update Wine_N set IsCurrentlyForSale = 0, IsCurrentlyOnAuction = 0;
+	
+	;with r as (
 		select 
 			Wine_VinN_ID = wn.Wine_VinN_ID, Wine_ID = wn.ID,
 			Price = min(case when sd.isAuction = 1 then null else sd.DollarsPer750Bottle end),
@@ -102,11 +68,12 @@ set xact_abort on;
 			AuctionPrice = min(case when sd.isAuction = 0 then null else sd.DollarsPer750Bottle end),
 			AuctionPriceHi = max(case when sd.isAuction = 0 then null else sd.DollarsPer750Bottle end),
 			AuctionPriceCnt = sum(case when sd.isAuction = 0 then 0 else 1 end)
-		from RPOSearch.dbo.ForSaleDetail sd
-			join RPOSearch.dbo.WAName wan on sd.Wid = wan.Wid
+		from dbo.SYN_t_ForSaleDetail sd
+			join dbo.SYN_t_WAName wan on sd.Wid = wan.Wid
 			join WineVintage wvin on isnull(sd.Vintage, '') = wvin.Name
 			join Wine_N wn on wan.Wine_VinN_ID = wn.Wine_VinN_ID and wn.VintageID = wvin.ID
 		where isnull(sd.DollarsPer750Bottle, 0) > 0 and len(isnull(sd.Errors,'')) < 1 and len(isnull(wan.Errors, '')) < 1
+
 		group by wn.Wine_VinN_ID, wn.ID
 	)
 	update Wine_N set 
@@ -121,9 +88,13 @@ set xact_abort on;
 		updated = getdate()
 	from r
 		join Wine_N wn on r.Wine_ID = wn.ID
-	where (MostRecentPrice != r.Price or MostRecentPriceHi != r.PriceHi 
-		or MostRecentPriceCnt != r.PriceCnt or MostRecentAuctionPrice != r.AuctionPrice
-		or MostRecentAuctionPriceHi != r.AuctionPriceHi or MostRecentAuctionPriceCnt != r.AuctionPriceCnt)
+	-- we cannot do it! because IsCurrentlyForSale was set to 0...
+	--where (isnull(MostRecentPrice, -1) != isnull(r.Price, -2) 
+	--	or isnull(MostRecentPriceHi, -1) != isnull(r.PriceHi, -2)
+	--	or isnull(MostRecentPriceCnt, -1) != isnull(r.PriceCnt, -2) 
+	--	or isnull(MostRecentAuctionPrice, -1) != isnull(r.AuctionPrice, -2)
+	--	or isnull(MostRecentAuctionPriceHi, -1) != isnull(r.AuctionPriceHi, -2) 
+	--	or isnull(MostRecentAuctionPriceCnt, -1) != isnull(r.AuctionPriceCnt, -2))
 	;
 
 	-- 03. Set hasWJTasting and hasErpTasting

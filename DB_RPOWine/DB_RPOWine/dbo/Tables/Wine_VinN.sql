@@ -35,6 +35,8 @@
 
 
 
+
+
 GO
 CREATE UNIQUE NONCLUSTERED INDEX [IX_Wine_VinN_Uniq]
     ON [dbo].[Wine_VinN]([ProducerID] ASC, [TypeID] ASC, [LabelID] ASC, [VarietyID] ASC, [DrynessID] ASC, [ColorID] ASC, [locCountryID] ASC, [locRegionID] ASC, [locLocationID] ASC, [locLocaleID] ASC, [locSiteID] ASC)
@@ -94,4 +96,11 @@ CREATE NONCLUSTERED INDEX [IX_Wine_VinN_LabelID]
     ON [PRIMARY];
 
 
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Wine_VinN_ColorID]
+    ON [dbo].[Wine_VinN]([ColorID] ASC)
+    INCLUDE([ID], [ProducerID], [TypeID], [LabelID], [VarietyID], [DrynessID], [locCountryID], [locRegionID], [locLocationID])
+    ON [Wine];
 

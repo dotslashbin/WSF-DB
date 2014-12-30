@@ -27,8 +27,12 @@
     [isOverridePriceException]  BIT            NULL,
     [ErrorsOnReadin]            NVARCHAR (MAX) NULL,
     [retailerN]                 INT            NULL,
+    [Wine_VinN_ID]              INT            NULL,
+    [WineNOriginal]             INT            NULL,
     CONSTRAINT [PK_ForSaleDetail] PRIMARY KEY CLUSTERED ([IdN] ASC)
 );
+
+
 
 
 GO

@@ -1,14 +1,10 @@
-﻿
-
--- =============================================
+﻿-- =============================================
 -- Author:		Alex B.
 -- Create date: 1/26/2014
 -- Description:	Adds new TastingEvent-TasteNote linkage.
 -- =============================================
 CREATE PROCEDURE [dbo].[TastingEvent_TasteNote_Add]
 	@TastingEventID int, @TasteNote int,
-
-	--@UserName varchar(50),
 	@ShowRes smallint = 1
 
 /*
@@ -19,14 +15,10 @@ AS
 set nocount on
 set xact_abort on
 
-declare @Result int, 
-		@CreatorID int
-
+declare @Result int = 0
 
 ------------ Checks
-select @Result = ID 
-from TastingEvent (nolock) where ID = @TastingEventID
-if @Result is NULL begin
+if not exists(select * from TastingEvent (nolock) where ID = @TastingEventID) begin
 	raiserror('TastingEvent_TasteNote_Add:: Tasting Event record with ID=%i does not exist.', 16, 1, @TastingEventID)
 	RETURN -1
 end
@@ -35,41 +27,38 @@ if not exists(select * from TasteNote (nolock) where ID = @TasteNote) begin
 	raiserror('TastingEvent_TasteNote_Add:: Taste Note record with ID=%i does not exist.', 16, 1, @TasteNote)
 	RETURN -1
 end
-
-if exists(select * from TastingEvent_TasteNote (nolock) where TastingEventID = @TastingEventID and TasteNoteID = @TasteNote) begin
-	-- do nothing - linkage already exists
-	if @ShowRes = 1
-		select Result = 1
-	RETURN 1
-end
-
-------------- Audit
---if len(isnull(@UserName, '')) < 1 begin
---	raiserror('TastingEvent_Add:: @UserName is required.', 16, 1)
---	RETURN -1
---end
---exec @CreatorID = Audit_GetLookupID @ObjectName = 'entryuser', @ObjectValue = @UserName
 ------------ Checks
 
 BEGIN TRY
 	BEGIN TRANSACTION
 
-	insert into TastingEvent_TasteNote (TastingEventID, TasteNoteID,created)
-	values (@TastingEventID, @TasteNote,getdate())
+	declare @TE_IssueID int, @TN_IssueID int, @TN_StatusID int
 	
-	if @@error <> 0 begin
-		select @Result = -1
-		ROLLBACK TRAN
-	end else begin
-		select @Result = 1
+	select @TE_IssueID = a.IssueID
+	from Assignment_TastingEvent ate
+		join Assignment a on ate.AssignmentID = a.ID
+	where ate.TastingEventID = @TastingEventID
 		
+	select @TN_IssueID = tn.IssueID, @TN_StatusID = tn.WF_StatusID
+	from TasteNote tn 
+	where ID = @TasteNote
+
+	--------------------------------------------------------------------------
+	
+	if @TN_StatusID < 100 begin
+		-- TN can be part of only 1 tasting event and we can change IssueID
+		delete TastingEvent_TasteNote where TasteNoteID = @TasteNote and TastingEventID != @TastingEventID
+		
+		update TasteNote set TastingEventID = @TastingEventID, IssueID = isnull(@TE_IssueID, IssueID)
+		where ID = @TasteNote
+	end else begin
 		update TasteNote set TastingEventID = @TastingEventID
 		where ID = @TasteNote and TastingEventID is NULL
-		
-	--	declare @msg nvarchar(1024) = dbo.fn_GetObjectDescription('WineProducer', @Result)
-	--	exec Audit_Add @Type='Success', @Category='Add', @Source='SQL', @UserName=@UserName, @MachineName='', 
-	--		@ObjectType='WineProducer', @ObjectID=@Result, @Description='WineProducer added', @Message=@msg,
-	--		@ShowRes=0
+	end
+	
+	if not exists(select * from TastingEvent_TasteNote (nolock) where TastingEventID = @TastingEventID and TasteNoteID = @TasteNote) begin
+		insert into TastingEvent_TasteNote (TastingEventID, TasteNoteID, created)
+		values (@TastingEventID, @TasteNote, getdate())
 	end
 
 	COMMIT TRANSACTION

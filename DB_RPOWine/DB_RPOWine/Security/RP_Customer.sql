@@ -6,9 +6,13 @@
 
 
 
+
+
 GO
 --EXECUTE sp_addrolemember @rolename = N'RP_Customer', @membername = N'eRPSqlUser';
 
 GO
 EXECUTE sp_addrolemember @rolename = N'RP_Customer', @membername = N'eRPSqlUser';
+
+
 

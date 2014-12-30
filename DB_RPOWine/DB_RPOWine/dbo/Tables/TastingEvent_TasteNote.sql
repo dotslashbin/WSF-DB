@@ -9,3 +9,10 @@
 
 
 
+
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_TastingEvent_TasteNote_TasteNoteID]
+    ON [dbo].[TastingEvent_TasteNote]([TasteNoteID] ASC);
+

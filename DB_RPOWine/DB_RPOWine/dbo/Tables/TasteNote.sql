@@ -35,12 +35,16 @@
     [EstimatedCost]      MONEY          NULL,
     [EstimatedCost_Hi]   MONEY          NULL,
     [RV]                 ROWVERSION     NOT NULL,
+    [BottleSizeID]       INT            CONSTRAINT [DF_TasteNote_BottleSizeID] DEFAULT ((0)) NOT NULL,
     CONSTRAINT [PK_TasteNote] PRIMARY KEY CLUSTERED ([ID] ASC) ON [TasteNotes],
     CONSTRAINT [FK_TasteNote_Issue] FOREIGN KEY ([IssueID]) REFERENCES [dbo].[Issue] ([ID]),
     CONSTRAINT [FK_TasteNote_Users] FOREIGN KEY ([UserId]) REFERENCES [dbo].[Users] ([UserId]),
     CONSTRAINT [FK_TasteNote_Wine_N] FOREIGN KEY ([Wine_N_ID]) REFERENCES [dbo].[Wine_N] ([ID]),
+    CONSTRAINT [FK_TasteNote_WineBottleSize] FOREIGN KEY ([BottleSizeID]) REFERENCES [dbo].[WineBottleSize] ([ID]),
     CONSTRAINT [FK_TasteNote_WineMaturity] FOREIGN KEY ([MaturityID]) REFERENCES [dbo].[WineMaturity] ([ID])
 ) TEXTIMAGE_ON [TasteNotes];
+
+
 
 
 

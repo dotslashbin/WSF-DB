@@ -1,8 +1,4 @@
-﻿
-
-
-
--- =============================================
+﻿-- =============================================
 -- Author:		Alex B.
 -- Create date: 1/28/2014
 -- Description:	Adds new Taste Note.
@@ -27,9 +23,9 @@ CREATE PROCEDURE [dbo].[TastingNote_Add]
 
 	@Places nvarchar(150) = null,
 	@Notes nvarchar(max),
+	@BottleSizeID int = NULL,
 	
 	@WF_StatusID smallint = NULL,
-	--@UserName varchar(50),
 	@ShowRes smallint = 1
 	
 /*
@@ -82,13 +78,6 @@ end
 ------------ Lookup IDs
 declare @locPlacesID int
 exec @locPlacesID = Location_GetLookupID @ObjectName='locPlaces', @ObjectValue=@Places, @IsAutoCreate=1
-
-------------- Audit
---if len(isnull(@UserName, '')) < 1 begin
---	raiserror('TasteNote_Add:: @UserName is required.', 16, 1)
---	RETURN -1
---end
---exec @CreatorID = Audit_GetLookupID @ObjectName = 'entryuser', @ObjectValue = @UserName
 ------------ Checks
 
 BEGIN TRY
@@ -98,13 +87,13 @@ BEGIN TRY
 	insert into TasteNote (OriginID, UserId, IssueID, Wine_N_ID, TasteDate, MaturityID, 
 		Rating_Lo, Rating_Hi, DrinkDate_Lo, DrinkDate_Hi, IsBarrelTasting,RatingQ,
 		EstimatedCost,EstimatedCost_Hi, 
-		locPlacesID, Notes,
+		locPlacesID, Notes, BottleSizeID,
 		created, updated, WF_StatusID)
 		
 	values (@OriginID, @UserId, @IssueID, @Wine_N_ID, @TasteDate, @MaturityID, 
 		@Rating_Lo, @Rating_Hi, @DrinkDate_Lo, @DrinkDate_Hi, @IsBarrelTasting,@RatingQ, 
 	    @EstimatedCost, @EstimatedCost_Hi,
-		@locPlacesID, @Notes,
+		@locPlacesID, @Notes, isnull(@BottleSizeID, 0),
 		getdate(), null, isnull(@WF_StatusID, 0))
 		
 	if @@error <> 0 begin
@@ -112,10 +101,6 @@ BEGIN TRY
 		ROLLBACK TRAN
 	end else begin
 		select @Result = scope_identity()
-	--	declare @msg nvarchar(1024) = dbo.fn_GetObjectDescription('TasteNote', @Result)
-	--	exec Audit_Add @Type='Success', @Category='Add', @Source='SQL', @UserName=@UserName, @MachineName='', 
-	--		@ObjectType='TasteNote', @ObjectID=@Result, @Description='TasteNote added', @Message=@msg,
-	--		@ShowRes=0
 	end
 
 	COMMIT TRANSACTION

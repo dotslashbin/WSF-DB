@@ -1,5 +1,8 @@
 ﻿
 
+--
+--
+-- 12/16/2014 added keywords field. should be added to full-text catalog as well
 
 CREATE VIEW [dbo].[vWineVinNDetails]
 WITH SCHEMABINDING 
@@ -27,7 +30,15 @@ AS
 		ProducerID = vn.ProducerID, TypeID = vn.TypeID, LabelID = vn.LabelID,
 		VarietyID = vn.VarietyID, DrynessID = vn.DrynessID, ColorID = vn.ColorID,
 		
-		Wine_VinN_WF_StatusID = vn.WF_StatusID
+		Wine_VinN_WF_StatusID = vn.WF_StatusID,
+		
+	
+		Keywords = isnull(lc.Name, '') + ' ' + isnull(lr.Name, '') 
+			+ ' ' + isnull(ll.Name, '') + ' ' + isnull(lloc.Name, '') + ' ' + isnull(ls.Name,'')
+			+ ' ' + isnull(wp.Name, '') + ' ' + isnull(wp.NameToShow, '') 
+			+ ' ' + isnull(wt.Name, '') + ' ' + isnull(wl.Name, '')
+			+ ' ' + isnull(wv.Name, '') + ' ' + isnull(wd.Name, '') + ' ' + isnull(wc.Name, '')
+		
 	from dbo.Wine_VinN vn
 
 		join dbo.WineProducer wp on vn.ProducerID = wp.ID

@@ -33,8 +33,17 @@
     [Vintage]          NVARCHAR (100) NULL,
     [Appellation]      NVARCHAR (100) NULL,
     CONSTRAINT [PK_Article] PRIMARY KEY CLUSTERED ([ID] ASC) ON [Articles],
+    CONSTRAINT [FK_Article_LocationCity] FOREIGN KEY ([locCityID]) REFERENCES [dbo].[LocationCity] ([ID]),
+    CONSTRAINT [FK_Article_LocationCountry] FOREIGN KEY ([locCountryID]) REFERENCES [dbo].[LocationCountry] ([ID]),
+    CONSTRAINT [FK_Article_LocationLocale] FOREIGN KEY ([locLocaleID]) REFERENCES [dbo].[LocationLocale] ([ID]),
+    CONSTRAINT [FK_Article_LocationLocation] FOREIGN KEY ([locLocationID]) REFERENCES [dbo].[LocationLocation] ([ID]),
+    CONSTRAINT [FK_Article_LocationRegion] FOREIGN KEY ([locRegionID]) REFERENCES [dbo].[LocationRegion] ([ID]),
+    CONSTRAINT [FK_Article_LocationSite] FOREIGN KEY ([locSiteID]) REFERENCES [dbo].[LocationSite] ([ID]),
+    CONSTRAINT [FK_Article_LocationState] FOREIGN KEY ([locStateID]) REFERENCES [dbo].[LocationState] ([ID]),
     CONSTRAINT [FK_Article_Publication] FOREIGN KEY ([PublicationID]) REFERENCES [dbo].[Publication] ([ID])
 ) TEXTIMAGE_ON [Articles];
+
+
 
 
 

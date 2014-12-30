@@ -1,6 +1,7 @@
 ﻿
 
 
+
 CREATE PROCEDURE [dbo].[Assignment_GetList_ByIssueId]
 	@IssueID int = NULL
 		
@@ -28,7 +29,9 @@ set nocount on
 		PublicationID = p.ID,
 		PublicationName = p.Name,
 
-		notesCount = isnull(nc.NotesCount,0)
+		notesCount = isnull(nc.NotesCount,0),
+		notesCountWaiting = isnull(ncWaiting.NotesCount,0),
+		notesCountApproved = isnull(ncApproved.NotesCount,0)
 		
 	from  
 
@@ -48,6 +51,35 @@ set nocount on
 		  where aa.IssueID=@IssueID
 		  group by ate.AssignmentID 
 		)  nc on  nc.AssignmentID = a.ID
+
+		left outer join 
+		(
+		  select 
+		  notesCount = COUNT(ten.TasteNoteID), 
+		  AssignmentID = ate.AssignmentID 
+		  from Assignment as aa   
+		  left join Assignment_TastingEvent as ate on ate.AssignmentID   = aa.ID
+		  left join TastingEvent_TasteNote  as ten on ten.TastingEventID = ate.TastingEventID
+		  left join TasteNote               as tn  on tn.ID              = ten.TasteNoteID 
+		  where aa.IssueID=@IssueID and tn.WF_StatusID < 60 and tn.WF_StatusID >= 0
+		  group by ate.AssignmentID 
+		)  ncWaiting on  ncWaiting.AssignmentID = a.ID
+
+		left outer join 
+		(
+		  select 
+		  notesCount = COUNT(ten.TasteNoteID), 
+		  AssignmentID = ate.AssignmentID 
+		  from Assignment as aa   
+		  left join Assignment_TastingEvent as ate on ate.AssignmentID   = aa.ID
+		  left join TastingEvent_TasteNote  as ten on ten.TastingEventID = ate.TastingEventID
+		  left join TasteNote               as tn  on tn.ID              = ten.TasteNoteID 
+		  where aa.IssueID=@IssueID and tn.WF_StatusID >= 60
+		  group by ate.AssignmentID 
+		)  ncApproved on  ncApproved.AssignmentID = a.ID
+
+
+
 
 		join Publication p (nolock) on i.PublicationID = p.ID
 		join WF_Statuses wfs (nolock) on a.WF_StatusID = wfs.ID

@@ -19,8 +19,10 @@ set xact_abort on;
 		--	rn = row_number() over (partition by Wine_N_ID order by Wine_N_ID, TasteDate desc, ID)
 		--from TasteNote (nolock)
 		--where WF_StatusID > 99
+		-- SourceDate = isnull(tn.oldSourceDate, i.PublicationDate)
 		select Wine_N_ID, TasteDate, tn.ID,
-			rn = row_number() over (partition by Wine_N_ID order by Wine_N_ID, TasteDate desc, tn.ID)
+			rn = row_number() over (
+				partition by Wine_N_ID order by Wine_N_ID, TasteDate desc, isnull(tn.oldSourceDate, i.PublicationDate) desc, tn.ID desc)
 		from TasteNote tn (nolock)
 			join Issue i (nolock) on tn.IssueID = i.ID
 			join Publication p (nolock) on i.PublicationID = p.ID

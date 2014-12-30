@@ -5,6 +5,7 @@
 
 
 
+
 -- =============================================
 -- Author:		Sergiy Savchenko
 -- Create date: 2/23/2014
@@ -69,24 +70,28 @@ set nocount on
 		EstimatedCost_Hi 
 
         ,RatingQ
-        ,Importers =   STUFF(  (select '+'+'---new-line---'+ Name 
+
+      ,Importers =  REPLACE(  (select '+++IMPORTER+++'+'---new-line---'+ Name 
                      +  case
-                          when LEN( isnull(Address,'')) > 0 then (',' + Address )
+                          when LEN( isnull(Address,'')) > 0 then (', ' + Address )
                           else ''
                         end   
                      +  case
-                          when LEN( isnull(Phone1,'')) > 0 then (',' + Phone1 )
+                          when LEN( isnull(Phone1,'')) > 0 then (', ' + Phone1 )
                           else ''
                         end   
                      +  case
-                          when LEN( isnull(URL,'')) > 0 then (',' + URL)
+                          when LEN( isnull(URL,'')) > 0 then (', ' + URL)
                           else ''
                         end   
                     from WineImporter wi
                     join WineProducer_WineImporter wpi  (nolock) on wpi.ImporterId  = wi.ID
                     where 
                     wpi.ProducerId = w.ProducerID
-                    FOR XML PATH('')), 1, 1, '' )
+                    FOR XML PATH('')), '+++IMPORTER+++', '' )	
+
+
+
                     						
 	from TasteNote tn (nolock)
 		join Users u (nolock) on tn.UserId = u.UserId

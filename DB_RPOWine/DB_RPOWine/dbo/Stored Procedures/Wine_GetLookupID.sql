@@ -1,11 +1,17 @@
 ﻿
 
+
 -- =============================================
 -- Author:		Alex B
 -- Create date: 1/22/14
 -- Description:	Gets internal ID of the lookup record.
 --				It will automatically add new records into lookup tables, if necessary AND @IsAutoCreate = 1.
 -- =============================================
+--
+-- addition 12.06.2014 Sergey
+--
+-- do not report error if a wine property could not be found and @IsAutoCreate is 0 
+--
 CREATE PROCEDURE [dbo].[Wine_GetLookupID]
 	@ObjectName as varchar(30), @ObjectValue as nvarchar(120),
 	@IsAutoCreate bit = 1
@@ -89,9 +95,15 @@ if (lower(@ObjectName) = 'wineproducer') begin
 	end
 end
 
-if ((lower(@ObjectName) in ('winelabel', 'winevariety','winedryness') and isnull(@Result, -1) < 0) 
-	or (lower(@ObjectName) not in ('winelabel', 'winevariety','winedryness') and isnull(@Result, 0) < 1)) begin
-	raiserror('Cannot find or create an entry in the [%s] with value "%s".', 16, 1, @ObjectName, @ObjectValue)
+--
+-- addition 12.06.2014
+--
+if @IsAutoCreate = 1
+begin
+	if ((lower(@ObjectName) in ('winelabel', 'winevariety','winedryness') and isnull(@Result, -1) < 0) 
+		or (lower(@ObjectName) not in ('winelabel', 'winevariety','winedryness') and isnull(@Result, 0) < 1)) begin
+		raiserror('Cannot find or create an entry in the [%s] with value "%s".', 16, 1, @ObjectName, @ObjectValue)
+	end
 end
 
 RETURN isnull(@Result, 0)

@@ -26,7 +26,7 @@ if @IsFullReload = 1 begin
 	end catch
 
 	insert into Wine (TasteNote_ID, Wine_N_ID, Wine_VinN_ID, IdN,
-		ArticleID, ArticleIdNKey,
+		ArticleID, ArticleIdNKey, BottleSize,
 		ColorClass,	Country, ClumpName,	Dryness, DrinkDate, DrinkDate_hi, EstimatedCost, encodedKeyWords,
 		fixedId, HasWJTasting, HasERPTasting, IsActiveWineN, Issue, IsERPTasting, IsWJTasting, IsCurrentlyForSale, IsCurrentlyOnAuction,
 		LabelName, Location, Locale, Maturity, MostRecentPrice, MostRecentPriceHi, MostRecentAuctionPrice,
@@ -36,11 +36,11 @@ if @IsFullReload = 1 begin
 		Vintage, Variety, VinN, WineN, WineType,
 		oldIdn, oldWineN, oldVinN, 
 		
-		wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID,
+		wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID, IssueID,
 		RV_TasteNote, RV_Wine_N
 	)
 	select TasteNote_ID, Wine_N_ID, Wine_VinN_ID, IdN,
-		ArticleID, ArticleIdNKey,
+		ArticleID, ArticleIdNKey, BottleSize,
 		ColorClass,	Country, ClumpName,	Dryness, DrinkDate, DrinkDate_hi, EstimatedCost, encodedKeyWords,
 		fixedId, HasWJTasting, HasERPTasting, isnull(IsActiveWineN, 0), Issue, IsERPTasting, IsWJTasting, IsCurrentlyForSale, IsCurrentlyOnAuction,
 		LabelName, Location, Locale, Maturity, MostRecentPrice, MostRecentPriceHi, MostRecentAuctionPrice,
@@ -50,7 +50,7 @@ if @IsFullReload = 1 begin
 		Vintage, Variety, VinN, WineN, WineType,
 		oldIdn, oldWineN, oldVinN, 
 		
-		wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID,
+		wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID, IssueID,
 		RV_TasteNote, RV_Wine_N
 	from vWine;
 	
@@ -68,7 +68,7 @@ end else begin
 		DelID int null);
 
 	select TasteNote_ID, Wine_N_ID, Wine_VinN_ID, IdN,
-		ArticleID, ArticleIdNKey,
+		ArticleID, ArticleIdNKey, BottleSize,
 		ColorClass,	Country, ClumpName,	Dryness, DrinkDate, DrinkDate_hi, EstimatedCost, encodedKeyWords,
 		fixedId, HasWJTasting, HasERPTasting, IsActiveWineN = isnull(IsActiveWineN,0), Issue, IsERPTasting, IsWJTasting, IsCurrentlyForSale, IsCurrentlyOnAuction,
 		LabelName, Location, Locale, Maturity, MostRecentPrice, MostRecentPriceHi, MostRecentAuctionPrice,
@@ -77,7 +77,7 @@ end else begin
 		Region,	Rating, RatingShow, ReviewerIdN, showForERP, showForWJ, source, SourceDate, Site,
 		Vintage, Variety, VinN, WineN, WineType,
 		oldIdn, oldWineN, oldVinN,
-		wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID,
+		wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID, IssueID,
 		RV_TasteNote = cast(RV_TasteNote as binary(8)), 
 		RV_Wine_N = cast(RV_Wine_N as binary(8))
 	into #t
@@ -89,7 +89,7 @@ end else begin
 	merge Wine as t
 	using (
 		select TasteNote_ID, Wine_N_ID, Wine_VinN_ID, IdN,
-			ArticleID, ArticleIdNKey,
+			ArticleID, ArticleIdNKey, BottleSize,
 			ColorClass,	Country, ClumpName,	Dryness, DrinkDate, DrinkDate_hi, EstimatedCost, encodedKeyWords,
 			fixedId, HasWJTasting, HasERPTasting, IsActiveWineN, Issue, IsERPTasting, IsWJTasting, IsCurrentlyForSale, IsCurrentlyOnAuction,
 			LabelName, Location, Locale, Maturity, MostRecentPrice, MostRecentPriceHi, MostRecentAuctionPrice,
@@ -98,16 +98,17 @@ end else begin
 			Region,	Rating, RatingShow, ReviewerIdN, showForERP, showForWJ, source, SourceDate, Site,
 			Vintage, Variety, VinN, WineN, WineType,
 			oldIdn, oldWineN, oldVinN, 
-			wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID,
+			wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID, IssueID,
 			RV_TasteNote, RV_Wine_N
 		from #t	--vWine
-	) as s on t.TasteNote_ID = s.TasteNote_ID and t.Wine_N_ID = s.Wine_N_ID --and t.Wine_VinN_ID = s.Wine_VinN_ID
+	) as s on t.TasteNote_ID = s.TasteNote_ID and t.Wine_N_ID = s.Wine_N_ID and t.IssueID = s.IssueID --and t.Wine_VinN_ID = s.Wine_VinN_ID
 	when matched 
 		and (t.RV_TasteNote != s.RV_TasteNote or t.RV_Wine_N != s.RV_Wine_N)
 	then
 		UPDATE set
 			ArticleID = isnull(s.ArticleID, t.ArticleID), 
 			ArticleIdNKey = isnull(s.ArticleIdNKey, t.ArticleIdNKey),
+			BottleSize = isnull(s.BottleSize, t.BottleSize),
 			ColorClass = isnull(s.ColorClass, t.ColorClass),	
 			Country = isnull(s.Country, t.Country), 
 			ClumpName = isnull(s.ClumpName, t.ClumpName),
@@ -164,11 +165,12 @@ end else begin
 			wDrynessID = isnull(s.wDrynessID, t.wDrynessID), 
 			wColorID = isnull(s.wColorID, t.wColorID), 
 			wVintageID = isnull(s.wVintageID, t.wVintageID),
+			IssueID = isnull(s.IssueID, t.IssueID),
 			RV_TasteNote = isnull(nullif(s.RV_TasteNote, 0x00), t.RV_TasteNote), 
 			RV_Wine_N = isnull(nullif(s.RV_Wine_N, 0x00), t.RV_Wine_N)
 	when not matched by target then
 		INSERT (TasteNote_ID, Wine_N_ID, Wine_VinN_ID, IdN,
-			ArticleID, ArticleIdNKey,
+			ArticleID, ArticleIdNKey, BottleSize,
 			ColorClass,	Country, ClumpName,	Dryness, DrinkDate, DrinkDate_hi, EstimatedCost, encodedKeyWords,
 			fixedId, HasWJTasting, HasERPTasting, IsActiveWineN, Issue, IsERPTasting, IsWJTasting, IsCurrentlyForSale, IsCurrentlyOnAuction,
 			LabelName, Location, Locale, Maturity, MostRecentPrice, MostRecentPriceHi, MostRecentAuctionPrice,
@@ -177,11 +179,11 @@ end else begin
 			Region,	Rating, RatingShow, ReviewerIdN, showForERP, showForWJ, source, SourceDate, Site,
 			Vintage, Variety, VinN, WineN, WineType,
 			oldIdn, oldWineN, oldVinN, 
-			wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID,
+			wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID, IssueID,
 			RV_TasteNote, RV_Wine_N
 		)
 		values(s.TasteNote_ID, s.Wine_N_ID, s.Wine_VinN_ID, IdN,
-			s.ArticleID, s.ArticleIdNKey,
+			s.ArticleID, s.ArticleIdNKey, s.BottleSize,
 			s.ColorClass, s.Country, s.ClumpName, s.Dryness, s.DrinkDate, s.DrinkDate_hi, s.EstimatedCost, s.encodedKeyWords,
 			s.fixedId, s.HasWJTasting, s.HasERPTasting, s.IsActiveWineN, s.Issue, s.IsERPTasting, s.IsWJTasting, s.IsCurrentlyForSale, s.IsCurrentlyOnAuction,
 			s.LabelName, s.Location, s.Locale, s.Maturity, s.MostRecentPrice, s.MostRecentPriceHi, s.MostRecentAuctionPrice,
@@ -190,7 +192,7 @@ end else begin
 			s.Region, s.Rating, s.RatingShow, s.ReviewerIdN, s.showForERP, s.showForWJ, s.source, s.SourceDate, s.Site,
 			s.Vintage, s.Variety, s.VinN, s.WineN, s.WineType,
 			s.oldIdn, s.oldWineN, s.oldVinN, 
-			wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID,
+			wProducerID, wTypeID, wLabelID, wVarietyID, wDrynessID, wColorID, wVintageID, IssueID,
 			s.RV_TasteNote, s.RV_Wine_N)
 	when not matched by source then
 		DELETE

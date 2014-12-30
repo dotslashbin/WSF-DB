@@ -47,6 +47,13 @@ BEGIN TRY
 	update Assignment set WF_StatusID = 0
 	where IssueID = @ID and WF_StatusID = 100;
 
+	print '-- Update Articles --'
+	update art set art.WF_StatusID = 60
+	from Assignment as a 
+		join Assignment_Article as ate on ate.AssignmentID = a.ID
+		join Article as art on art.ID = ate.ArticleID
+	where a.IssueID = @ID and art.WF_StatusID = 100;
+
 	print '-- Update TasteNotes --'
 	update tn set tn.WF_StatusID = 60
 	from Assignment as a 
@@ -84,6 +91,7 @@ BEGIN TRY
 	COMMIT TRANSACTION
 	
 	-- finally need refresh wine table
+	exec srv.Wine_UpdateIsActiveWineN
 	exec srv.Wine_Reload @IsFullReload = @IsFullReload
 	
 END TRY

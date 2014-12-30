@@ -1,12 +1,31 @@
 ﻿
 
 
+
+
+
 -- =============================================
 -- Author:		Alex B.
 -- Create date: 1/31/2014
 -- Description:	Searches for a WineVin and returns internal ID of the record.
 --				If a particular Wine_VinN record cannot be found, it will be created and new ID returned.
 -- =============================================
+-- 11/17/2014 do not create new record for Wine_VinN if @IsAutoCreate = 0 
+-- =============================================
+-- =============================================
+--
+-- addition 12/06/2014 Sergey
+--
+-- do not report error if a wine id could not be found and @IsAutoCreate is 0 
+--
+--
+-- addition 12/21/2014 Sergey
+--
+-- report to Wine_VinN_Log when new Vin is created 
+--
+
+
+
 CREATE PROCEDURE [dbo].[WineVin_GetID]
 	--@ID int = NULL, 
 	@Producer nvarchar(100), @WineType nvarchar(50), @Label nvarchar(120),
@@ -75,10 +94,17 @@ BEGIN TRY
 	------------ Lookup IDs
 
 	------------ Checks
-	if @ProducerID < 1 or @TypeID < 1 or @LabelID < 0 begin
+--
+-- addition 12.06.2014
+--
+if @IsAutoCreate = 1
+begin
+	if @ProducerID < 1 or @TypeID < 1 or @LabelID < 0 
+	begin
 		select @Result = -1
 		raiserror('WineVin_GetID:: Cannot find or register a new WineVin: producer, wine type and label are required.', 16, 1)
 	end
+end
 	------------ Checks
 
 	-- this is a unique key therefore only 1 record can be returned
@@ -87,7 +113,7 @@ BEGIN TRY
 		and VarietyID = @VarietyID and DrynessID = @DrynessID and ColorID = @ColorID
 		and locCountryID = @locCountryID and locRegionID = @locRegionID 
 		and locLocationID = @locLocationID and locLocaleID = @locLocaleID and locSiteID = @locSiteID
-	if @Result is NULL begin
+	if @Result is NULL and @IsAutoCreate = 1 begin
 		insert into Wine_VinN (GroupID, 
 			ProducerID, TypeID, LabelID, VarietyID, DrynessID, ColorID,
             locCountryID, locRegionID, locLocationID, locLocaleID, locSiteID,
@@ -101,6 +127,24 @@ BEGIN TRY
 			ROLLBACK TRAN
 		end else begin
 			select @Result = scope_identity()
+			
+			insert into Wine_VinN_Log 
+			([ID],[Producer],[Type],[Label],[Variety],[Dryness],[Color],[locCountry],[locRegion],[locLocation],[locLocale],[locSite],[operation])		  
+			values
+			(@Result,
+			isnull(@Producer,''),
+			isnull(@WineType,''),
+			isnull(@Label,''),
+			isnull(@Variety,''),
+			isnull(@Dryness,''),
+			isnull(@Color,''),
+			isnull(@locCountry,''),
+			isnull(@locRegion,''),
+			isnull(@locLocation,''),
+			isnull(@locLocale,''),
+			isnull(@locSite,''),
+			'create') 			
+			
 		--	declare @msg nvarchar(1024) = dbo.fn_GetObjectDescription('Wine_VinN', @Result)
 		--	exec Audit_Add @Type='Success', @Category='Add', @Source='SQL', @UserName=@UserName, @MachineName='', 
 		--		@ObjectType='Wine_VinN', @ObjectID=@Result, @Description='Wine_VinN added', @Message=@msg,

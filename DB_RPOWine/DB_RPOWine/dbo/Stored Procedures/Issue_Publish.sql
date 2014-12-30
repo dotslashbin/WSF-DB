@@ -33,6 +33,7 @@ end
 ------------ Checks
 
 BEGIN TRY
+
 	BEGIN TRANSACTION
 
 	-- =========== Entities ===========
@@ -44,6 +45,33 @@ BEGIN TRY
 	print '-- Update Assignment --'
 	update Assignment set WF_StatusID = 100
 	where IssueID = @ID and WF_StatusID < 100;
+
+	print '-- Update Articles --'
+	update art set art.WF_StatusID = 100
+	from Assignment as a 
+		join Assignment_Article as ate on ate.AssignmentID = a.ID
+		join Article as art on art.ID = ate.ArticleID
+	where a.IssueID = @ID and art.WF_StatusID < 100;
+
+	--print '-- Update Wine_N --'
+	--; with r as (
+	--	select distinct tn.Wine_N_ID
+	--	from Assignment as a 
+	--		join Assignment_TastingEvent as ate on ate.AssignmentID = a.ID
+	--		join TastingEvent_TasteNote as tet on tet.TastingEventID = ate.TastingEventID
+	--		join TasteNote as tn on tn.ID = tet.TasteNoteID
+	--	where a.IssueID = @ID and tn.WF_StatusID = 60
+	--)
+	--update Wine_N set WF_StatusID = 100
+	--from Wine_N wn
+	--	join r on wn.ID = r.Wine_N_ID
+	--where wn.WF_StatusID < 100;
+
+	--print '-- Update Wine_VinN --'
+	--update Wine_VinN set WF_StatusID = 100
+	--from Wine_VinN vn
+	--	join Wine_N wn on vn.ID = wn.Wine_VinN_ID
+	--where vn.WF_StatusID < 100 and wn.WF_StatusID > 99
 
 	print '-- Update TasteNotes --'
 	update tn set tn.WF_StatusID = 100
@@ -98,6 +126,8 @@ BEGIN TRY
 	COMMIT TRANSACTION
 	
 	-- finally need refresh wine table
+	exec srv.UpdateArticles
+	exec srv.Wine_UpdateIsActiveWineN
 	exec srv.Wine_Reload @IsFullReload = @IsFullReload
 	
 END TRY
