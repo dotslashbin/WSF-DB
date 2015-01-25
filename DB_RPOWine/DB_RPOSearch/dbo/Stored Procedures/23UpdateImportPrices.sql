@@ -1,5 +1,4 @@
-﻿
--- =============================================
+﻿-- =============================================
 -- Author:		Alex B.
 -- Create date: 4/13/14
 -- Description:	Adoptation of the script 23UpdateImportPrices.sql,
@@ -553,11 +552,13 @@ with a1 as (
 	from b1 
 		join a1 on a1.wid= b1.wid and a1.vintage = b1.vintage and isNull(a1.wineN, 0) = isNull(b1.wineN, 0)
 ), d1 as (
-	select cnt, lo, hi, errors 
+	select cnt, lo, hi, errors, cost
 	from c1 
 	where cnt = 2 and lo < (hi / 3)
 )
-update d1 set errors = case when errors is null then '' else errors + '   ' end 
+update d1 set 
+	cost = 0,
+	errors = case when errors is null then '' else errors + '   ' end 
 	+ 'E47.  Bad Price - Only 2, High > 3x Low';
 
 --cases where the low price is less than 1/3 of the median
@@ -587,7 +588,9 @@ with a1 as (
 	from e1 
 	where cost < (medianCost / 3)
 )
-update f1 set errors = case when errors is null then '' else errors + '   ' end 
+update f1 set 
+	cost = 0,
+	errors = case when errors is null then '' else errors + '   ' end 
 	+ 'E48.  Bad Price - Less than 1/3 median';
 
 --another round for cases where the low price is less than 1/3 of the median (it still detects suspect entries)
@@ -617,7 +620,9 @@ with a1 as (
 	from e1 
 	where cost < (medianCost / 3)
 )
-update f1 set errors = case when errors is null then '' else errors + '   ' end 
+update f1 set 
+	cost = 0,
+	errors = case when errors is null then '' else errors + '   ' end 
 	+ 'E48.  Bad Price - Less than 1/3 median';
 
 --cases where the high price if more that 3 times the median
@@ -646,7 +651,9 @@ with a1 as (
 	from e1 
 	where cost > (medianCost * 3)
 )
-update f1 set errors = case when errors is null then '' else errors + '   ' end 
+update f1 set 
+	cost = 0,
+	errors = case when errors is null then '' else errors + '   ' end 
 	+ 'E49.  Bad Price - More than 3x median';
 
 --another round for cases where the high price if more that 3 times the median (it still detects suspect entries)
@@ -676,7 +683,9 @@ with a1 as (
 	from e1 
 	where cost > (medianCost * 3)
 )
-update f1 set errors = case when errors is null then '' else errors + '   ' end 
+update f1 set 
+	cost = 0,
+	errors = case when errors is null then '' else errors + '   ' end 
 	+ 'E49.  Bad Price - More than 3x median';
 
 --put prices into forSale when not auction (don't worry about isOverridePriceException since it's already had it's effect in the above error detection

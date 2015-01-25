@@ -70,7 +70,7 @@ if @IsTWASearch = 1 begin
 		tnID = isnull(tn.ID, 0)
 	from Wine w (nolock)
 		left join TasteNote tn (nolock) on w.TasteNote_ID = tn.ID
-	where w.IsActiveWineN = 1 and w.showForERP = 1
+	where ((w.IsActiveWineN = 1 and w.showForERP = 1) or w.TasteNote_ID = 0)
 		and contains((encodedKeyWords,labelname,producershow), @Keyword)
 		and (@wProducerID is NULL or wProducerID = @wProducerID)
 		and (@wLabelID is NULL or wLabelID = @wLabelID)
@@ -140,7 +140,7 @@ end else if @IsTWASearch = 0 begin
 		from Wine w (nolock)
 			left join TasteNote tn (nolock) on w.TasteNote_ID = tn.ID
 		where --w.IsActiveWineN = 1 and 
-			w.showForWJ = 1
+			(w.showForWJ = 1 or w.TasteNote_ID = 0)
 			and contains((encodedKeyWords,labelname,producershow), @Keyword)
 			and (@wProducerID is NULL or wProducerID = @wProducerID)
 			and (@wLabelID is NULL or wLabelID = @wLabelID)

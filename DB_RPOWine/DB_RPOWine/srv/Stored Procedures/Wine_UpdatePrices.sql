@@ -56,8 +56,16 @@ set xact_abort on;
 	*/
 
 	-- 02. Update Price
-	-- NOTE: it does not clear out previous prices!!!
-	update Wine_N set IsCurrentlyForSale = 0, IsCurrentlyOnAuction = 0;
+	update Wine_N set 
+		IsCurrentlyForSale = 0, 
+		IsCurrentlyOnAuction = 0,
+		MostRecentPrice = 0,
+		MostRecentPriceHi = 0,
+		MostRecentPriceCnt = 0,
+		MostRecentAuctionPrice = 0,
+		MostRecentAuctionPriceHi = 0,
+		MostRecentAuctionPriceCnt = 0
+	;
 	
 	;with r as (
 		select 
@@ -72,7 +80,8 @@ set xact_abort on;
 			join dbo.SYN_t_WAName wan on sd.Wid = wan.Wid
 			join WineVintage wvin on isnull(sd.Vintage, '') = wvin.Name
 			join Wine_N wn on wan.Wine_VinN_ID = wn.Wine_VinN_ID and wn.VintageID = wvin.ID
-		where isnull(sd.DollarsPer750Bottle, 0) > 0 and len(isnull(sd.Errors,'')) < 1 and len(isnull(wan.Errors, '')) < 1
+		where isnull(sd.DollarsPer750Bottle, 0) > 0 
+			--and len(isnull(sd.Errors,'')) < 1 and len(isnull(wan.Errors, '')) < 1
 
 		group by wn.Wine_VinN_ID, wn.ID
 	)

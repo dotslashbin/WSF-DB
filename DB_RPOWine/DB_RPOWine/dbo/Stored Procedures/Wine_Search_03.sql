@@ -44,7 +44,7 @@ if @IsTWASearch = 1 begin
 			CntHasTasting = sum(case when showForERP = 1 and TasteNote_ID > 0 then 1 else 0 end),
 			CntForSaleAndHasTasting = sum(case when isCurrentlyForSale = 1 and showForERP = 1 and TasteNote_ID > 0 then 1 else 0 end)
 		from Wine (nolock)
-		where isActiveWineN = 1 and showForERP = 1
+		where ((isActiveWineN = 1 and showForERP = 1) or TasteNote_ID = 0)
 			and contains((encodedKeyWords,labelname,producershow), @Keyword)
 		group by wProducerID, ProducerShow
 	)
@@ -87,7 +87,7 @@ end else if @IsTWASearch = 0 begin
 		from Wine w (nolock)
 			join TasteNote tn (nolock) on w.TasteNote_ID = tn.ID
 		where --w.IsActiveWineN = 1 and 
-			w.showForWJ = 1
+			(w.showForWJ = 1 or w.TasteNote_ID = 0)
 			and contains((encodedKeyWords,labelname,producershow), @Keyword)
 	),
 	r as (

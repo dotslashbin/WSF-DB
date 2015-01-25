@@ -1,4 +1,5 @@
 ﻿
+
 CREATE VIEW [dbo].[vWine]
 
 AS
@@ -26,7 +27,7 @@ select
 			+ ' ' + isnull(wp.Name, '') + ' ' + isnull(wp.NameToShow, '') 
 			+ ' ' + isnull(wt.Name, '') + ' ' + isnull(wl.Name, '')
 			+ ' ' + isnull(wv.Name, '') + ' ' + isnull(wd.Name, '') + ' ' + isnull(wc.Name, '')
-			+ ' ' + isnull(wvin.Name, ''), '  ', '')
+			+ ' ' + isnull(wvin.Name, ''), '  ', ' ')
 	end,
 	fixedId = isnull(tn.oldFixedId, -((wn.ID * 1000) + isnull(tn.ID,0))),
 	HasWJTasting = isnull(wn.HasWJTasting, 0),

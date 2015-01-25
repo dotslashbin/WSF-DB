@@ -1,7 +1,12 @@
-﻿-- =============================================
+﻿
+-- =============================================
 -- Author:		Sergey S., Alex B.
 -- Create date: 7/27/2014
 -- Description:	Publishes Issue and all related items.
+
+
+-- Sergey. Update. do not throw error if issue has been published already
+
 -- =============================================
 CREATE PROCEDURE [dbo].[Issue_Publish]
 	@ID int, @IsFullReload bit = 1,
@@ -25,10 +30,10 @@ if not exists(select * from Issue (nolock) where ID = @ID) begin
 	RETURN -1
 end
 
-if exists(select * from Issue (nolock) where ID = @ID and WF_StatusID >= 100) begin
-	raiserror('Issue_Publish:: Issue with ID=%i has already been published.', 16, 1, @ID)
-	RETURN -1
-end
+--if exists(select * from Issue (nolock) where ID = @ID and WF_StatusID >= 100) begin
+--	raiserror('Issue_Publish:: Issue with ID=%i has already been published.', 16, 1, @ID)
+--	RETURN -1
+--end
 
 ------------ Checks
 
