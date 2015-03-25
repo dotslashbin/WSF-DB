@@ -42,6 +42,8 @@
 
 
 
+
+
 GO
 CREATE UNIQUE NONCLUSTERED INDEX [IX_Wine_N_Uniq]
     ON [dbo].[Wine_N]([Wine_VinN_ID] ASC, [VintageID] ASC)
@@ -63,6 +65,7 @@ CREATE NONCLUSTERED INDEX [IX_Wine_N_23Update_oldVinN]
 
 
 GO
+--------------------------------
 CREATE TRIGGER [dbo].[Wine_N_Change] ON [dbo].[Wine_N] 
 FOR UPDATE, DELETE
 AS

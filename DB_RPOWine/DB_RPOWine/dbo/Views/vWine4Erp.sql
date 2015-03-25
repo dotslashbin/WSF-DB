@@ -87,3 +87,4 @@ from Wine w (nolock)
 	join Wine_N wn (nolock) on w.Wine_N_ID = wn.ID
 	join TasteNote tn (nolock) on w.TasteNote_ID = tn.ID
 --where w.fixedId is NOT NULL	--- used TasteNote.ID
+where (IsERPTasting = 1 or IsWJTasting = 1)

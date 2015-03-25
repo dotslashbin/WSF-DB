@@ -4,6 +4,7 @@
 
 
 
+
 -- =============================================
 -- Author:		Alex B.
 -- Create date: 1/31/2014
@@ -22,6 +23,12 @@
 -- addition 12/21/2014 Sergey
 --
 -- report to Wine_VinN_Log when new Vin is created 
+--
+--
+--
+-- addition 01/17/2015 Sergey
+--
+-- remove insertion of a record to  Wine_VinN_Log when new record is created
 --
 
 
@@ -128,22 +135,6 @@ end
 		end else begin
 			select @Result = scope_identity()
 			
-			insert into Wine_VinN_Log 
-			([ID],[Producer],[Type],[Label],[Variety],[Dryness],[Color],[locCountry],[locRegion],[locLocation],[locLocale],[locSite],[operation])		  
-			values
-			(@Result,
-			isnull(@Producer,''),
-			isnull(@WineType,''),
-			isnull(@Label,''),
-			isnull(@Variety,''),
-			isnull(@Dryness,''),
-			isnull(@Color,''),
-			isnull(@locCountry,''),
-			isnull(@locRegion,''),
-			isnull(@locLocation,''),
-			isnull(@locLocale,''),
-			isnull(@locSite,''),
-			'create') 			
 			
 		--	declare @msg nvarchar(1024) = dbo.fn_GetObjectDescription('Wine_VinN', @Result)
 		--	exec Audit_Add @Type='Success', @Category='Add', @Source='SQL', @UserName=@UserName, @MachineName='', 
